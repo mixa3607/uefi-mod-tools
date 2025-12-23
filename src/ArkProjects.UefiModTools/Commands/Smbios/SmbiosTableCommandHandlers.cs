@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using ArkProjects.UefiModTools.Smbios;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.Smbios;

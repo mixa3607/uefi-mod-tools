@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using ArkProjects.UefiModTools.Smbios;
 using ArkProjects.UefiModTools.Smbios.Structures;
 using Microsoft.Extensions.DependencyInjection;
 

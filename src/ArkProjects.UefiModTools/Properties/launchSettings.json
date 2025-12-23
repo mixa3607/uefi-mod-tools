@@ -2,7 +2,7 @@
   "profiles": {
     "root": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug --version"
+      "commandLineArgs": "--log-level debug"
     },
     "smbios table2json": {
       "commandName": "Project",
@@ -19,6 +19,10 @@
     "smbios inject-struct": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug smbios inject-struct -i ./test-files/SMBiosStaticData_body.json -s 01.SystemInformation.json"
+    },
+    "uefi-editor-js render-menu": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi-editor-js render-menu -i ./test-files/ServerMgmtSetup_data.json -o ./test-files/ServerMgmtSetup_data.md"
     }
   }
 }

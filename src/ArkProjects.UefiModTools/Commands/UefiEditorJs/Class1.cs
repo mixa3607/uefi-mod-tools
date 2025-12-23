@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace ArkProjects.UefiModTools.Commands.UefiEditorJs;
+﻿namespace ArkProjects.UefiModTools.Commands.UefiEditorJs;
 
 
 public class Data

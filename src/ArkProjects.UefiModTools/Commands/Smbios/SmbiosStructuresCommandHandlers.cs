@@ -2,6 +2,7 @@
 using ConsoleTables;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using ArkProjects.UefiModTools.Smbios;
 
 namespace ArkProjects.UefiModTools.Commands.Smbios;
 

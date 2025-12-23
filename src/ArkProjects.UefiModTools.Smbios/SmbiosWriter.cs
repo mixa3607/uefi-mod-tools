@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ArkProjects.UefiModTools;
+namespace ArkProjects.UefiModTools.Smbios;
 
 public class SmbiosWriter
 {

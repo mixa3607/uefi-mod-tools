@@ -30,4 +30,12 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Smbios\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ArkProjects.UefiModTools.Smbios\ArkProjects.UefiModTools.Smbios.csproj" />
+	</ItemGroup>
+
 </Project>

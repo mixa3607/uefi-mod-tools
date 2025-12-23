@@ -2,6 +2,7 @@
 using ArkProjects.UefiModTools.Smbios.Structures;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ArkProjects.UefiModTools.Smbios;
 
 namespace ArkProjects.UefiModTools;
 

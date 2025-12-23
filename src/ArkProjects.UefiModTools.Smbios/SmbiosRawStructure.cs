@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools;
+﻿namespace ArkProjects.UefiModTools.Smbios;
 
 public class SmbiosRawStructure
 {
