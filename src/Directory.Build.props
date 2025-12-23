@@ -1,0 +1,64 @@
+<Project>
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--VERSION 1.1.2-->
+	<!--TARGET PACKAGE-->
+
+	<PropertyGroup>
+		<Authors>mixa3607</Authors>
+		<Company>ArkProjects</Company>
+
+		<BUILD_DATE>$([System.DateTime]::Now.ToString())</BUILD_DATE>
+		<CI_COMMIT_REF_NAME Condition="'$(CI_COMMIT_REF_NAME)' == ''">local</CI_COMMIT_REF_NAME>
+		<CI_COMMIT_SHORT_SHA Condition="'$(CI_COMMIT_SHORT_SHA)' == ''">deadbeef</CI_COMMIT_SHORT_SHA>
+		<CI_COMMIT_SHA Condition="'$(CI_COMMIT_SHA)' == ''">deadbeefdeadbeefdeadbeefdeadbeef</CI_COMMIT_SHA>
+
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<NuGetAudit>false</NuGetAudit>
+	</PropertyGroup>
+
+	<Import Project="Directory.Build.custom.props" Condition="Exists('Directory.Build.custom.props')" />
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
+
+	<!-- source link -->
+	<PropertyGroup>
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>$(CI_PROJECT_URL)</RepositoryUrl>
+		<RepositoryBranch>$(CI_COMMIT_REF_NAME)</RepositoryBranch>
+		<RepositoryCommit>$(CI_COMMIT_SHA)</RepositoryCommit>
+	</PropertyGroup>
+
+	<!-- CI/CD build -->
+	<PropertyGroup Condition="'$(CI)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<!-- Inject build info -->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>BUILD_DATE</_Parameter1>
+			<_Parameter2>$(BUILD_DATE)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>CI_COMMIT_REF_NAME</_Parameter1>
+			<_Parameter2>$(CI_COMMIT_REF_NAME)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>CI_COMMIT_SHORT_SHA</_Parameter1>
+			<_Parameter2>$(CI_COMMIT_SHORT_SHA)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>CI_COMMIT_SHA</_Parameter1>
+			<_Parameter2>$(CI_COMMIT_SHA)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>CI_PROJECT_URL</_Parameter1>
+			<_Parameter2>$(CI_PROJECT_URL)</_Parameter2>
+		</AssemblyAttribute>
+	</ItemGroup>
+</Project>

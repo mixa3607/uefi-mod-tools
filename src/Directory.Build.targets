@@ -1,0 +1,41 @@
+<Project>
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+	<!--VERSION 1.1.2-->
+	<!--TARGET PACKAGE-->
+
+	<Import Project="Directory.Build.custom.targets" Condition="Exists('Directory.Build.custom.targets')" />
+
+	<!-- NuGet package -->
+	<PropertyGroup Condition="'$(IsPackable)' == 'true'">
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<PackageVersion>$(Version)</PackageVersion>
+
+		<PackageId>$(AssemblyName)</PackageId>
+		<PackageReadmeFile>docs/README.md</PackageReadmeFile>
+		<PackageIcon>images/package-icon.png</PackageIcon>
+		<PackageLicenseFile>docs/LICENSE.txt</PackageLicenseFile>
+		<PackageProjectUrl>$(CI_PROJECT_URL)/$(PackageId)</PackageProjectUrl>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(IsPackable)' == 'true'">
+		<None Include="../README.md" Pack="true" Visible="false" PackagePath="docs/" />
+		<None Include="../LICENSE.txt" Pack="true" Visible="false" PackagePath="docs/" />
+		<None Include="./package-icon.png" Pack="true" Visible="false" PackagePath="images/" />
+	</ItemGroup>
+
+	<!-- Log build info -->
+	<PropertyGroup>
+		<DEBUG_MSG>Assembly: $(AssemblyName)
+Is packable: $(IsPackable)
+Is sdk: $(UsingMicrosoftNETSdk)
+Is sdk web: $(UsingMicrosoftNETSdkWeb)
+OutputType: $(OutputType)
+BUILD_DATE: $(BUILD_DATE)</DEBUG_MSG>
+	</PropertyGroup>
+	<Target Name="DisplayBuildDebugMessage" AfterTargets="Build">
+		<Message Text="$(DEBUG_MSG)" Importance="high" />
+	</Target>
+
+</Project>

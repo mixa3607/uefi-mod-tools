@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "root": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug"
+    },
+    "smbios table2json": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug smbios table2json -i ./test-files/SMBiosStaticData_body.bin -o ./test-files/SMBiosStaticData_body.json"
+    },
+    "smbios known-structs": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug smbios known-structs"
+    },
+    "smbios extract-struct": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug smbios extract-struct -i ./test-files/SMBiosStaticData_body.json --handle 1 -o 01.SystemInformation.json"
+    },
+    "smbios inject-struct": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug smbios inject-struct -i ./test-files/SMBiosStaticData_body.json -s 01.SystemInformation.json"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools", "ArkProjects.UefiModTools\ArkProjects.UefiModTools.csproj", "{BA33C285-890D-436C-8324-EA95BDF8E727}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools.Smbios", "ArkProjects.UefiModTools.Smbios\ArkProjects.UefiModTools.Smbios.csproj", "{C5C77475-FDDE-4182-904B-3A32F7020EF0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA33C285-890D-436C-8324-EA95BDF8E727}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA33C285-890D-436C-8324-EA95BDF8E727}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA33C285-890D-436C-8324-EA95BDF8E727}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA33C285-890D-436C-8324-EA95BDF8E727}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B628E9C0-CE37-47F2-9465-CBCF269A27CE}
+	EndGlobalSection
+EndGlobal
