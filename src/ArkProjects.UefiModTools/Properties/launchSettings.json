@@ -12,7 +12,11 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug smbios known-structs"
     },
-    "smbios extract-struct": {
+    "smbios extract-struct [BiosInformation]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug smbios extract-struct -i ./test-files/SMBiosStaticData_body.json --handle 0 -o 00.BiosInformation.json"
+    },
+    "smbios extract-struct [SystemInformation]": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug smbios extract-struct -i ./test-files/SMBiosStaticData_body.json --handle 1 -o 01.SystemInformation.json"
     },

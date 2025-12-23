@@ -5,7 +5,7 @@ namespace ArkProjects.UefiModTools.Smbios.Structures;
 public class BiosInformationStructure : ISmbiosStructure
 {
     [JsonIgnore]
-    public SmbiosStructureType StructureType => SmbiosStructureType.SystemInformation;
+    public SmbiosStructureType StructureType => SmbiosStructureType.BiosInformation;
     public ushort StructureHandle { get; set; }
     /// <summary>
     /// Vendor
