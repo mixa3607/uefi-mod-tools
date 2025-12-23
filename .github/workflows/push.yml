@@ -21,12 +21,13 @@ jobs:
       - name: Build
         run: dotnet build -c Release
       - name: Test
+        working-directory: src
         run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults"
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
         with:
           name: dotnet-results
-          path: TestResults
+          path: ./src/TestResults
         if: ${{ always() }}
   publish:
     needs: [test]
