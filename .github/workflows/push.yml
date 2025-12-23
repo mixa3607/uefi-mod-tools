@@ -19,6 +19,7 @@ jobs:
           path: ~/.nuget/packages
           key: ${{runner.os}}-nuget
       - name: Build
+        working-directory: src
         run: dotnet build -c Release
       - name: Test
         working-directory: src
