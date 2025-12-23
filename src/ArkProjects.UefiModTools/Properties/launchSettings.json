@@ -2,7 +2,7 @@
   "profiles": {
     "root": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug"
+      "commandLineArgs": "--log-level debug --version"
     },
     "smbios table2json": {
       "commandName": "Project",
