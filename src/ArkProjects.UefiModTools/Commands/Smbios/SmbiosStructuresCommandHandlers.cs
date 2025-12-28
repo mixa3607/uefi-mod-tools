@@ -9,18 +9,18 @@ namespace ArkProjects.UefiModTools.Commands.Smbios;
 public class SmbiosStructuresCommandHandlers
 {
     private readonly ILogger<SmbiosStructuresCommandHandlers> _logger;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly JsonSerializationService _jsonSerializer;
     private readonly IEnumerable<ISmbiosStructureReader> _readers;
     private readonly IEnumerable<ISmbiosStructureWriter> _writers;
 
     public SmbiosStructuresCommandHandlers(IEnumerable<ISmbiosStructureReader> readers,
         IEnumerable<ISmbiosStructureWriter> writers, ILogger<SmbiosStructuresCommandHandlers> logger,
-        JsonSerializerOptions jsonSerializerOptions)
+        JsonSerializationService jsonSerializer)
     {
         _readers = readers;
         _writers = writers;
         _logger = logger;
-        _jsonSerializerOptions = jsonSerializerOptions;
+        _jsonSerializer = jsonSerializer;
     }
 
     public int KnownStructs(string output)
@@ -44,7 +44,7 @@ public class SmbiosStructuresCommandHandlers
     {
         _logger.LogInformation("Converting SMBIOS structure to json");
         var tableJson = File.ReadAllText(input);
-        var table = JsonSerializer.Deserialize<SmbiosDump>(tableJson, _jsonSerializerOptions)!;
+        var table = _jsonSerializer.Deserialize<SmbiosDump>(tableJson);
 
         var structureRaw = table.Structures.FirstOrDefault(x => handle < 0 || x.StructureHandle == handle);
         if (structureRaw == null)
@@ -72,7 +72,7 @@ public class SmbiosStructuresCommandHandlers
         }
 
         var structure = reader.Read(rawStructure);
-        var structureJson = JsonSerializer.Serialize(structure, _jsonSerializerOptions);
+        var structureJson = _jsonSerializer.Serialize(structure);
         if (!verify)
         {
             _logger.LogWarning("Skip repack verification!");
@@ -88,7 +88,7 @@ public class SmbiosStructuresCommandHandlers
             return structureJson;
         }
 
-        structure = JsonSerializer.Deserialize<ISmbiosStructure>(structureJson, _jsonSerializerOptions)!;
+        structure = _jsonSerializer.Deserialize<ISmbiosStructure>(structureJson)!;
         var repackedRawStructure = writer.Write(structure);
         if (!rawStructure.Strings.ToArray().SequenceEqual(repackedRawStructure.Strings) ||
             !rawStructure.Body.ToArray().SequenceEqual(repackedRawStructure.Body) ||
@@ -108,10 +108,10 @@ public class SmbiosStructuresCommandHandlers
     public int Inject(string inputFile, string structureFile, string outputFile)
     {
         var tableJson = File.ReadAllText(inputFile);
-        var table = JsonSerializer.Deserialize<SmbiosDump>(tableJson, _jsonSerializerOptions)!;
+        var table = _jsonSerializer.Deserialize<SmbiosDump>(tableJson)!;
 
         var structureJson = File.ReadAllText(structureFile);
-        var structure = JsonSerializer.Deserialize<ISmbiosStructure>(structureJson, _jsonSerializerOptions)!;
+        var structure = _jsonSerializer.Deserialize<ISmbiosStructure>(structureJson)!;
 
         var writer = _writers.FirstOrDefault(x => x.AllowedStructureType == structure.StructureType);
         if (writer == null)
@@ -129,7 +129,7 @@ public class SmbiosStructuresCommandHandlers
         }
 
 
-        tableJson = JsonSerializer.Serialize(table, _jsonSerializerOptions);
+        tableJson = _jsonSerializer.Serialize(table);
         CommandHelpers.WriteResult(tableJson, outputFile, true, _logger);
         return 0;
     }

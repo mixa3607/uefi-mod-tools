@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using ArkProjects.UefiModTools.Smbios;
+﻿using ArkProjects.UefiModTools.Smbios;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.Smbios;
@@ -7,17 +6,17 @@ namespace ArkProjects.UefiModTools.Commands.Smbios;
 public class SmbiosTableCommandHandlers
 {
     private readonly ILogger<SmbiosTableCommandHandlers> _logger;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly JsonSerializationService _jsonSerializer;
     private readonly SmbiosReader _reader;
     private readonly SmbiosWriter _writer;
 
     public SmbiosTableCommandHandlers(ILogger<SmbiosTableCommandHandlers> logger, SmbiosReader reader,
-        SmbiosWriter writer, JsonSerializerOptions jsonSerializerOptions)
+        SmbiosWriter writer, JsonSerializationService jsonSerializer)
     {
         _logger = logger;
         _reader = reader;
         _writer = writer;
-        _jsonSerializerOptions = jsonSerializerOptions;
+        _jsonSerializer = jsonSerializer;
     }
 
     public int Table2Json(string input, string output, bool verify)
@@ -34,7 +33,7 @@ public class SmbiosTableCommandHandlers
     {
         using var dumpStream = new MemoryStream(dumpBytes);
         var dump = _reader.Read(dumpStream);
-        var jsonDump = JsonSerializer.Serialize(dump, _jsonSerializerOptions);
+        var jsonDump = _jsonSerializer.Serialize(dump);
 
         if (!verify)
         {
@@ -43,7 +42,7 @@ public class SmbiosTableCommandHandlers
         }
 
         _logger.LogInformation("Verifying dump by repacking...");
-        dump = JsonSerializer.Deserialize<SmbiosDump>(jsonDump, _jsonSerializerOptions)!;
+        dump = _jsonSerializer.Deserialize<SmbiosDump>(jsonDump);
         var repackStream = new MemoryStream();
         _writer.Write(dump, repackStream);
         if (repackStream.ToArray().SequenceEqual(dumpBytes))
@@ -60,7 +59,7 @@ public class SmbiosTableCommandHandlers
     {
         _logger.LogInformation("Converting SMBIOS json dump to table bin");
         var jsonDump = File.ReadAllText(input);
-        var dump = JsonSerializer.Deserialize<SmbiosDump>(jsonDump, _jsonSerializerOptions)!;
+        var dump = _jsonSerializer.Deserialize<SmbiosDump>(jsonDump);
         var tableBytes = new byte[dump.Length];
         var tableStream = new MemoryStream(tableBytes);
         _writer.Write(dump, tableStream);

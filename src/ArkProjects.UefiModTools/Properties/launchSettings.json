@@ -27,6 +27,18 @@
     "uefi-editor-js render-menu": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi-editor-js render-menu -i ./test-files/ServerMgmtSetup_data.json -o ./test-files/ServerMgmtSetup_data.md"
+    },
+    "bin-tools split": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug bin-tools split -i ./test-files/bmc.bin -t ./test-files/partitions-table.json -o ./test-files/bmc"
+    },
+    "ami-tools unpack-bak": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug ami-tools unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
+    },
+    "ami-tools pack-bak": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug ami-tools pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak"
     }
   }
 }

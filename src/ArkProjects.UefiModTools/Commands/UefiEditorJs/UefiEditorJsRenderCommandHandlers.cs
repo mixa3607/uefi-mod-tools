@@ -1,26 +1,25 @@
-﻿using ConsoleTables;
+﻿using ArkProjects.UefiModTools.Commands.UefiEditorJs.Models;
+using ConsoleTables;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace ArkProjects.UefiModTools.Commands.UefiEditorJs;
 
 public class UefiEditorJsRenderCommandHandlers
 {
     private readonly ILogger<UefiEditorJsRenderCommandHandlers> _logger;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly JsonSerializationService _jsonSerializer;
 
     public UefiEditorJsRenderCommandHandlers(ILogger<UefiEditorJsRenderCommandHandlers> logger,
-        JsonSerializerOptions jsonSerializerOptions)
+        JsonSerializationService jsonSerializer)
     {
         _logger = logger;
-        _jsonSerializerOptions = jsonSerializerOptions;
+        _jsonSerializer = jsonSerializer;
     }
 
     public int RenderMenu(string inputFile, string outputFile)
     {
-        _logger.LogInformation("Reading file {f}...", inputFile);
-        var jStr = File.ReadAllText(inputFile);
-        var data = JsonSerializer.Deserialize<Data>(jStr, _jsonSerializerOptions)!;
+        var str = CommandHelpers.ReadString(inputFile, null, _logger);
+        var data = _jsonSerializer.Deserialize<Data>(str);
 
         _logger.LogInformation("Rendering data...");
         var tree = ProcessData(data);

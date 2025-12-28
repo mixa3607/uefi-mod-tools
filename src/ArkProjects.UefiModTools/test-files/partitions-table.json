@@ -1,0 +1,34 @@
+{
+  "partitions": [
+    {
+      "fileName": "bootloader.bin",
+      "description": "U-Boot + SPL",
+      "beginAddress": "0x00000000",
+      "endAddress": "0x00060000"
+    },
+    {
+      "fileName": "user-data.bin",
+      "description": "JFFS2 user data",
+      "beginAddress": "0x00060000",
+      "endAddress": "0x001E0000"
+    },
+    {
+      "fileName": "root-fs.bin",
+      "description": "CramFS root fs",
+      "beginAddress": "0x001E0000",
+      "endAddress": "0x1120040"
+    },
+    {
+      "fileName": "u-image.bin",
+      "description": "Linux kernel (uImage)",
+      "beginAddress": "0x1120040",
+      "endAddress": "0x01490000"
+    },
+    {
+      "fileName": "web-data.bin",
+      "description": "CramFS web data",
+      "beginAddress": "0x01490000",
+      "endAddress": "0x02000000"
+    }
+  ]
+}

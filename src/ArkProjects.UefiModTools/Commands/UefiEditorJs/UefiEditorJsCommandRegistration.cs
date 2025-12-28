@@ -1,5 +1,6 @@
-﻿using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.CommandLine;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ArkProjects.UefiModTools.Commands.UefiEditorJs;
 
@@ -18,6 +19,7 @@ public class UefiEditorJsCommandRegistration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
+                    .AddSingleton<IJsonTypeInfoResolver>(UefiEditorJsJsonSerializerContext.Default)
                     .AddSingleton<UefiEditorJsRenderCommandHandlers>()
                 ;
         }

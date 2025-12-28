@@ -1,7 +1,8 @@
-﻿using System.CommandLine;
-using ArkProjects.UefiModTools.Smbios;
+﻿using ArkProjects.UefiModTools.Smbios;
 using ArkProjects.UefiModTools.Smbios.Structures;
 using Microsoft.Extensions.DependencyInjection;
+using System.CommandLine;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ArkProjects.UefiModTools.Commands.Smbios;
 
@@ -21,6 +22,7 @@ public class SmbiosCommandRegistration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
+                    .AddSingleton<IJsonTypeInfoResolver>(SmbiosJsonSerializerContext.Default)
                     .AddSingleton<SmbiosReader>()
                     .AddSingleton<SmbiosWriter>()
                     .AddSingleton<SmbiosTableCommandHandlers>()
@@ -102,6 +104,7 @@ public class SmbiosCommandRegistration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
+                    .AddSingleton<IJsonTypeInfoResolver>(SmbiosJsonSerializerContext.Default)
                     .AddSingleton<BiosInformationConverter>()
                     .AddSingleton<ISmbiosStructureReader>(x => x.GetRequiredService<BiosInformationConverter>())
                     .AddSingleton<ISmbiosStructureWriter>(x => x.GetRequiredService<BiosInformationConverter>())

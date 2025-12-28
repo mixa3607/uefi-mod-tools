@@ -15,6 +15,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Smbios\**" />
+	  <EmbeddedResource Remove="Smbios\**" />
+	  <None Remove="Smbios\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="ConsoleTables" Version="2.7.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
@@ -29,10 +35,6 @@
 		<None Update="test-files/**/*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Smbios\" />
 	</ItemGroup>
 
 	<ItemGroup>
