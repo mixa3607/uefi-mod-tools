@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using ArkProjects.UefiModTools.Misc;
 
 namespace ArkProjects.UefiModTools.Commands.BinTools.Models;
 

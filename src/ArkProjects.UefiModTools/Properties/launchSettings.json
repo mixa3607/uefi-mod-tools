@@ -28,17 +28,25 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi-editor-js render-menu -i ./test-files/ServerMgmtSetup_data.json -o ./test-files/ServerMgmtSetup_data.md"
     },
-    "bin-tools split": {
+    "bin split": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug bin-tools split -i ./test-files/bmc.bin -t ./test-files/partitions-table.json -o ./test-files/bmc"
+      "commandLineArgs": "--log-level debug bin split -i ./test-files/bmc.bin -t ./test-files/partitions-table.json -o ./test-files/bmc"
     },
-    "ami-tools unpack-bak": {
+    "ami unpack-bak": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami-tools unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
+      "commandLineArgs": "--log-level debug ami unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
     },
-    "ami-tools pack-bak": {
+    "ami pack-bak": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami-tools pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak"
+      "commandLineArgs": "--log-level debug ami pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak"
+    },
+    "ami fmh-extract": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug ami fmh-extract -i test-files/IMB760_BMC_mixa3607_F8CC6E033BF2_configured.bin -s 0x10000 -o ./test-files/fmh.json"
+    },
+    "uboot read-env": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uboot read-env -i test-files/default-env.bin -o -"
     }
   }
 }

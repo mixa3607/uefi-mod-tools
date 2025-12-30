@@ -1,14 +1,15 @@
-﻿using ArkProjects.UefiModTools.Commands;
-using ArkProjects.UefiModTools.Commands.BinTools;
-using ArkProjects.UefiModTools.Commands.Smbios;
-using ArkProjects.UefiModTools.Commands.UefiEditorJs;
+﻿using ArkProjects.UefiModTools.Commands.UefiEditorJs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using ArkProjects.UefiModTools.Commands.AmiTools;
+using ArkProjects.UefiModTools.Commands.Bin;
+using ArkProjects.UefiModTools.Commands.BinTools;
+using ArkProjects.UefiModTools.Commands.SmbiosTools;
+using ArkProjects.UefiModTools.Commands.UefiEditorJsTools;
+using ArkProjects.UefiModTools.Misc;
 
 namespace ArkProjects.UefiModTools;
 
@@ -27,10 +28,12 @@ internal class Program
             DefaultValueFactory = _ => LogLevel.Information,
         };
         rootCommand.Add(logLevelOpt);
-        SmbiosCommandRegistration.Register(rootCommand, services);
+
         UefiEditorJsCommandRegistration.Register(rootCommand, services);
-        BinToolsCommandRegistration.Register(rootCommand, services);
-        AmiToolsCommandRegistration.Register(rootCommand, services);
+        BinCommandRegistration.Register(rootCommand, services);
+        Registration.Register(rootCommand, services);
+        Commands.AmiTools.Registration.Register(rootCommand, services);
+        Commands.UBootTools.Registration.Register(rootCommand, services);
 
         // parse
         var parseResult = rootCommand.Parse(args);
