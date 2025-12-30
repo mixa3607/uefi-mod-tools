@@ -1,11 +1,9 @@
-﻿using ArkProjects.UefiModTools.Commands.UefiEditorJs;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using ArkProjects.UefiModTools.Commands.Bin;
 using ArkProjects.UefiModTools.Commands.BinTools;
 using ArkProjects.UefiModTools.Commands.SmbiosTools;
 using ArkProjects.UefiModTools.Commands.UefiEditorJsTools;

@@ -19,7 +19,7 @@ public class UefiEditorJsCommandRegistration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
-                    .AddSingleton<IJsonTypeInfoResolver>(UefiEditorJs.UefiEditorJsJsonSerializerContext.Default)
+                    .AddSingleton<IJsonTypeInfoResolver>(UefiEditorJsJsonSerializerContext.Default)
                     .AddSingleton<UefiEditorJsRenderCommandHandlers>()
                 ;
         }

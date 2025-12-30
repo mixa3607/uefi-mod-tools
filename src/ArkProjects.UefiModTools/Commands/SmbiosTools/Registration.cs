@@ -22,7 +22,7 @@ public class Registration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
-                    .AddSingleton<IJsonTypeInfoResolver>(Smbios.SmbiosJsonSerializerContext.Default)
+                    .AddSingleton<IJsonTypeInfoResolver>(SmbiosJsonSerializerContext.Default)
                     .AddSingleton<SmbiosReader>()
                     .AddSingleton<SmbiosWriter>()
                     .AddSingleton<SmbiosTableCommandHandlers>()
@@ -104,7 +104,7 @@ public class Registration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
-                    .AddSingleton<IJsonTypeInfoResolver>(Smbios.SmbiosJsonSerializerContext.Default)
+                    .AddSingleton<IJsonTypeInfoResolver>(SmbiosJsonSerializerContext.Default)
                     .AddSingleton<BiosInformationConverter>()
                     .AddSingleton<ISmbiosStructureReader>(x => x.GetRequiredService<BiosInformationConverter>())
                     .AddSingleton<ISmbiosStructureWriter>(x => x.GetRequiredService<BiosInformationConverter>())

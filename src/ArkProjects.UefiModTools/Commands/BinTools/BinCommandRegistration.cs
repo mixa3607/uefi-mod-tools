@@ -19,7 +19,7 @@ public class BinCommandRegistration
         static IServiceCollection RegisterServices(IServiceCollection services)
         {
             return services
-                    .AddSingleton<IJsonTypeInfoResolver>(Bin.BinJsonSerializerContext.Default)
+                    .AddSingleton<IJsonTypeInfoResolver>(BinJsonSerializerContext.Default)
                     .AddSingleton<BinCommandHandlers>()
                 ;
         }

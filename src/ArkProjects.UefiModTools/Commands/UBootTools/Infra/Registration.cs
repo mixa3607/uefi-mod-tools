@@ -20,7 +20,7 @@ public class Registration
         {
             return services
                     .AddSingleton<UBootEnvParser>()
-                    .AddSingleton<IJsonTypeInfoResolver>(UBoot.StaticJsonSerializerContext.Default)
+                    .AddSingleton<IJsonTypeInfoResolver>(StaticJsonSerializerContext.Default)
                     .AddSingleton<UBootEnvCommandHandlers>()
                 ;
         }
