@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Smbios;
+namespace ArkProjects.UefiModTools.Smbios;
 
 public enum SmbiosStructureType : byte
 {

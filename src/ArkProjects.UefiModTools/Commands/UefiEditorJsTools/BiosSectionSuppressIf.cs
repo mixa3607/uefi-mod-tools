@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools;
+namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools;
 
 public class BiosSectionSuppressIf
 {

@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Smbios.Structures;
+namespace ArkProjects.UefiModTools.Smbios.Structures;
 
 public class BiosInformationConverter : ISmbiosStructureReader, ISmbiosStructureWriter
 {

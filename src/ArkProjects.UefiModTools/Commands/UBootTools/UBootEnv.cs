@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Commands.UBootTools;
+namespace ArkProjects.UefiModTools.Commands.UBootTools;
 
 public class UBootEnv
 {

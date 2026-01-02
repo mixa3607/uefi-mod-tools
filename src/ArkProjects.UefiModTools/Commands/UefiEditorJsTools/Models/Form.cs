@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools.Models;
+namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools.Models;
 
 public class Form
 {

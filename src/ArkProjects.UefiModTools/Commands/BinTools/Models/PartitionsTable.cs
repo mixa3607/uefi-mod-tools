@@ -1,4 +1,4 @@
-﻿namespace ArkProjects.UefiModTools.Commands.BinTools.Models;
+namespace ArkProjects.UefiModTools.Commands.BinTools.Models;
 
 public class PartitionsTable
 {

@@ -32,13 +32,17 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug bin split -i ./test-files/bmc.bin -t ./test-files/partitions-table.json -o ./test-files/bmc"
     },
-    "ami unpack-bak": {
+    "ami bmc unpack-bak": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
+      "commandLineArgs": "--log-level debug ami bmc unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
     },
-    "ami pack-bak": {
+    "ami bmc pack-bak": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak"
+      "commandLineArgs": "--log-level debug ami bmc pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak --bugged-sha true"
+    },
+    "ami bmc-bios2hpm": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug ami bmc-bios2hpm -i test-files/bak-unpack -o ./test-files/config.mod.bak"
     },
     "ami fmh-extract": {
       "commandName": "Project",
