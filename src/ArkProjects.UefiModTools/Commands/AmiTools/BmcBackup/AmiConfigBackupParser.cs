@@ -5,6 +5,14 @@ using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcBackup;
 
+public class BackupInfoModel
+{
+    public int Version { get; set; }
+    public int CheckSumKeyIndex { get; set; }
+    public bool IsBuggedSha1 { get; set; }
+    public List<string> Files { get; set; } = new();
+}
+
 public class AmiConfigBackupParser
 {
     private readonly string[] _hashSumKeys = new[]
@@ -28,16 +36,16 @@ public class AmiConfigBackupParser
         _logger = logger;
     }
 
-    public byte[] CreateBackup(IReadOnlyDictionary<string, byte[]> files, bool isBuggedSha1)
+    public byte[] CreateBackup(BackupInfoModel info, IReadOnlyDictionary<string, byte[]> files)
     {
-        const int keyIdx = 1;
-        const int version = 1;
+        if (info.Version != 1)
+            throw new Exception("Only ver 1 is supported");
 
         var memStream = new MemoryStream();
         var memWriter = new BinaryWriter(memStream);
 
-        memWriter.Write(GetBytes($"$$$Version={version}$\n"));
-        memWriter.Write(GetBytes($"$$$CheckSumKeyIndex={keyIdx}$\n"));
+        memWriter.Write(GetBytes($"$$$Version={info.Version}$\n"));
+        memWriter.Write(GetBytes($"$$$CheckSumKeyIndex={info.CheckSumKeyIndex}$\n"));
 
         foreach (var (fileName, fileData) in files)
         {
@@ -51,12 +59,12 @@ public class AmiConfigBackupParser
 
         memWriter.Flush();
         var bytes = memStream.ToArray();
-        var sign = CalculateSign(bytes, keyIdx, isBuggedSha1);
+        var sign = CalculateSign(bytes, info.CheckSumKeyIndex, info.IsBuggedSha1);
 
         return bytes.Concat(sign).ToArray();
     }
 
-    public IReadOnlyDictionary<string, byte[]> ParseBackup(byte[] backupBytes)
+    public (BackupInfoModel info, IReadOnlyDictionary<string, byte[]> files) ParseBackup(byte[] backupBytes)
     {
         var (payload, sign) = SplitToDataAndSign(backupBytes);
         using var payloadStream = new MemoryStream(payload);
@@ -71,11 +79,13 @@ public class AmiConfigBackupParser
         var keyIdx = ReadKeyIndex(payloadReader);
         var isBuggedSha1 = sign.Count(x => x != 0x00) == 2;
         if (isBuggedSha1)
-            _logger.LogWarning("Bugged hash calculation detected. Use --bugged-sha with pack-bak operation");
+            _logger.LogWarning("Bugged hash calculation detected");
 
         var calculatedSign = CalculateSign(payload, keyIdx, isBuggedSha1);
         if (!calculatedSign.SequenceEqual(sign))
             _logger.LogWarning("Calculated sign and in file not same!");
+        else
+            _logger.LogInformation("Calculated sign and in file is same");
 
         var files = new Dictionary<string, byte[]>();
         while (payloadStream.Position < payloadStream.Length - 1)
@@ -98,7 +108,13 @@ public class AmiConfigBackupParser
             files[fileName] = payloadReader.ReadBytes(dataLen);
         }
 
-        return files;
+        return (new BackupInfoModel()
+        {
+            Version = ver,
+            CheckSumKeyIndex = keyIdx,
+            IsBuggedSha1 = isBuggedSha1,
+            Files = files.Select(x => x.Key).ToList()
+        }, files);
     }
 
     /// <summary>
@@ -113,10 +129,13 @@ public class AmiConfigBackupParser
         var key = GetBytes($"\nKEY={_hashSumKeys[keyId]}");
         var allBytes = payload.Concat(key).ToArray();
 
-        var sha1 = SHA1.HashData(allBytes).Reverse().ToArray();
+        var sha1 = SHA1.HashData(allBytes).ToArray();
+        if (isBuggedSha1) 
+            Array.Reverse(sha1);
+       
         var sign = Convert.ToHexString(sha1)
             .ToLowerInvariant()
-            .Select((x, i) => i < 2 && isBuggedSha1 ? (byte)x : (byte)0x00)
+            .Select((x, i) => isBuggedSha1 && i >= 2 ? (byte)0x00 : (byte)x)
             .ToArray();
         return sign;
     }
@@ -125,8 +144,9 @@ public class AmiConfigBackupParser
 
     private (byte[] data, byte[] sign) SplitToDataAndSign(byte[] dump)
     {
-        var hash = dump.Take(40).ToArray();
-        var data = dump.Skip(40).ToArray();
+        // data + \n + 40 bytes of sign
+        var data = dump.AsSpan(0, dump.Length - 40).ToArray();
+        var hash = dump.AsSpan(dump.Length - 40, 40).ToArray();
         return (data, hash);
     }
 

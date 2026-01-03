@@ -10,7 +10,7 @@ public static class CommandRegistration
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
-            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextAmiToolsBmcFmh.Default)
+            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextAmiBmcFmh.Default)
             .AddSingleton<CommandHandlers>()
             ;
 

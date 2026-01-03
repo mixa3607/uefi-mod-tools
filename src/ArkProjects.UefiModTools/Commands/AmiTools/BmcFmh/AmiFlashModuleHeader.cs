@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcFmh;
 
+// https://github.com/ya-mouse/bmc-ami/blob/master/genimage/fmh.h
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct AmiFlashModuleHeader
 {

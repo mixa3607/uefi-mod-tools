@@ -21,6 +21,13 @@ public class UBootEnvParser
         var padTailLen = data.Reverse().TakeWhile(x => x == 0xFF).Count();
         var savedHash = dataReader.ReadUInt32();
 
+        var payloadSpan = data.AsSpan(sizeof(uint), (int)dataStream.Length - sizeof(uint) - padTailLen);
+        var calculatedHash = CalculateEnvVarsHash(payloadSpan);
+        if (savedHash != calculatedHash)
+            _logger.LogWarning("Detected CRC32 hash mismatch!");
+        else
+            _logger.LogInformation("CRC32 hash matched");
+
         var envVars = new Dictionary<string, string>();
         while (true)
         {
@@ -30,7 +37,7 @@ public class UBootEnvParser
                 break;
             }
 
-            if (line.Split("=") is not [var name, var value])
+            if (line.Split("=", 2) is not [var name, var value])
             {
                 _logger.LogWarning("Can not parse line {line} to kv", line);
                 continue;
@@ -39,10 +46,7 @@ public class UBootEnvParser
             envVars[name] = value;
         }
 
-        var payloadSpan = data.AsSpan(sizeof(uint), (int)dataStream.Length - sizeof(uint) - padTailLen);
-        var calculatedHash = CalculateEnvVarsHash(payloadSpan);
-        if (savedHash != calculatedHash)
-            _logger.LogWarning("Detected CRC32 hash mismatch!");
+        _logger.LogInformation("Read {count} pairs", envVars.Count);
 
         return new UBootEnv()
         {
@@ -63,6 +67,7 @@ public class UBootEnvParser
         dataWriter.Write(0u);
 
         // write vars
+        _logger.LogInformation("Write {count} pairs", env.Variables.Count);
         foreach (var (name, value) in env.Variables)
         {
             var line = GetBytes($"{name}={value}");

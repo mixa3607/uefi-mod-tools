@@ -1,6 +1,7 @@
-using System.CommandLine;
 using ArkProjects.UefiModTools.Misc;
 using Microsoft.Extensions.DependencyInjection;
+using System.CommandLine;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcBackup;
 
@@ -9,6 +10,7 @@ public static class CommandRegistration
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
+            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextAmiBmcBak.Default)
             .AddSingleton<AmiConfigBackupParser>()
             .AddSingleton<CommandHandlers>()
             ;
@@ -59,20 +61,10 @@ public static class CommandRegistration
                     Required = true,
                 });
 
-            var buggedShaOpt = command.AddOption(
-                new Option<bool>("--bugged-sha")
-                {
-                    Description = "Set if your BMC have bugged sign implementation.\n" +
-                                  "== Axiomtek IMB760 - true\n" +
-                                  "== Lenovo RD450x - false",
-                    DefaultValueFactory = _ => false,
-                });
-
             command.SetAction<CommandHandlers>(services,
                 (handler, opts) => handler.PackBak(
                     opts.GetRequiredValue(inputOpt),
-                    opts.GetRequiredValue(outputOpt),
-                    opts.GetRequiredValue(buggedShaOpt)
+                    opts.GetRequiredValue(outputOpt)
                 ));
         }
     }
