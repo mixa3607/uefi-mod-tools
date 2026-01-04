@@ -2,7 +2,7 @@ using System.IO.Hashing;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UBootTools;
+namespace ArkProjects.UefiModTools.Commands.UBootTools.Env;
 
 public class UBootEnvParser
 {
@@ -13,20 +13,31 @@ public class UBootEnvParser
         _logger = logger;
     }
 
-    public UBootEnv Parse(byte[] data)
+    public UBootEnv? Parse(byte[] data, bool breakOnBadHash)
     {
+        var padTailLen = data.Reverse().TakeWhile(x => x == 0xFF).Count();
+        if (padTailLen == data.Length)
+        {
+            return null;
+        }
+
         using var dataStream = new MemoryStream(data);
         using var dataReader = new BinaryReader(dataStream);
 
-        var padTailLen = data.Reverse().TakeWhile(x => x == 0xFF).Count();
         var savedHash = dataReader.ReadUInt32();
-
         var payloadSpan = data.AsSpan(sizeof(uint), (int)dataStream.Length - sizeof(uint) - padTailLen);
         var calculatedHash = CalculateEnvVarsHash(payloadSpan);
         if (savedHash != calculatedHash)
+        {
+            if (breakOnBadHash)
+                return null;
+
             _logger.LogWarning("Detected CRC32 hash mismatch!");
+        }
         else
+        {
             _logger.LogInformation("CRC32 hash matched");
+        }
 
         var envVars = new Dictionary<string, string>();
         while (true)
@@ -51,6 +62,7 @@ public class UBootEnvParser
         return new UBootEnv()
         {
             Hash = calculatedHash,
+            HashMatched = savedHash == calculatedHash,
             Size = data.Length,
             Variables = envVars,
             PaddingSize = padTailLen,

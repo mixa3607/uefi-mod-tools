@@ -1,7 +1,7 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ArkProjects.UefiModTools.Misc;
+namespace ArkProjects.UefiModTools.Utils;
 
 public static class CommandExtensions
 {

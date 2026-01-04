@@ -1,5 +1,5 @@
 using System.CommandLine;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcHpm;

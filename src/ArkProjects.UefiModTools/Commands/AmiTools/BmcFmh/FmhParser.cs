@@ -40,12 +40,10 @@ public class FmhParser
         if (fromTail != null)
         {
             sections.Add(fromTail);
-            var fromMidRange = new Range(fromTail.PointingToAddress, FmhSizeOf);
-            var fromMid = ReadFmh(flashBytes, fromMidRange);
+            var fromMid = ReadFmh(flashBytes, pageRange, fromTail.PointingToAddress);
             if (fromMid == null)
             {
-                _logger.LogWarning("FMH not found in 0x{being}-0x{end}",
-                    fromMidRange.Start.Value, fromMidRange.End.Value);
+                _logger.LogWarning("FMH not found at 0x{being:X8}", fromTail.PointingToAddress);
             }
             else
             {
@@ -53,7 +51,7 @@ public class FmhParser
             }
         }
 
-        var fromBegin = ReadFmh(flashBytes, pageRange);
+        var fromBegin = ReadFmh(flashBytes, pageRange, pageRange.Start.Value);
         if (fromBegin != null)
         {
             sections.Add(fromBegin);
@@ -62,47 +60,51 @@ public class FmhParser
         return sections;
     }
 
-    private FmhTailSectionModel? ReadFmhTailed(byte[] flashBytes, Range range)
+    private FmhTailSectionModel? ReadFmhTailed(byte[] flashBytes, Range page)
     {
-        range = new Range(range.End.Value - FmhTailSizeOf, range.End);
+        var fmhBytes = new Range(page.End.Value - FmhTailSizeOf, page.End);
 
-        var bytes = flashBytes.AsSpan(range);
+        var bytes = flashBytes.AsSpan(fmhBytes);
         if (!bytes.EndsWith(FmhSignature))
             return null;
         var fmhTail = FromBytes<AmiFlashModuleHeaderTailed>(bytes);
 
         var sct = new FmhTailSectionModel()
         {
-            BeginAddress = range.Start.Value,
-            EndAddress = range.End.Value,
+            BeginAddress = fmhBytes.Start.Value,
+            EndAddress = fmhBytes.End.Value,
             PointingToAddress = (int)fmhTail.LinkAddress,
         };
-        _logger.LogInformation("Found FMH tail in 0x{being}-0x{end} that pointing to 0x{addr:X8}",
+        _logger.LogInformation("Found FMH tail in 0x{being:X8}-0x{end:X8} that pointing to 0x{addr:X8}",
             sct.BeginAddress, sct.EndAddress, sct.PointingToAddress);
 
         return sct;
     }
 
-    private FmhSectionModel? ReadFmh(byte[] flashBytes, Range range)
+    private FmhSectionModel? ReadFmh(byte[] flashBytes, Range page, int fmhStart)
     {
-        range = new Range(range.Start.Value, range.Start.Value + FmhSizeOf);
+        var fmhBytes = new Range(fmhStart, fmhStart + FmhSizeOf);
 
-        var bytes = flashBytes.AsSpan(range);
+        var bytes = flashBytes.AsSpan(fmhBytes);
         if (!bytes.StartsWith(FmhSignature))
             return null;
         var fmh = FromBytes<AmiFlashModuleHeader>(bytes);
 
+        var sectionPointerRange = new Range(
+            page.Start.Value + (int)fmh.ModuleInfo.Location,
+            page.Start.Value + (int)fmh.ModuleInfo.Location + (int)fmh.ModuleInfo.Size
+        );
         var sct = new FmhSectionModel()
         {
-            BeginAddress = range.Start.Value,
-            EndAddress = range.End.Value,
-            ModuleBeginAddress = (int)fmh.ModuleInfo.Location,
-            ModuleEndAddress = (int)(fmh.ModuleInfo.Location + fmh.ModuleInfo.Size),
-            ModuleName = Encoding.ASCII.GetString(fmh.ModuleInfo.Name)
+            BeginAddress = fmhBytes.Start.Value,
+            EndAddress = fmhBytes.End.Value,
+            ModuleBeginAddress = sectionPointerRange.Start.Value,
+            ModuleEndAddress = sectionPointerRange.End.Value,
+            ModuleName = Encoding.ASCII.GetString(fmh.ModuleInfo.Name).TrimEnd('\x00')
         };
 
         _logger.LogInformation(
-            "Found FMH in 0x{being}-0x{end} that pointing to module {name} 0x{mBegin:X8}-0x{mEnd:X8}",
+            "Found FMH in 0x{being:X8}-0x{end:X8} that pointing to module {name} 0x{mBegin:X8}-0x{mEnd:X8}",
             sct.BeginAddress, sct.EndAddress, sct.ModuleName, sct.ModuleBeginAddress, sct.ModuleEndAddress);
 
         return sct;
@@ -121,7 +123,9 @@ public class FmhParser
         try
         {
             Marshal.Copy(data, offset, ptr, size);
+#pragma warning disable IL2091
             return Marshal.PtrToStructure<T>(ptr);
+#pragma warning restore IL2091
         }
         finally
         {

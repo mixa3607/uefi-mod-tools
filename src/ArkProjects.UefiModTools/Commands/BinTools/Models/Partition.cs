@@ -1,12 +1,11 @@
 using System.Text.Json.Serialization;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Utils;
 
 namespace ArkProjects.UefiModTools.Commands.BinTools.Models;
 
 public class Partition
 {
     public required string FileName { get; set; }
-    public string? Description { get; set; }
 
     [JsonConverter(typeof(HexConverter))]
     public required int BeginAddress { get; set; }

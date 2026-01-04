@@ -1,5 +1,5 @@
 using ArkProjects.UefiModTools.Commands.BinTools.Models;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.BinTools;
@@ -7,19 +7,21 @@ namespace ArkProjects.UefiModTools.Commands.BinTools;
 public class CommandHandlers
 {
     private readonly ILogger<CommandHandlers> _logger;
-    private readonly JsonSerializationService _jsonSerializer;
+    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ICommandFileManager _fileManager;
 
     public CommandHandlers(ILogger<CommandHandlers> logger,
-        JsonSerializationService jsonSerializer)
+        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager)
     {
         _logger = logger;
         _jsonSerializer = jsonSerializer;
+        _fileManager = fileManager;
     }
 
     public int SplitBin(string inputFile, string partitionsTableFile, string outputDirectory)
     {
-        var inputBytes = CommandHelpers.ReadBytes(inputFile, _logger);
-        var pTableJson = CommandHelpers.ReadString(partitionsTableFile, null, _logger);
+        var inputBytes = _fileManager.ReadBytes(inputFile);
+        var pTableJson = _fileManager.ReadString(partitionsTableFile);
         var pTable = _jsonSerializer.Deserialize<PartitionsTable>(pTableJson);
 
         foreach (var partition in pTable.Partitions)
@@ -28,7 +30,7 @@ public class CommandHandlers
             var saveToFile = Path.Combine(outputDirectory, partition.FileName);
             _logger.LogInformation("Saving {path}", saveToFile);
             var bytes = inputBytes.AsSpan(partition.BeginAddress, partitionLen).ToArray();
-            CommandHelpers.WriteResult(bytes, saveToFile, true, _logger);
+            _fileManager.Write(bytes, saveToFile, true);
         }
 
         return 0;
@@ -36,8 +38,8 @@ public class CommandHandlers
 
     public int CombineBin(string inputFile, string partitionsTableFile, string partitionsDirectory, string outputFile)
     {
-        var inputBytes = CommandHelpers.ReadBytes(inputFile, _logger);
-        var pTableJson = CommandHelpers.ReadString(partitionsTableFile, null, _logger);
+        var inputBytes = _fileManager.ReadBytes(inputFile);
+        var pTableJson = _fileManager.ReadString(partitionsTableFile);
         var pTable = _jsonSerializer.Deserialize<PartitionsTable>(pTableJson);
 
         foreach (var partition in pTable.Partitions)
@@ -46,7 +48,7 @@ public class CommandHandlers
             var partitionFile = Path.Combine(partitionsDirectory, partition.FileName);
 
             _logger.LogInformation("Injecting {path}", partitionFile);
-            var partitionBytes = CommandHelpers.ReadBytes(partitionFile, _logger);
+            var partitionBytes = _fileManager.ReadBytes(partitionFile);
             if (partitionBytes.Length > partitionLen)
             {
                 throw new Exception($"Partition max len is {partitionLen} but read {partitionBytes.Length}");
@@ -64,7 +66,7 @@ public class CommandHandlers
         }
 
         _logger.LogInformation("Saving {path}", outputFile);
-        CommandHelpers.WriteResult(inputBytes, outputFile, true, _logger);
+        _fileManager.Write(inputBytes, outputFile, true);
 
         return 0;
     }

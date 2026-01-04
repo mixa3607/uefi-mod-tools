@@ -1,6 +1,6 @@
 using System.CommandLine.Parsing;
 
-namespace ArkProjects.UefiModTools.Misc;
+namespace ArkProjects.UefiModTools.Utils;
 
 public class ArgumentParsers
 {

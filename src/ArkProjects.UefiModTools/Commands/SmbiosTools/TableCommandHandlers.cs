@@ -1,4 +1,4 @@
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Smbios;
 using Microsoft.Extensions.Logging;
 
@@ -7,17 +7,19 @@ namespace ArkProjects.UefiModTools.Commands.SmbiosTools;
 public class TableCommandHandlers
 {
     private readonly ILogger<TableCommandHandlers> _logger;
-    private readonly JsonSerializationService _jsonSerializer;
+    private readonly IJsonSerializationService _jsonSerializer;
     private readonly SmbiosReader _reader;
     private readonly SmbiosWriter _writer;
+    private readonly ICommandFileManager _fileManager;
 
     public TableCommandHandlers(ILogger<TableCommandHandlers> logger, SmbiosReader reader,
-        SmbiosWriter writer, JsonSerializationService jsonSerializer)
+        SmbiosWriter writer, IJsonSerializationService jsonSerializer, ICommandFileManager fileManager)
     {
         _logger = logger;
         _reader = reader;
         _writer = writer;
         _jsonSerializer = jsonSerializer;
+        _fileManager = fileManager;
     }
 
     public int Table2Json(string input, string output, bool verify)
@@ -26,7 +28,7 @@ public class TableCommandHandlers
         var origDumpBytes = File.ReadAllBytes(input);
         var jsonDump = Read(origDumpBytes, verify);
 
-        CommandHelpers.WriteResult(jsonDump, output, true, _logger);
+        _fileManager.Write(jsonDump, output, true);
         return 0;
     }
 
@@ -66,7 +68,7 @@ public class TableCommandHandlers
         _writer.Write(dump, tableStream);
         tableStream.Flush();
 
-        CommandHelpers.WriteResult(tableBytes, output, true, _logger);
+        _fileManager.Write(tableBytes, output, true);
         return 0;
     }
 }

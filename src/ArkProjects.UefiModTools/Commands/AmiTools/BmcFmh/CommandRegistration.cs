@@ -1,7 +1,7 @@
-using ArkProjects.UefiModTools.Misc;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
+using ArkProjects.UefiModTools.Utils;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcFmh;
 
@@ -10,6 +10,7 @@ public static class CommandRegistration
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
+            .AddSingleton<FmhParser>()
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextAmiBmcFmh.Default)
             .AddSingleton<CommandHandlers>()
             ;

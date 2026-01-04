@@ -1,5 +1,5 @@
 using System.Text;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcHpm;
@@ -29,10 +29,12 @@ public class HpmCommandHandlers
     private const ushort HpmActionLen = 3;
 
     private readonly ILogger<HpmCommandHandlers> _logger;
+    private readonly ICommandFileManager _fileManager;
 
-    public HpmCommandHandlers(ILogger<HpmCommandHandlers> logger)
+    public HpmCommandHandlers(ILogger<HpmCommandHandlers> logger, ICommandFileManager fileManager)
     {
         _logger = logger;
+        _fileManager = fileManager;
     }
 
     // ====== hpm header 0 - 33         // var headerEndOffBit = 34;
@@ -122,7 +124,7 @@ public class HpmCommandHandlers
 
     public int BuildHpm()
     {
-        var biosFile = CommandHelpers.ReadBytes("./test-files/IMB760_BIOS_mixa3607_F8CC6E033BF2_reset.bin", _logger);
+        var biosFile = _fileManager.ReadBytes("./test-files/IMB760_BIOS_mixa3607_F8CC6E033BF2_reset.bin");
         var memStream = new MemoryStream();
         var memWriter = new BinaryWriter(memStream);
 
@@ -143,9 +145,9 @@ public class HpmCommandHandlers
         memWriter.Write((byte)0xFF);
 
         memWriter.Flush();
-        CommandHelpers.WriteResult(memStream.ToArray(),
+        _fileManager.Write(memStream.ToArray(),
             "./test-files/IMB760_BIOS_mixa3607_F8CC6E033BF2_reset.hpm",
-            true, _logger);
+            true);
         return 0;
     }
 }

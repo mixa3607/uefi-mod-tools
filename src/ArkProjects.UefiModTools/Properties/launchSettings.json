@@ -5,15 +5,19 @@
       "commandLineArgs": "--log-level debug"
     },
     // uboot
-    "uboot read-env": {
+    "uboot env-read": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uboot read-env -i test-files/uboot-env.bin -o test-files/uboot-env.json"
+      "commandLineArgs": "--log-level debug uboot env-read -i test-files/uboot-env.bin -o test-files/uboot-env.json"
     },
-    "uboot write-env": {
+    "uboot env-write": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uboot write-env -i test-files/uboot-env.json -o test-files/uboot-env.bin"
+      "commandLineArgs": "--log-level debug uboot env-write -i test-files/uboot-env.json -o test-files/uboot-env.bin"
     },
-    // ami bmc backup
+    "uboot env-scan": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uboot env-scan -i test-files/backup_rd450x_pve2_03-01-26.bin -o -"
+    },
+    // ami bmc-backup
     "ami bmc-backup-extract [config-full-sha]": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug ami bmc-backup-extract -i ./test-files/config-full-sha.bak -o test-files/config-full-sha"
@@ -26,10 +30,15 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug ami bmc-backup-pack -i test-files/bak-unpack -o ./test-files/config.mod.bak"
     },
-    // ami bmc-fmh
-    "ami bmc-fmh-scan": {
+    // ami bios-post-decode
+    "ami bios-post-decode": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-fmh-scan -i test-files/BMC.bin -s 0x10000 -o ./test-files/BMC-FMH.json"
+      "commandLineArgs": "--log-level debug ami bios-post-decode -i ./test-files/ipmitool-bios-codes.txt -o -"
+    },
+    // ami bmc-fmh-scan
+    "ami bmc-fmh-scan [backup_rd450x_pve2_03-01-26.bin]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug ami bmc-fmh-scan -i test-files/backup_rd450x_pve2_03-01-26.bin -s 0x10000 -o ./test-files/backup_rd450x_pve2_03-01-26_FMH.json"
     },
     // smbios
     "smbios table2json": {

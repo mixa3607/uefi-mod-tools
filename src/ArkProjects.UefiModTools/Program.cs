@@ -1,9 +1,9 @@
+using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System.CommandLine;
-using ArkProjects.UefiModTools.Misc;
 
 namespace ArkProjects.UefiModTools;
 
@@ -39,7 +39,10 @@ internal class Program
         services.AddLogging(b => b
             .AddSerilog()
             .SetMinimumLevel(parseResult.GetValue(logLevelOpt)));
-        services.AddSingleton<JsonSerializationService>();
+        services
+            .AddSingleton<IJsonSerializationService, JsonSerializationService>()
+            .AddSingleton<ICommandFileManager, CommandFileManager>()
+            ;
 
         // exec
         return await parseResult.InvokeAsync(new InvocationConfiguration()

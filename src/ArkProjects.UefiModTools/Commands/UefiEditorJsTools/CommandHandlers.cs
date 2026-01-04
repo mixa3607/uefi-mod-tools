@@ -1,5 +1,5 @@
 using ArkProjects.UefiModTools.Commands.UefiEditorJsTools.Models;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Services;
 using ConsoleTables;
 using Microsoft.Extensions.Logging;
 
@@ -8,18 +8,20 @@ namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools;
 public class CommandHandlers
 {
     private readonly ILogger<CommandHandlers> _logger;
-    private readonly JsonSerializationService _jsonSerializer;
+    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ICommandFileManager _fileManager;
 
     public CommandHandlers(ILogger<CommandHandlers> logger,
-        JsonSerializationService jsonSerializer)
+        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager)
     {
         _logger = logger;
         _jsonSerializer = jsonSerializer;
+        _fileManager = fileManager;
     }
 
     public int RenderMenu(string inputFile, string outputFile)
     {
-        var str = CommandHelpers.ReadString(inputFile, null, _logger);
+        var str = _fileManager.ReadString(inputFile);
         var data = _jsonSerializer.Deserialize<Data>(str);
 
         _logger.LogInformation("Rendering data...");
@@ -37,7 +39,7 @@ public class CommandHandlers
             RenderToTable(section, 0, table);
         }
 
-        CommandHelpers.WriteResult($"```{Environment.NewLine}{table.ToMarkDownString()}```", outputFile, true, _logger);
+        _fileManager.Write($"```{Environment.NewLine}{table.ToMarkDownString()}```", outputFile, true);
         return 0;
     }
 

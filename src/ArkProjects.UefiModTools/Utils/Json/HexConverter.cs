@@ -1,11 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ArkProjects.UefiModTools.Misc;
+namespace ArkProjects.UefiModTools.Utils;
 
 public class HexConverter : JsonConverter<int>
 {
-
     public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var value = reader.GetString();
@@ -14,6 +13,7 @@ public class HexConverter : JsonConverter<int>
 
     public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        var hex = "0x" + value.ToString("X8");
+        writer.WriteStringValue(hex);
     }
 }

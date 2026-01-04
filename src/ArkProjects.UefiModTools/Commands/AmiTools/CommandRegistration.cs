@@ -1,5 +1,5 @@
 using System.CommandLine;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools;
@@ -12,6 +12,7 @@ public static class CommandRegistration
 
         BmcBackup.CommandRegistration.Register(command, services);
         BmcFmh.CommandRegistration.Register(command, services);
+        BiosDecodeCodes.CommandRegistration.Register(command, services);
 #if DEBUG
         BmcHpm.Registration.Register(command, services);
 #endif

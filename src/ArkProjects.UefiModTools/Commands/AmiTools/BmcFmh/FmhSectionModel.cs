@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Utils;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcFmh;
 
 public class FmhSectionModel : IFmhSectionModel
 {
-    public string Type => "FMH";
+    public const string SectionType = "FMH";
+
+    [JsonIgnore]
+    public string Type => SectionType;
 
     [JsonConverter(typeof(HexConverter))]
     public required int BeginAddress { get; set; }

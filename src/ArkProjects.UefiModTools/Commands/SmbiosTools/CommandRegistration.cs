@@ -1,8 +1,8 @@
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
-using ArkProjects.UefiModTools.Misc;
 using ArkProjects.UefiModTools.Smbios;
 using ArkProjects.UefiModTools.Smbios.Structures;
+using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.SmbiosTools;

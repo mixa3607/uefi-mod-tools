@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ArkProjects.UefiModTools.Misc;
+namespace ArkProjects.UefiModTools.Services;
 
 public class CombinedJsonTypeInfoResolver : IJsonTypeInfoResolver
 {

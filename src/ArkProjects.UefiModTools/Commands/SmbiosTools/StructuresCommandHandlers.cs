@@ -1,4 +1,4 @@
-using ArkProjects.UefiModTools.Misc;
+using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Smbios;
 using ArkProjects.UefiModTools.Smbios.Structures;
 using ConsoleTables;
@@ -9,18 +9,20 @@ namespace ArkProjects.UefiModTools.Commands.SmbiosTools;
 public class StructuresCommandHandlers
 {
     private readonly ILogger<StructuresCommandHandlers> _logger;
-    private readonly JsonSerializationService _jsonSerializer;
+    private readonly IJsonSerializationService _jsonSerializer;
     private readonly IEnumerable<ISmbiosStructureReader> _readers;
     private readonly IEnumerable<ISmbiosStructureWriter> _writers;
+    private readonly ICommandFileManager _fileManager;
 
     public StructuresCommandHandlers(IEnumerable<ISmbiosStructureReader> readers,
         IEnumerable<ISmbiosStructureWriter> writers, ILogger<StructuresCommandHandlers> logger,
-        JsonSerializationService jsonSerializer)
+        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager)
     {
         _readers = readers;
         _writers = writers;
         _logger = logger;
         _jsonSerializer = jsonSerializer;
+        _fileManager = fileManager;
     }
 
     public int KnownStructs(string output)
@@ -36,7 +38,7 @@ public class StructuresCommandHandlers
             ]);
         }
 
-        CommandHelpers.WriteResult(table.ToMarkDownString(), output, true, _logger);
+        _fileManager.Write(table.ToMarkDownString(), output, true);
         return 0;
     }
 
@@ -58,7 +60,7 @@ public class StructuresCommandHandlers
 
         var jsonDump = Extract(structureRaw, verify);
 
-        CommandHelpers.WriteResult(jsonDump, output, true, _logger);
+        _fileManager.Write(jsonDump, output, true);
         return 0;
     }
 
@@ -130,7 +132,7 @@ public class StructuresCommandHandlers
 
 
         tableJson = _jsonSerializer.Serialize(table);
-        CommandHelpers.WriteResult(tableJson, outputFile, true, _logger);
+        _fileManager.Write(tableJson, outputFile, true);
         return 0;
     }
 
