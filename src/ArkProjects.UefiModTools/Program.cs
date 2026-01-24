@@ -16,10 +16,10 @@ internal class Program
 
         // reg commands
         var rootCommand = new RootCommand("UEFI related mod tools");
-        var logLevelOpt = new Option<LogLevel>("--log-level", "-l")
+        var logLevelOpt = new Option<LogEventLevel>("--log-level", "-l")
         {
             Description = "Logging level",
-            DefaultValueFactory = _ => LogLevel.Information,
+            DefaultValueFactory = _ => LogEventLevel.Information,
         };
         rootCommand.Add(logLevelOpt);
 
@@ -33,12 +33,14 @@ internal class Program
         var parseResult = rootCommand.Parse(args);
 
         // reg services
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
-            .CreateLogger();
-        services.AddLogging(b => b
-            .AddSerilog()
-            .SetMinimumLevel(parseResult.GetValue(logLevelOpt)));
+        services.AddLogging(b =>
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
+                .MinimumLevel.Is(parseResult.GetValue(logLevelOpt))
+                .CreateLogger();
+            b.AddSerilog(logger);
+        });
         services
             .AddSingleton<IJsonSerializationService, JsonSerializationService>()
             .AddSingleton<ICommandFileManager, CommandFileManager>()

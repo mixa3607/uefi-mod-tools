@@ -44,11 +44,15 @@ public class CommandHandlers
 
         foreach (var partition in pTable.Partitions)
         {
-            var partitionLen = partition.EndAddress - partition.BeginAddress;
             var partitionFile = Path.Combine(partitionsDirectory, partition.FileName);
-
             _logger.LogInformation("Injecting {path}", partitionFile);
+
+            var partitionLen = partition.EndAddress - partition.BeginAddress;
+            _logger.LogDebug("Partition len {count} bytes", partitionLen);
+
             var partitionBytes = _fileManager.ReadBytes(partitionFile);
+            _logger.LogDebug("Read {count} bytes", partitionBytes.Length);
+
             if (partitionBytes.Length > partitionLen)
             {
                 throw new Exception($"Partition max len is {partitionLen} but read {partitionBytes.Length}");
