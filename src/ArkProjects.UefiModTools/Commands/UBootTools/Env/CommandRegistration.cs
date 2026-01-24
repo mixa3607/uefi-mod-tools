@@ -32,6 +32,13 @@ public class CommandRegistration
                     CustomParser = ArgumentParsers.NumberParser<int>,
                     DefaultValueFactory = _ => 0x10000,
                 });
+            var windowBlksOpt = command.AddOption(
+                new Option<int>("--windows-blks", "-w")
+                {
+                    Description = "Sliding window in blocks",
+                    CustomParser = ArgumentParsers.NumberParser<int>,
+                    DefaultValueFactory = _ => 1,
+                });
             var outputOpt = command.AddOption(
                 new Option<string>("--output", "-o")
                 {
@@ -42,7 +49,8 @@ public class CommandRegistration
             command.SetAction<CommandHandlers>(services,
                 (handler, opts) => handler.Scan(
                     opts.GetRequiredValue(inputOpt),
-                    opts.GetRequiredValue(blkSizeOpt),
+                    [opts.GetRequiredValue(blkSizeOpt)],
+                    [opts.GetRequiredValue(windowBlksOpt)],
                     opts.GetRequiredValue(outputOpt)
                 ));
         }

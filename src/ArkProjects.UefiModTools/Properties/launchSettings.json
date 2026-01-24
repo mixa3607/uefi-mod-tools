@@ -9,6 +9,10 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uboot env-read -i test-files/uboot-env.bin -o test-files/uboot-env.json"
     },
+    "uboot env-read 11": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uboot env-read -i test-files/11_uboot-env.bin -o test-files/uboot-env.json"
+    },
     "uboot env-write": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uboot env-write -i test-files/uboot-env.json -o test-files/uboot-env.bin"

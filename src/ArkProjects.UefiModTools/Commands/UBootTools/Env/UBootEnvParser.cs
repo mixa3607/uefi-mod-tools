@@ -1,6 +1,7 @@
+using Microsoft.Extensions.Logging;
+using System.Buffers.Binary;
 using System.IO.Hashing;
 using System.Text;
-using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.UBootTools.Env;
 
@@ -13,21 +14,34 @@ public class UBootEnvParser
         _logger = logger;
     }
 
-    public UBootEnv? Parse(byte[] data, bool breakOnBadHash)
+    private bool CheckSha(Span<byte> allData, int tailSize)
     {
-        var padTailLen = data.Reverse().TakeWhile(x => x == 0xFF).Count();
-        if (padTailLen == data.Length)
+        var savedHash = BinaryPrimitives.ReadUInt32LittleEndian(allData.Slice(0, 4));
+
+        var payloadSpan = allData.Slice(sizeof(uint), allData.Length - sizeof(uint) - tailSize);
+        var calculatedHash = CalculateEnvVarsHash(payloadSpan);
+
+        return savedHash == calculatedHash;
+    }
+
+    public UBootEnv? Parse(byte[] data, bool breakOnBadHash, int tailSize = -1)
+    {
+        if (data.All(x => x == 0xFF))
         {
             return null;
         }
 
-        using var dataStream = new MemoryStream(data);
-        using var dataReader = new BinaryReader(dataStream);
+        var hashMatched = false;
+        int[] tailSizes = tailSize >= 0 ? [tailSize] : [0, 4];
+        foreach (var t in tailSizes)
+        {
+            tailSize = t;
+            hashMatched = CheckSha(data, tailSize);
+            if (hashMatched)
+                break;
+        }
 
-        var savedHash = dataReader.ReadUInt32();
-        var payloadSpan = data.AsSpan(sizeof(uint), (int)dataStream.Length - sizeof(uint) - padTailLen);
-        var calculatedHash = CalculateEnvVarsHash(payloadSpan);
-        if (savedHash != calculatedHash)
+        if (!hashMatched)
         {
             if (breakOnBadHash)
                 return null;
@@ -39,6 +53,8 @@ public class UBootEnvParser
             _logger.LogInformation("CRC32 hash matched");
         }
 
+        using var dataStream = new MemoryStream(data, sizeof(uint), data.Length - sizeof(uint), false);
+        using var dataReader = new BinaryReader(dataStream);
         var envVars = new Dictionary<string, string>();
         while (true)
         {
@@ -61,11 +77,10 @@ public class UBootEnvParser
 
         return new UBootEnv()
         {
-            Hash = calculatedHash,
-            HashMatched = savedHash == calculatedHash,
+            HashMatched = hashMatched,
             Size = data.Length,
             Variables = envVars,
-            PaddingSize = padTailLen,
+            PaddingSize = tailSize,
         };
     }
 
@@ -101,6 +116,37 @@ public class UBootEnvParser
         Array.Fill(data, (byte)0xFF, data.Length - env.PaddingSize, env.PaddingSize);
 
         return data;
+    }
+
+    public List<UBootEnvInDump> Scan(byte[] bin, int pagesCount, int blockSize, int blocksWindow)
+    {
+        _logger.LogInformation("Scan {pages} pages with 0x{size:X8} size and sliding window {window} pages",
+            pagesCount, blockSize, blocksWindow);
+
+        var result = new List<UBootEnvInDump>();
+        for (int i = 0; i < pagesCount - (blocksWindow - 1); i++)
+        {
+            var pageRange = new Range(i * blockSize, (i * blockSize) + (blocksWindow * blockSize));
+            var page = bin
+                .AsSpan(pageRange)
+                .ToArray();
+            var env = Parse(page, true);
+            if (env == null)
+                continue;
+
+            _logger.LogInformation("Found potential env section in page 0x{start:X8}-0x{end:X8}",
+                pageRange.Start.Value, pageRange.End.Value);
+
+            result.Add(new UBootEnvInDump()
+            {
+                BeginAddress = pageRange.Start.Value,
+                EndAddress = pageRange.End.Value,
+                Variables = env.Variables,
+                PaddingSize = env.PaddingSize,
+            });
+        }
+
+        return result;
     }
 
     private uint CalculateEnvVarsHash(ReadOnlySpan<byte> data) => Crc32.HashToUInt32(data);

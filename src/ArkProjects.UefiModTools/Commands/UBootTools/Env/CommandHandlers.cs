@@ -19,31 +19,21 @@ public class CommandHandlers
         _fileManager = fileManager;
     }
 
-    public int Scan(string inputFile, int blockSize, string outputFile)
+    public int Scan(string inputFile, int[] blockSizes, int[] blocksWindows, string outputFile)
     {
         var dumpBytes = _fileManager.ReadBytes(inputFile);
-        if (dumpBytes.Length % blockSize != 0)
-            throw new Exception("Dump len not divided by block size!");
 
+        var variants = blockSizes.SelectMany(s => blocksWindows.Select(w => (s, w))).ToList();
         var result = new UBootScanResult();
-        for (int i = 0; i < dumpBytes.Length / blockSize; i++)
+        foreach (var (blockSize, blockWindow) in variants)
         {
-            var pageRange = new Range(i * blockSize, i * blockSize + blockSize);
-            var page = dumpBytes
-                .AsSpan(pageRange)
-                .ToArray();
-            var env = _parser.Parse(page, true);
-            if (env == null)
-                continue;
+            var badTail = dumpBytes.Length % blockSize;
+            if (badTail != 0)
+                _logger.LogWarning("Dump len not divided by block size! Last {count} bytes will be ignored", badTail);
 
-            _logger.LogInformation("Found potential env section in page 0x{start:X8}-0x{end:X8}",
-                pageRange.Start.Value, pageRange.End.Value);
-            result.FoundEnvPages.Add(new UBootEnvInDump()
-            {
-                BeginAddress = pageRange.Start.Value,
-                EndAddress = pageRange.End.Value,
-                Variables = env.Variables,
-            });
+            var pagesCount = (dumpBytes.Length - badTail) / blockSize;
+            var scanResult = _parser.Scan(dumpBytes, pagesCount, blockSize, blockWindow);
+            result.FoundEnvPages.AddRange(scanResult);
         }
 
         var scanResultJson = _jsonSerializer.Serialize(result);

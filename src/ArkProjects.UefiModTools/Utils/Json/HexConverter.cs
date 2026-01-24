@@ -107,6 +107,7 @@ public class HexConverter2<T> : JsonConverter<T> where T : struct
         if (hex != null)
         {
             writer.WriteStringValue(hex);
+            return;
         }
 
         throw new Exception();
