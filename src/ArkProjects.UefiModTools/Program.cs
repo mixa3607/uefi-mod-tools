@@ -1,6 +1,5 @@
 using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System.CommandLine;
@@ -28,6 +27,7 @@ internal class Program
         Commands.SmbiosTools.CommandRegistration.Register(rootCommand, services);
         Commands.AmiTools.CommandRegistration.Register(rootCommand, services);
         Commands.UBootTools.CommandRegistration.Register(rootCommand, services);
+        Commands.UefiTools.CommandRegistration.Register(rootCommand, services);
 
         // parse
         var parseResult = rootCommand.Parse(args);

@@ -51,7 +51,7 @@ public class CommandFileManager : ICommandFileManager
         Write(dataBytes, output, overrideOutput);
     }
 
-    public void Write(byte[] dataBytes, string output, bool overrideOutput)
+    public void Write(ReadOnlySpan<byte> dataBytes, string output, bool overrideOutput)
     {
         if (output.StartsWith("-"))
         {

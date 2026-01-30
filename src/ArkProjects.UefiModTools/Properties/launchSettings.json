@@ -70,6 +70,11 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi-editor-js render-menu -i ./test-files/ServerMgmtSetup_data.json -o ./test-files/ServerMgmtSetup_data.md"
     },
+    // uefi
+    "uefi mcodes-combine": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi mcodes-combine -t ./test-files/microcodes.json -o ./test-files/microcodes.bin --input-fit ./test-files/FIT_table_base.bin --output-fit ./test-files/FIT_table.bin"
+    },
 
     //
     "bin split": {
