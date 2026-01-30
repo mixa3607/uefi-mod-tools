@@ -13,7 +13,7 @@ public class Partition
     [JsonConverter(typeof(HexConverter))]
     public required int EndAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter2<byte>))]
+    [NumberConverter(16)]
     public byte PadByte { get; set; } = 0xff;
 
     public long Length => EndAddress - BeginAddress;

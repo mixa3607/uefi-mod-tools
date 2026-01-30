@@ -75,6 +75,10 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi mcodes-combine -t ./test-files/microcodes.json -o ./test-files/microcodes.bin --input-fit ./test-files/FIT_table_base.bin --output-fit ./test-files/FIT_table.bin"
     },
+    "uefi fit-read": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi fit-read -i ./test-files/FIT_table_base.bin -o -"
+    },
 
     //
     "bin split": {
