@@ -7,13 +7,13 @@ public class Partition
 {
     public required string FileName { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int BeginAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int EndAddress { get; set; }
 
-    [NumberConverter(16)]
+    [JsonConverter(typeof(NumberConverterAsHex<byte>))]
     public byte PadByte { get; set; } = 0xff;
 
     public long Length => EndAddress - BeginAddress;

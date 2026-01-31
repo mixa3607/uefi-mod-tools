@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -19,27 +18,10 @@ public class HexConverter : JsonConverter<int>
     }
 }
 
-[AttributeUsage(AttributeTargets.Property)]
-public class NumberConverterAttribute : JsonConverterAttribute
-{
-    private readonly int _writeBase;
+public class NumberConverterAsHex<T>() : NumberConverter<T>(16) where T : struct;
+public class NumberConverterAsBin<T>() : NumberConverter<T>(2) where T : struct;
 
-    public NumberConverterAttribute() : this(10)
-    {
-    }
-
-    public NumberConverterAttribute(int writeBase)
-    {
-        _writeBase = writeBase;
-    }
-
-    public override JsonConverter CreateConverter(Type typeToConvert)
-    {
-        return new NumberConverter(_writeBase);
-    }
-}
-
-public class NumberConverter : JsonConverter<object>
+public class NumberConverter<T> : JsonConverter<T> where T : struct
 {
     public int WriteBase;
 
@@ -54,7 +36,7 @@ public class NumberConverter : JsonConverter<object>
 
     public override bool CanConvert(Type typeToConvert)
     {
-        var targetType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
+        var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
         return targetType == typeof(int) || targetType == typeof(uint) ||
                targetType == typeof(byte) || targetType == typeof(sbyte) ||
                targetType == typeof(short) || targetType == typeof(ushort) ||
@@ -62,31 +44,31 @@ public class NumberConverter : JsonConverter<object>
                false;
     }
 
-    public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var targetType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
+        var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
 
         if (reader.TokenType == JsonTokenType.Number)
         {
             if (targetType == typeof(byte))
-                return reader.GetByte();
+                return (T)(object)reader.GetByte();
             else if (targetType == typeof(sbyte))
-                return reader.GetSByte();
+                return (T)(object)reader.GetSByte();
 
             if (targetType == typeof(short))
-                return reader.GetInt16();
+                return (T)(object)reader.GetInt16();
             else if (targetType == typeof(ushort))
-                return reader.GetUInt16();
+                return (T)(object)reader.GetUInt16();
 
             if (targetType == typeof(int))
-                return reader.GetInt32();
+                return (T)(object)reader.GetInt32();
             else if (targetType == typeof(uint))
-                return reader.GetUInt32();
+                return (T)(object)reader.GetUInt32();
 
             if (targetType == typeof(long))
-                return reader.GetInt64();
+                return (T)(object)reader.GetInt64();
             else if (targetType == typeof(ulong))
-                return reader.GetUInt64();
+                return (T)(object)reader.GetUInt64();
 
             throw new Exception();
         }
@@ -104,31 +86,31 @@ public class NumberConverter : JsonConverter<object>
 
 
         if (targetType == typeof(byte))
-            return Convert.ToByte(numStr, numBase);
+            return (T)(object)Convert.ToByte(numStr, numBase);
         else if (targetType == typeof(sbyte))
-            return Convert.ToSByte(numStr, numBase);
+            return (T)(object)Convert.ToSByte(numStr, numBase);
 
         if (targetType == typeof(short))
-            return Convert.ToInt16(numStr, numBase);
+            return (T)(object)Convert.ToInt16(numStr, numBase);
         else if (targetType == typeof(ushort))
-            return Convert.ToUInt16(numStr, numBase);
+            return (T)(object)Convert.ToUInt16(numStr, numBase);
 
         if (targetType == typeof(int))
-            return Convert.ToInt32(numStr, numBase);
+            return (T)(object)Convert.ToInt32(numStr, numBase);
         else if (targetType == typeof(uint))
-            return Convert.ToUInt32(numStr, numBase);
+            return (T)(object)Convert.ToUInt32(numStr, numBase);
 
         if (targetType == typeof(long))
-            return Convert.ToInt64(numStr, numBase);
+            return (T)(object)Convert.ToInt64(numStr, numBase);
         else if (targetType == typeof(ulong))
-            return Convert.ToUInt64(numStr, numBase);
+            return (T)(object)Convert.ToUInt64(numStr, numBase);
 
         throw new Exception();
     }
 
-    public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
     {
-        var targetType = Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType();
+        var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
         if (WriteBase == 10)
         {
             if (targetType == typeof(byte))

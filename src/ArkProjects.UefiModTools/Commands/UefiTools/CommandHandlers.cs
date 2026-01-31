@@ -39,7 +39,7 @@ public class CommandHandlers
             var fwStart = position + mTable.SectionBaseAddress;
             _logger.LogInformation("Add {file} as 0x{from:X8}", mFile, fwStart);
 
-            var placeAt = fitTable.Entries.FindIndex(0, x => x.Type == FitEntryType.MicrocodeUpdateEntry);
+            var placeAt = fitTable.Entries.FindIndex(0, x => x.Type == FitEntryType.UnusedEntry);
             if (placeAt < 0)
             {
                 _logger.LogError("Can not find any empty slot in FIT");
@@ -50,6 +50,7 @@ public class CommandHandlers
             var fitEntry = new FitEntry()
             {
                 Type = FitEntryType.MicrocodeUpdateEntry,
+                Address = (ulong)fwStart,
                 Size = 0x00,
                 Version = 0x01,
                 ChecksumValidate = false,
@@ -115,10 +116,30 @@ public class CommandHandlers
         return 0;
     }
 
-    public int ReadFit(string inputFile, string outputFile)
+    public int ReadFit(string inputFile, string outputFile, bool verify)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
         var fit = _fitParser.Read(fitBytes);
+
+        if (!verify)
+        {
+            _logger.LogWarning("Skip repack verification!");
+        }
+        else
+        {
+            _logger.LogInformation("Verifying FIT by repacking...");
+            var newFitBytes = _fitParser.Write(fit);
+            if (newFitBytes.SequenceEqual(fitBytes))
+            {
+                _logger.LogInformation("Repacking success! Old and new dumps will be equal");
+            }
+            else
+            {
+                _logger.LogCritical("Repacked dump and source dump not equal!");
+                throw new Exception("Repacked dump and source dump not equal!");
+            }
+        }
+
         var fitJson = _jsonSerializer.Serialize(fit);
         _fileManager.Write(fitJson, outputFile, true);
         return 0;

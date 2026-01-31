@@ -43,7 +43,7 @@ public class CommandRegistration
             var mcodesOpt = command.AddOption(
                 new Option<string>("--mcodes", "-m")
                 {
-                    Description = "Partitions directory",
+                    Description = "Microcodes directory",
                     Required = true,
                 });
 
@@ -89,11 +89,18 @@ public class CommandRegistration
                     Description = "Output json file",
                     DefaultValueFactory = _ => "-"
                 });
+            var verifyOpt = command.AddOption(
+                new Option<bool>("--verify")
+                {
+                    Description = "Verify that final json will be same after convert to table",
+                    DefaultValueFactory = _ => true,
+                });
 
             command.SetAction<CommandHandlers>(services,
                 (handler, opts) => handler.ReadFit(
                     opts.GetRequiredValue(inputOpt),
-                    opts.GetRequiredValue(outputOpt)
+                    opts.GetRequiredValue(outputOpt),
+                    opts.GetRequiredValue(verifyOpt)
                 ));
         }
 

@@ -15,10 +15,10 @@ public class UBootEnvInDump
 {
     public Dictionary<string, string> Variables { get; set; } = [];
 
-    [JsonConverter(typeof(NumberConverter<int>))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int BeginAddress { get; set; }
 
-    [JsonConverter(typeof(NumberConverter<int>))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int EndAddress { get; set; }
 
     public required int PaddingSize { get; set; }

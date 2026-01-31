@@ -20,7 +20,7 @@ public class FitParser
         fitTable.TailGarbage.CopyTo(fitBytes, tailGarbageStart);
         for (int i = 0; i < fitTable.Entries.Count; i++)
         {
-            WriteEntry(fitTable.Entries[i], fitBytes.AsSpan(fitHeadStart + i * FitEntrySize));
+            WriteEntry(fitTable.Entries[i], fitBytes.AsSpan(fitHeadStart + i * FitEntrySize, FitEntrySize));
         }
 
         return fitBytes;
@@ -62,7 +62,7 @@ public class FitParser
             TailGarbage = tailGarbage,
         };
 
-        for (int i = 0; i < headEntry.Size; i++)
+        for (int i = 1; i < headEntry.Size; i++)
         {
             var entry = ReadEntry(fitBytes.AsSpan(begin + i * FitEntrySize, FitEntrySize));
             fitTable.Entries.Add(entry);
@@ -113,7 +113,7 @@ public class FitParser
         BinaryPrimitives.WriteUInt64LittleEndian(entryBytes.Slice(pos, 8), entry.Address);
         pos += 8;
 
-        BinaryPrimitives.WriteUInt32LittleEndian(entryBytes.Slice(pos, 4), entry.Size << 8);
+        BinaryPrimitives.WriteUInt32LittleEndian(entryBytes.Slice(pos, 4), entry.Size);
         pos += 3;
 
         entryBytes[pos] = entry.Reserved;

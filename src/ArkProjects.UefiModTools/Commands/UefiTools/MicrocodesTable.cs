@@ -5,14 +5,14 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools;
 
 public class MicrocodesTable
 {
-    [JsonConverter(typeof(NumberConverter<uint>))]
+    [JsonConverter(typeof(NumberConverterAsHex<uint>))]
     public uint SectionBaseAddress { get; set; } = 0;
 
-    [JsonConverter(typeof(NumberConverter<int>))]
-    public required int UsableStart { get; set; }
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
+    public int UsableStart { get; set; } = 0;
 
-    [JsonConverter(typeof(NumberConverter<int>))]
-    public required int UsableEnd { get; set; } = -1;
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
+    public int UsableEnd { get; set; } = -1;
 
     public required string[] MicrocodeFiles { get; set; }
 }

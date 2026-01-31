@@ -8,13 +8,13 @@ public class FitEntry
     /// <summary>
     /// 7:0 Address
     /// </summary>
-    [JsonConverter(typeof(NumberConverter<ulong>))]
+    [JsonConverter(typeof(NumberConverterAsHex<ulong>))]
     public ulong Address { get; set; }
 
     /// <summary>
     /// 10:8 Size
     /// </summary>
-    [JsonConverter(typeof(NumberConverter<uint>))]
+    [JsonConverter(typeof(NumberConverterAsHex<uint>))]
     public uint Size { get; set; }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class FitEntry
     /// <summary>
     /// 13:12 Version
     /// </summary>
-    [JsonConverter(typeof(NumberConverter<ushort>))]
+    [JsonConverter(typeof(NumberConverterAsHex<ushort>))]
     public ushort Version { get; set; }
 
     /// <summary>
