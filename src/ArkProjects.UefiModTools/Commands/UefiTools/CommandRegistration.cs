@@ -9,7 +9,7 @@ public class CommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
-        var command = new Command("uefi", "uefi related tools");
+        var command = new Command("uefi", "UEFI related tools");
         parentCommand.Add(command);
 
         RegisterMCodesCommands(command, services);
@@ -106,7 +106,7 @@ public class CommandRegistration
 
         // write
         {
-            var command = parentCommand.AddCommand("env-write", "Write FIT bin section from json file");
+            var command = parentCommand.AddCommand("fit-write", "Write FIT bin section from json file");
 
             var inputOpt = command.AddOption(
                 new Option<string>("--input", "-i")
