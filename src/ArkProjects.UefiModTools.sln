@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools.Smbios", "ArkProjects.UefiModTools.Smbios\ArkProjects.UefiModTools.Smbios.csproj", "{C5C77475-FDDE-4182-904B-3A32F7020EF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools.Tests", "ArkProjects.UefiModTools.Tests\ArkProjects.UefiModTools.Tests.csproj", "{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{38102549-806E-43D5-A880-748844592AD6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -28,6 +30,10 @@ Global
 		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5C77475-FDDE-4182-904B-3A32F7020EF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

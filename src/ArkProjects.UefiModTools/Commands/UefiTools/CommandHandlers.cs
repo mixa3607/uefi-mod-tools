@@ -25,18 +25,20 @@ public class CommandHandlers
         var fitTable = _fitParser.Read(fitBytes);
         var mTableJson = _fileManager.ReadString(mCodesTableFile);
         var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
+        var (position, usableEnd) = GetUsableRange(mTable, int.MaxValue);
 
-        var position = mTable.UsableStart;
         foreach (var mFile in mTable.MicrocodeFiles)
         {
             var mCodesFile = Path.Combine(mCodesDirectory, mFile);
             _logger.LogInformation("Injecting {path}", mCodesFile);
             var mCodesBytes = _fileManager.ReadBytes(mCodesFile);
             _logger.LogDebug("Read {count} bytes", mCodesBytes.Length);
+            if (mCodesBytes.Length > usableEnd - position)
+                throw new Exception("No space on payload section");
 
 
             // copy
-            var fwStart = position + mTable.SectionBaseAddress;
+            var fwStart = checked((ulong)position + mTable.SectionBaseAddress);
             _logger.LogInformation("Add {file} as 0x{from:X8}", mFile, fwStart);
 
             var placeAt = fitTable.Entries.FindIndex(0, x => x.Type == FitEntryType.UnusedEntry);
@@ -59,7 +61,7 @@ public class CommandHandlers
             fitTable.Entries[placeAt] = fitEntry;
 
             // ff
-            position += mCodesBytes.Length;
+            position = checked(position + mCodesBytes.Length);
         }
 
         fitBytes = _fitParser.Write(fitTable);
@@ -76,15 +78,8 @@ public class CommandHandlers
         var mTableJson = _fileManager.ReadString(mCodesTableFile);
         var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
 
-        var usableStart = mTable.UsableStart;
-        var usableEnd = mTable.UsableEnd;
-        if (usableEnd < 0)
-        {
-            usableEnd = inputBytes.Length;
-            _logger.LogWarning("UsableEnd not set. Use {end}", usableEnd);
-        }
-
-        var position = usableStart;
+        var (position, usableEnd) = GetUsableRange(mTable, inputBytes.Length);
+        var usableStart = position;
         foreach (var mFile in mTable.MicrocodeFiles)
         {
             var mCodesFile = Path.Combine(mCodesDirectory, mFile);
@@ -101,19 +96,34 @@ public class CommandHandlers
 
             // copy
             Array.Copy(mCodesBytes, 0, inputBytes, position, mCodesBytes.Length);
-            var fwStart = position + mTable.SectionBaseAddress;
-            var fwEnd = fwStart + mCodesBytes.Length;
+            var fwStart = checked((ulong)position + mTable.SectionBaseAddress);
+            var fwEnd = fwStart + (ulong)mCodesBytes.Length;
             _logger.LogInformation("Place {file} in range 0x{from:X8}-0x{to:X8}", mFile, fwStart, fwEnd);
 
             // ff
-            position += mCodesBytes.Length;
-            freeSpace = usableEnd - usableStart - position;
+            position = checked(position + mCodesBytes.Length);
+            freeSpace = usableEnd - position;
             _logger.LogInformation("Free space: {count}", freeSpace);
         }
 
         _logger.LogInformation("Saving {path}", outputFile);
         _fileManager.Write(inputBytes, outputFile, true);
         return 0;
+    }
+
+    private (int Start, int End) GetUsableRange(MicrocodesTable table, int inputLength)
+    {
+        var end = table.UsableEnd;
+        if (end < 0)
+        {
+            end = inputLength;
+            _logger.LogWarning("UsableEnd not set. Use {end}", end);
+        }
+
+        if (table.UsableStart < 0 || table.UsableStart > end || end > inputLength)
+            throw new ArgumentException("Microcode usable range is outside the input file");
+
+        return (table.UsableStart, end);
     }
 
     public int ReadFit(string inputFile, string outputFile, bool verify)

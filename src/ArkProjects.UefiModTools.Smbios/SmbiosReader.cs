@@ -6,12 +6,18 @@ public class SmbiosReader
 {
     public SmbiosDump Read(Stream stream)
     {
+        if (!stream.CanSeek)
+            throw new ArgumentException("SMBIOS input stream must support seeking", nameof(stream));
+
         using var reader = new BinaryReader(stream);
 
         var smbios = new SmbiosDump() { Length = (int)stream.Length };
 
         while (true)
         {
+            if (stream.Position >= stream.Length)
+                throw new Exception("SMBIOS table ended before the End-of-Table structure");
+
             var s = ReadStructure(reader);
             smbios.Structures.Add(s);
             // end of table
@@ -26,9 +32,17 @@ public class SmbiosReader
 
     static SmbiosRawStructure ReadStructure(BinaryReader reader)
     {
+        if (reader.BaseStream.Length - reader.BaseStream.Position < 4)
+            throw new Exception("SMBIOS structure header is truncated");
+
         var type = reader.ReadByte();
         var len = reader.ReadByte();
         var handler = reader.ReadUInt16();
+        if (len < 4)
+            throw new Exception($"SMBIOS structure type {type} has invalid length {len}");
+        if (len - 4 > reader.BaseStream.Length - reader.BaseStream.Position)
+            throw new Exception($"SMBIOS structure type {type} body is truncated");
+
         var body = reader.ReadBytes(len - 4);
         var strings = new List<string>();
 
@@ -72,6 +86,8 @@ public class SmbiosReader
         var stack = new Stack<byte>();
         do
         {
+            if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                throw new Exception("SMBIOS string-set is truncated");
             stack.Push(reader.ReadByte());
         } while (stack.Peek() != 0);
 

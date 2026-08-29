@@ -19,6 +19,8 @@ public class FmhParser
 
     public List<IFmhSectionModel> ScanFmh(byte[] flashBytes, int blockSize)
     {
+        if (blockSize < FmhTailSizeOf || blockSize < FmhSizeOf)
+            throw new ArgumentOutOfRangeException(nameof(blockSize), "Block size is smaller than an FMH header");
         if (flashBytes.Length % blockSize != 0)
             throw new Exception("Dump len not divided by block size!");
 
@@ -33,6 +35,9 @@ public class FmhParser
 
     public IReadOnlyList<IFmhSectionModel> ScanPage(byte[] flashBytes, int page, int blockSize)
     {
+        if (page < 0 || blockSize < FmhTailSizeOf || (long)(page + 1) * blockSize > flashBytes.Length)
+            throw new ArgumentOutOfRangeException(nameof(page), "Page is outside the flash image");
+
         var sections = new List<IFmhSectionModel>();
         var pageRange = new Range(page * blockSize, page * blockSize + blockSize);
 
@@ -83,6 +88,9 @@ public class FmhParser
 
     private FmhSectionModel? ReadFmh(byte[] flashBytes, Range page, int fmhStart)
     {
+        if (fmhStart < page.Start.Value || fmhStart > page.End.Value - FmhSizeOf)
+            return null;
+
         var fmhBytes = new Range(fmhStart, fmhStart + FmhSizeOf);
 
         var bytes = flashBytes.AsSpan(fmhBytes);
@@ -94,6 +102,11 @@ public class FmhParser
             page.Start.Value + (int)fmh.ModuleInfo.Location,
             page.Start.Value + (int)fmh.ModuleInfo.Location + (int)fmh.ModuleInfo.Size
         );
+        if (sectionPointerRange.Start.Value < page.Start.Value || sectionPointerRange.End.Value > page.End.Value)
+        {
+            _logger.LogWarning("FMH module range is outside its erase block");
+            return null;
+        }
         var sct = new FmhSectionModel()
         {
             BeginAddress = fmhBytes.Start.Value,

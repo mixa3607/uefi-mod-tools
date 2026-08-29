@@ -30,6 +30,11 @@ public class SmbiosWriter
 
     private void WriteStructure(BinaryWriter writer, SmbiosRawStructure structure)
     {
+        if (structure.Body.Length > byte.MaxValue - 4)
+            throw new ArgumentException("SMBIOS formatted structure body cannot exceed 251 bytes", nameof(structure));
+        if (structure.Strings.Any(x => x.Contains('\0')))
+            throw new ArgumentException("SMBIOS strings cannot contain NUL characters", nameof(structure));
+
         writer.Write((byte)structure.StructureType);
         writer.Write(structure.StructureLength);
         writer.Write(structure.StructureHandle);

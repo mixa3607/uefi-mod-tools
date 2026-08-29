@@ -40,6 +40,7 @@ public class AmiConfigBackupParser
     {
         if (info.Version != 1)
             throw new Exception("Only ver 1 is supported");
+        ValidateKeyIndex(info.CheckSumKeyIndex);
 
         var memStream = new MemoryStream();
         var memWriter = new BinaryWriter(memStream);
@@ -49,6 +50,9 @@ public class AmiConfigBackupParser
 
         foreach (var (fileName, fileData) in files)
         {
+            if (string.IsNullOrWhiteSpace(fileName) || fileName.IndexOfAny(['\r', '\n', '\0']) >= 0)
+                throw new ArgumentException("Backup file names must not be empty or contain line breaks", nameof(files));
+
             _logger.LogInformation("Appending {file} to bak", fileName);
             memWriter.Write((byte)'\n');
 
@@ -105,7 +109,11 @@ public class AmiConfigBackupParser
                 throw new Exception("Can not parse data len line");
             var dataLen = int.Parse(dataLenMatch.Groups["len"].Value);
 
-            files[fileName] = payloadReader.ReadBytes(dataLen);
+            var fileData = payloadReader.ReadBytes(dataLen);
+            if (fileData.Length != dataLen)
+                throw new Exception($"Unexpected end of backup while reading {fileName}");
+            if (!files.TryAdd(fileName, fileData))
+                throw new Exception($"Backup contains duplicate file name {fileName}");
         }
 
         return (new BackupInfoModel()
@@ -126,6 +134,7 @@ public class AmiConfigBackupParser
     /// <returns></returns>
     private byte[] CalculateSign(byte[] payload, int keyId, bool isBuggedSha1)
     {
+        ValidateKeyIndex(keyId);
         var key = GetBytes($"\nKEY={_hashSumKeys[keyId]}");
         var allBytes = payload.Concat(key).ToArray();
 
@@ -145,9 +154,18 @@ public class AmiConfigBackupParser
     private (byte[] data, byte[] sign) SplitToDataAndSign(byte[] dump)
     {
         // data + \n + 40 bytes of sign
+        if (dump.Length < 40)
+            throw new Exception("Backup is shorter than its 40-byte signature");
+
         var data = dump.AsSpan(0, dump.Length - 40).ToArray();
         var hash = dump.AsSpan(dump.Length - 40, 40).ToArray();
         return (data, hash);
+    }
+
+    private void ValidateKeyIndex(int keyId)
+    {
+        if (keyId < 0 || keyId >= _hashSumKeys.Length)
+            throw new Exception($"Unsupported checksum key index {keyId}");
     }
 
     private int ReadVersion(BinaryReader reader)

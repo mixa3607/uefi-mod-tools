@@ -26,7 +26,7 @@ public class CommandHandlers
 
         foreach (var partition in pTable.Partitions)
         {
-            var partitionLen = partition.EndAddress - partition.BeginAddress;
+            var partitionLen = GetPartitionLength(partition, inputBytes.Length);
             var saveToFile = Path.Combine(outputDirectory, partition.FileName);
             _logger.LogInformation("Saving {path}", saveToFile);
             var bytes = inputBytes.AsSpan(partition.BeginAddress, partitionLen).ToArray();
@@ -47,7 +47,7 @@ public class CommandHandlers
             var partitionFile = Path.Combine(partitionsDirectory, partition.FileName);
             _logger.LogInformation("Injecting {path}", partitionFile);
 
-            var partitionLen = partition.EndAddress - partition.BeginAddress;
+            var partitionLen = GetPartitionLength(partition, inputBytes.Length);
             _logger.LogDebug("Partition len {count} bytes", partitionLen);
 
             var partitionBytes = _fileManager.ReadBytes(partitionFile);
@@ -73,5 +73,18 @@ public class CommandHandlers
         _fileManager.Write(inputBytes, outputFile, true);
 
         return 0;
+    }
+
+    private static int GetPartitionLength(Partition partition, int inputLength)
+    {
+        if (partition.BeginAddress < 0 || partition.EndAddress < partition.BeginAddress ||
+            partition.EndAddress > inputLength)
+        {
+            throw new ArgumentException(
+                $"Partition {partition.FileName} range 0x{partition.BeginAddress:X8}-0x{partition.EndAddress:X8} " +
+                $"is outside the input file");
+        }
+
+        return partition.EndAddress - partition.BeginAddress;
     }
 }

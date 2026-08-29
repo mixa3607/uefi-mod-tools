@@ -31,7 +31,7 @@ public class FitParser
         var fitHeadMarker = "_FIT_   "u8;
 
         var begin = -1;
-        for (int i = 0; i < fitBytes.Length; i++)
+        for (int i = 0; i <= fitBytes.Length - fitHeadMarker.Length; i++)
         {
             var isStart = fitBytes.AsSpan(i, fitHeadMarker.Length).SequenceEqual(fitHeadMarker);
             if (isStart)
@@ -47,13 +47,20 @@ public class FitParser
         }
 
         var headGarbage = fitBytes.AsSpan(0, begin).ToArray();
+        if (fitBytes.Length - begin < FitEntrySize)
+            throw new Exception("FIT header is truncated");
+
         var headEntry = ReadEntry(fitBytes.AsSpan(begin, FitEntrySize));
         if (headEntry.Type != FitEntryType.FitHeaderEntry)
         {
             throw new Exception($"Expected first entry is \"FIT Header Entry\" but read \"{headEntry.Type}\"");
         }
 
-        var tailGarbage = fitBytes.AsSpan(begin + (int)(headEntry.Size * FitEntrySize)).ToArray();
+        if (headEntry.Size == 0 || headEntry.Size > (fitBytes.Length - begin) / FitEntrySize)
+            throw new Exception("FIT header specifies an invalid entry count");
+
+        var fitLength = checked((int)headEntry.Size * FitEntrySize);
+        var tailGarbage = fitBytes.AsSpan(begin + fitLength).ToArray();
 
         var fitTable = new FitTable
         {

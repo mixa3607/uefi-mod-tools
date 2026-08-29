@@ -153,6 +153,9 @@ public class StructuresCommandHandlers
 
     private bool TryInject(SmbiosDump table, SmbiosRawStructure rawStructure)
     {
+        var endOfTable = table.Structures.FindIndex(x => x.StructureType == SmbiosStructureType.EndOfTable);
+        var lastInsertIndex = endOfTable >= 0 ? endOfTable : table.Structures.Count;
+
         if (table.Structures.Count == 0)
         {
             _logger.LogInformation("No structures in table, just add");
@@ -160,33 +163,34 @@ public class StructuresCommandHandlers
             return true;
         }
 
-        var after = table.Structures
+        var after = table.Structures.Take(lastInsertIndex)
             .OrderBy(x => x.StructureHandle)
             .SkipWhile(x => x.StructureHandle < rawStructure.StructureHandle)
             .FirstOrDefault();
         if (after != null)
         {
-            _logger.LogInformation("Placing struct after {name} with handle {handle}",
+            _logger.LogInformation("Placing struct before {name} with handle {handle}",
                 after.StructureType, after.StructureHandle);
             var idx = table.Structures.IndexOf(after);
             table.Structures.Insert(idx, rawStructure);
             return true;
         }
 
-        var before = table.Structures
+        var before = table.Structures.Take(lastInsertIndex)
             .OrderByDescending(x => x.StructureHandle)
             .SkipWhile(x => x.StructureHandle > rawStructure.StructureHandle)
             .FirstOrDefault();
         if (before != null)
         {
-            _logger.LogInformation("Placing struct before {name} with handle {handle}",
+            _logger.LogInformation("Placing struct after {name} with handle {handle}",
                 before.StructureType, before.StructureHandle);
             var idx = table.Structures.IndexOf(before);
-            table.Structures.Insert(idx - 1, rawStructure);
+            table.Structures.Insert(idx + 1, rawStructure);
 
             return true;
         }
 
-        return false;
+        table.Structures.Insert(lastInsertIndex, rawStructure);
+        return true;
     }
 }

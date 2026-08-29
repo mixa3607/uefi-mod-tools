@@ -28,10 +28,7 @@ public class CommandHandlers
         var files = new Dictionary<string, byte[]>();
         foreach (var fileName in index.Files)
         {
-            var filePath = Path.IsPathRooted(fileName)
-                ? Path.GetRelativePath("/", fileName)
-                : fileName;
-            filePath = Path.Combine(inputDirectory, filePath);
+            var filePath = GetFilePathInDirectory(inputDirectory, fileName);
             _logger.LogInformation("Reading {file}", fileName);
             var fileBytes = _fileManager.ReadBytes(filePath);
             files[fileName] = fileBytes;
@@ -49,10 +46,7 @@ public class CommandHandlers
 
         foreach (var (fileName, fileBytes) in files)
         {
-            var filePath = Path.IsPathRooted(fileName)
-                ? Path.GetRelativePath("/", fileName)
-                : fileName;
-            filePath = Path.Combine(outputDirectory, filePath);
+            var filePath = GetFilePathInDirectory(outputDirectory, fileName);
 
             _logger.LogInformation("Saving {file}", fileName);
             _fileManager.Write(fileBytes, filePath, true);
@@ -62,5 +56,25 @@ public class CommandHandlers
         var indexContent = _jsonSerializer.Serialize(info);
         _fileManager.Write(indexContent, indexFile, true);
         return 0;
+    }
+
+    private static string GetFilePathInDirectory(string directory, string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) || Path.IsPathRooted(fileName))
+        {
+            throw new ArgumentException("Backup file name must be a non-empty relative path", nameof(fileName));
+        }
+
+        var root = Path.GetFullPath(directory);
+        var path = Path.GetFullPath(Path.Combine(root, fileName));
+        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar)
+            ? root
+            : root + Path.DirectorySeparatorChar;
+        if (!path.StartsWith(rootPrefix, StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"Backup file path escapes its working directory: {fileName}", nameof(fileName));
+        }
+
+        return path;
     }
 }
