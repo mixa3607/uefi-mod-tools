@@ -8,12 +8,15 @@ public class CommandHandlers
     private readonly ILogger<CommandHandlers> _logger;
     private readonly IJsonSerializationService _jsonSerializer;
     private readonly ICommandFileManager _fileManager;
+    private readonly MicrocodesCombiner _combiner;
+
     public CommandHandlers(ILogger<CommandHandlers> logger,
-        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager)
+        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager, MicrocodesCombiner combiner)
     {
         _logger = logger;
         _jsonSerializer = jsonSerializer;
         _fileManager = fileManager;
+        _combiner = combiner;
     }
 
     public int CombineMicrocodes(string inputFile, string mCodesTableFile, string mCodesDirectory, string outputFile)
@@ -22,38 +25,18 @@ public class CommandHandlers
         var mTableJson = _fileManager.ReadString(mCodesTableFile);
         var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
 
-        if (mTable.UsableEnd < 0)
-            _logger.LogWarning("UsableEnd not set. Use {end}", inputBytes.Length);
-        var (position, usableEnd) = MicrocodesTableUtilities.GetUsableRange(mTable, inputBytes.Length);
-        var usableStart = position;
+        var microcodes = new List<byte[]>();
         foreach (var mFile in mTable.MicrocodeFiles)
         {
             var mCodesFile = Path.Combine(mCodesDirectory, mFile);
             _logger.LogInformation("Injecting {path}", mCodesFile);
             var mCodesBytes = _fileManager.ReadBytes(mCodesFile);
             _logger.LogDebug("Read {count} bytes", mCodesBytes.Length);
-
-            var freeSpace = usableEnd - position;
-            if (mCodesBytes.Length > freeSpace)
-            {
-                _logger.LogError("Try write {try} bytes but free space is {free}", mCodesBytes.Length, freeSpace);
-                throw new Exception("No space on payload section");
-            }
-
-            // copy
-            Array.Copy(mCodesBytes, 0, inputBytes, position, mCodesBytes.Length);
-            var fwStart = checked((ulong)position + mTable.SectionBaseAddress);
-            var fwEnd = fwStart + (ulong)mCodesBytes.Length;
-            _logger.LogInformation("Place {file} in range 0x{from:X8}-0x{to:X8}", mFile, fwStart, fwEnd);
-
-            // ff
-            position = checked(position + mCodesBytes.Length);
-            freeSpace = usableEnd - position;
-            _logger.LogInformation("Free space: {count}", freeSpace);
+            microcodes.Add(mCodesBytes);
         }
 
         _logger.LogInformation("Saving {path}", outputFile);
-        _fileManager.Write(inputBytes, outputFile, true);
+        _fileManager.Write(_combiner.Combine(inputBytes, mTable, microcodes), outputFile, true);
         return 0;
     }
 

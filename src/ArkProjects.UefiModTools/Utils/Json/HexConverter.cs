@@ -63,10 +63,12 @@ public class NumberConverter<T> : JsonConverter<T> where T : struct
         if (numStr.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase))
         {
             numBase = 16;
+            numStr = numStr[2..];
         }
         else if (numStr.StartsWith("0b", StringComparison.InvariantCultureIgnoreCase))
         {
             numBase = 2;
+            numStr = numStr[2..];
         }
 
 

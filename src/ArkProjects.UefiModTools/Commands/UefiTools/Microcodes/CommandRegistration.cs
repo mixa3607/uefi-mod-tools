@@ -11,6 +11,7 @@ public static class CommandRegistration
     {
         services
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextMicrocodes.Default)
+            .AddSingleton<MicrocodesCombiner>()
             .AddSingleton<CommandHandlers>();
 
         var command = parentCommand.AddCommand("mcodes-combine", "Combine/inject microcodes to file");

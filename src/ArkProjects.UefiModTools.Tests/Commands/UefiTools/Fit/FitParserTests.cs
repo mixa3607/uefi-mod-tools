@@ -25,4 +25,16 @@ public class FitParserTests
 
         Assert.Contains("entry count does not match", error.Message);
     }
+
+    [Fact]
+    public void ReadWriteRoundTripsKnownFitTable()
+    {
+        var source = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "test-files", "FIT_table_base.bin"));
+        var parser = new FitParser();
+
+        var table = parser.Read(source);
+
+        Assert.NotEmpty(table.Entries);
+        Assert.Equal(source, parser.Write(table));
+    }
 }

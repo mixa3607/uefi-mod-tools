@@ -10,14 +10,16 @@ public class CommandHandlers
     private readonly IJsonSerializationService _jsonSerializer;
     private readonly ICommandFileManager _fileManager;
     private readonly FitParser _fitParser;
+    private readonly FitMicrocodesInjector _microcodesInjector;
 
     public CommandHandlers(ILogger<CommandHandlers> logger, IJsonSerializationService jsonSerializer,
-        ICommandFileManager fileManager, FitParser fitParser)
+        ICommandFileManager fileManager, FitParser fitParser, FitMicrocodesInjector microcodesInjector)
     {
         _logger = logger;
         _jsonSerializer = jsonSerializer;
         _fileManager = fileManager;
         _fitParser = fitParser;
+        _microcodesInjector = microcodesInjector;
     }
 
     public int InjectMicrocodes(string inputFile, string mCodesTableFile, string mCodesDirectory, string outputFile)
@@ -26,43 +28,18 @@ public class CommandHandlers
         var fitTable = _fitParser.Read(fitBytes);
         var mTableJson = _fileManager.ReadString(mCodesTableFile);
         var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
-        var (position, usableEnd) = MicrocodesTableUtilities.GetUsableRange(mTable, int.MaxValue);
-
+        var microcodes = new List<byte[]>();
         foreach (var mFile in mTable.MicrocodeFiles)
         {
             var mCodesFile = Path.Combine(mCodesDirectory, mFile);
             _logger.LogInformation("Injecting {path}", mCodesFile);
             var mCodesBytes = _fileManager.ReadBytes(mCodesFile);
             _logger.LogDebug("Read {count} bytes", mCodesBytes.Length);
-            if (mCodesBytes.Length > usableEnd - position)
-                throw new Exception("No space on payload section");
-
-            var fwStart = checked((ulong)position + mTable.SectionBaseAddress);
-            _logger.LogInformation("Add {file} as 0x{from:X8}", mFile, fwStart);
-
-            var placeAt = fitTable.Entries.FindIndex(0, x => x.Type == FitEntryType.UnusedEntry);
-            if (placeAt < 0)
-            {
-                _logger.LogError("Can not find any empty slot in FIT");
-                throw new Exception("Can not find any empty slot in FIT");
-            }
-
-            _logger.LogInformation("Place FIT entry at index {idx}", placeAt);
-            fitTable.Entries[placeAt] = new FitEntry
-            {
-                Type = FitEntryType.MicrocodeUpdateEntry,
-                Address = fwStart,
-                Size = 0,
-                Version = 1,
-                ChecksumValidate = false,
-                Checksum = 0,
-            };
-
-            position = checked(position + mCodesBytes.Length);
+            microcodes.Add(mCodesBytes);
         }
 
         _logger.LogInformation("Saving {path}", outputFile);
-        _fileManager.Write(_fitParser.Write(fitTable), outputFile, true);
+        _fileManager.Write(_fitParser.Write(_microcodesInjector.Inject(fitTable, mTable, microcodes)), outputFile, true);
         return 0;
     }
 

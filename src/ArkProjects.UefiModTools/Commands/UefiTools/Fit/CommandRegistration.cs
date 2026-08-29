@@ -12,6 +12,7 @@ public static class CommandRegistration
         services
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextFit.Default)
             .AddSingleton<FitParser>()
+            .AddSingleton<FitMicrocodesInjector>()
             .AddSingleton<CommandHandlers>();
 
         RegisterRead(parentCommand, services);
