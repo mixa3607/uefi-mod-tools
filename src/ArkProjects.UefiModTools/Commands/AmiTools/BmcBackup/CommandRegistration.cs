@@ -34,10 +34,17 @@ public static class CommandRegistration
                     Required = true,
                 });
 
+            var forceOpt = command.AddOption(
+                new Option<bool>("--force")
+                {
+                    Description = "Extract even when the backup signature is invalid",
+                });
+
             command.SetAction<CommandHandlers>(services,
                 (handler, opts) => handler.UnpackBak(
                     opts.GetRequiredValue(inputOpt),
-                    opts.GetRequiredValue(outputOpt)
+                    opts.GetRequiredValue(outputOpt),
+                    opts.GetValue(forceOpt)
                 ));
         }
 

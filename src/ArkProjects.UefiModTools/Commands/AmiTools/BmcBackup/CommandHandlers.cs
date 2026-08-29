@@ -39,10 +39,10 @@ public class CommandHandlers
         return 0;
     }
 
-    public int UnpackBak(string inputFile, string outputDirectory)
+    public int UnpackBak(string inputFile, string outputDirectory, bool force)
     {
         var backupBytes = _fileManager.ReadBytes(inputFile);
-        var (info, files) = _parser.ParseBackup(backupBytes);
+        var (info, files) = _parser.ParseBackup(backupBytes, force);
 
         foreach (var (fileName, fileBytes) in files)
         {

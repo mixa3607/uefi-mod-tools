@@ -68,7 +68,7 @@ public class AmiConfigBackupParser
         return bytes.Concat(sign).ToArray();
     }
 
-    public (BackupInfoModel info, IReadOnlyDictionary<string, byte[]> files) ParseBackup(byte[] backupBytes)
+    public (BackupInfoModel info, IReadOnlyDictionary<string, byte[]> files) ParseBackup(byte[] backupBytes, bool force = false)
     {
         var (payload, sign) = SplitToDataAndSign(backupBytes);
         using var payloadStream = new MemoryStream(payload);
@@ -87,7 +87,12 @@ public class AmiConfigBackupParser
 
         var calculatedSign = CalculateSign(payload, keyIdx, isBuggedSha1);
         if (!calculatedSign.SequenceEqual(sign))
-            _logger.LogWarning("Calculated sign and in file not same!");
+        {
+            if (!force)
+                throw new InvalidDataException("Backup signature does not match. Use force only to recover a known corrupt backup.");
+
+            _logger.LogWarning("Backup signature does not match; continuing because force was requested");
+        }
         else
             _logger.LogInformation("Calculated sign and in file is same");
 
@@ -107,7 +112,10 @@ public class AmiConfigBackupParser
             var dataLenMatch = Regex.Match(dataLenStr, @"^\$\$\$DataLength=(?<len>\d+)\$$");
             if (!dataLenMatch.Success)
                 throw new Exception("Can not parse data len line");
-            var dataLen = int.Parse(dataLenMatch.Groups["len"].Value);
+            if (!int.TryParse(dataLenMatch.Groups["len"].Value, out var dataLen))
+                throw new InvalidDataException("Backup file length is outside the supported range");
+            if (dataLen > payloadStream.Length - payloadStream.Position)
+                throw new InvalidDataException($"Backup file {fileName} length exceeds the remaining payload");
 
             var fileData = payloadReader.ReadBytes(dataLen);
             if (fileData.Length != dataLen)

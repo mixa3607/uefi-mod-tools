@@ -8,6 +8,11 @@ public class FitParser
 
     public byte[] Write(FitTable fitTable)
     {
+        if (fitTable.Entries.Count == 0 || fitTable.Entries[0].Type != FitEntryType.FitHeaderEntry)
+            throw new ArgumentException("FIT table must start with a FIT header entry", nameof(fitTable));
+        if (fitTable.Entries[0].Size != fitTable.Entries.Count)
+            throw new ArgumentException("FIT header entry count does not match the number of entries", nameof(fitTable));
+
         var headGarbageStart = 0;
         var headGarbageEnd = fitTable.HeadGarbage.Length;
         var fitHeadStart = headGarbageEnd;
