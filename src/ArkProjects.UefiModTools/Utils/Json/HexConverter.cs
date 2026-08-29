@@ -3,21 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace ArkProjects.UefiModTools.Utils;
 
-public class HexConverter : JsonConverter<int>
-{
-    public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var value = reader.GetString();
-        return Convert.ToInt32(value, 16);
-    }
-
-    public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options)
-    {
-        var hex = "0x" + value.ToString("X8");
-        writer.WriteStringValue(hex);
-    }
-}
-
 public class NumberConverterAsHex<T>() : NumberConverter<T>(16) where T : struct;
 public class NumberConverterAsBin<T>() : NumberConverter<T>(2) where T : struct;
 
@@ -70,7 +55,7 @@ public class NumberConverter<T> : JsonConverter<T> where T : struct
             else if (targetType == typeof(ulong))
                 return (T)(object)reader.GetUInt64();
 
-            throw new Exception();
+            throw new JsonException($"Unsupported numeric type {targetType}");
         }
 
         var numStr = reader.GetString()!;
@@ -105,7 +90,7 @@ public class NumberConverter<T> : JsonConverter<T> where T : struct
         else if (targetType == typeof(ulong))
             return (T)(object)Convert.ToUInt64(numStr, numBase);
 
-        throw new Exception();
+        throw new JsonException($"Unsupported numeric type {targetType}");
     }
 
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
@@ -134,14 +119,16 @@ public class NumberConverter<T> : JsonConverter<T> where T : struct
                 writer.WriteNumberValue((ulong)(object)value);
 
             else
-                throw new Exception();
+                throw new JsonException($"Unsupported numeric type {targetType}");
+
+            return;
         }
 
         var (prefix, format) = WriteBase switch
         {
             2 => ("0b", "b8"),
             16 => ("0x", "X8"),
-            _ => throw new Exception(),
+            _ => throw new JsonException($"Unsupported numeric output base {WriteBase}"),
         };
 
         string? str = null;
@@ -172,6 +159,6 @@ public class NumberConverter<T> : JsonConverter<T> where T : struct
             return;
         }
 
-        throw new Exception();
+        throw new JsonException($"Unsupported numeric type {targetType}");
     }
 }

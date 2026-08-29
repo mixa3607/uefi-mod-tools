@@ -4,7 +4,7 @@ using ArkProjects.UefiModTools.Commands.AmiTools.BmcBackup;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests;
+namespace ArkProjects.UefiModTools.Tests.Commands.AmiTools.BmcBackup;
 
 public class AmiConfigBackupParserTests
 {

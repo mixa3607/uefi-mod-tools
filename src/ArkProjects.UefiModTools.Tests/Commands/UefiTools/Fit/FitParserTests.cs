@@ -1,7 +1,7 @@
 using ArkProjects.UefiModTools.Commands.UefiTools;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests;
+namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.Fit;
 
 public class FitParserTests
 {

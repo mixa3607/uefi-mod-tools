@@ -1,7 +1,7 @@
 using ArkProjects.UefiModTools.Smbios;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests;
+namespace ArkProjects.UefiModTools.Tests.Smbios;
 
 public class SmbiosValidationTests
 {

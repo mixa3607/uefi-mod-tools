@@ -10,12 +10,12 @@ public class FmhTailSectionModel : IFmhSectionModel
     [JsonIgnore]
     public string Type => SectionType;
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int BeginAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int EndAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int PointingToAddress { get; set; }
 }

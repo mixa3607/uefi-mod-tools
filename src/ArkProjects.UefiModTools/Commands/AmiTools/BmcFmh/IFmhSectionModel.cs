@@ -12,10 +12,10 @@ public interface IFmhSectionModel
     [JsonIgnore]
     string Type { get; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     int BeginAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     int EndAddress { get; set; }
 
     long Length => EndAddress - BeginAddress;

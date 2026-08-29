@@ -10,16 +10,16 @@ public class FmhSectionModel : IFmhSectionModel
     [JsonIgnore]
     public string Type => SectionType;
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int BeginAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int EndAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int ModuleBeginAddress { get; set; }
 
-    [JsonConverter(typeof(HexConverter))]
+    [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int ModuleEndAddress { get; set; }
 
     public required string ModuleName { get; set; }
