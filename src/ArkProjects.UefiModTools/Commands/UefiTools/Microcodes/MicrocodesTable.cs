@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using ArkProjects.UefiModTools.Utils;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Microcodes;
 
 public class MicrocodesTable
 {

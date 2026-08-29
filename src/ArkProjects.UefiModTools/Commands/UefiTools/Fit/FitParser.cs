@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 
 public class FitParser
 {

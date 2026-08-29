@@ -1,4 +1,4 @@
-using ArkProjects.UefiModTools.Commands.UefiTools;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 using Xunit;
 
 namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.Fit;
