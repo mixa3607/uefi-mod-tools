@@ -13,6 +13,7 @@
 - The viewer can load and save a directory workspace. `ifr-editor.json` names the render and patch files; without it, unambiguous conventional filenames are discovered. File System Access API is used when available, with directory-input/download fallback.
 - The workspace has top-level `IFR` and `Changes` views. `Changes` is a logical patch review of SetupData field deltas and SCT suppression edits; it only consumes render and patch JSON.
 - `VarStore map` visualizes declared IFR VarStores, question offsets, known-size ranges, and unknown-size anchors from render JSON. It is not a physical NVAR/NVRAM map.
+- Browser-local UI preferences currently persist the selected theme only; firmware documents and patch state remain explicit workspace data.
 - The CLI patch formats are already applied by separate commands and must remain unchanged:
   - SetupData: `ExtractedAmiSetupDataQuestions` for `AccessLevel`, `Failsafe`, and `Optimal`.
   - SCT: `IfrSctPatches` for disabling patchable `SuppressIf` scopes by original IFR offset.

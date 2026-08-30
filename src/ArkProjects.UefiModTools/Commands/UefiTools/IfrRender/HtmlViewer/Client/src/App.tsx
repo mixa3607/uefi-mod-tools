@@ -8,6 +8,7 @@ import { downloadJson, importPatch, setupPatch, type PatchKind } from './patchHe
 import type { Document, Node, NodeRef, SetupPatchQuestion } from './types';
 import { ViewerToolbar } from './ViewerToolbar';
 import { loadWorkspace, parseDocument, workspaceFiles } from './workspaceHelpers';
+import { loadUiPreferences, saveUiPreferences, type ThemeMode } from './uiPreferences';
 
 type DirectoryHandle = {
   values: () => AsyncIterable<{ kind: string; getFile: () => Promise<File> }>;
@@ -25,7 +26,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   const [selectedId, setSelectedId] = useState<string>();
   const [expanded, setExpanded] = useState<string[]>([]);
   const [query, setQuery] = useState('');
-  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => loadUiPreferences().themeMode);
   const [rawOpen, setRawOpen] = useState(false);
   const [setupPatches, setSetupPatches] = useState<Record<number, SetupPatchQuestion>>({});
   const [disabledSuppressions, setDisabledSuppressions] = useState<number[]>([]);
@@ -45,6 +46,10 @@ export function App({ document: viewerDocument }: { document: Document }) {
     [themeMode],
   );
   const selected = selectedId ? index.byId.get(selectedId) : undefined;
+
+  useEffect(() => {
+    saveUiPreferences({ themeMode });
+  }, [themeMode]);
 
   useEffect(() => {
     if (!selectedId || !index.byId.has(selectedId)) {

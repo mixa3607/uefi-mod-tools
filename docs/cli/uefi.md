@@ -140,6 +140,8 @@ The viewer provides:
 - dark and light themes plus raw JSON inspection;
 - directory workspaces when browser capabilities allow it.
 
+The selected theme is stored in browser-local UI preferences. Firmware inputs, loaded workspaces, and patches are not persisted by the viewer.
+
 `ascii-tree` is accepted as a format but is currently unimplemented and exits with status 1 without writing output.
 
 ### Serve Locally
