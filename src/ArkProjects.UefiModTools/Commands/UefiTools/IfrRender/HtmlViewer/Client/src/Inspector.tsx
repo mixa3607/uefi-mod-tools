@@ -196,6 +196,7 @@ function SetupPatchEditor({
           value={patch.question.accessLevel}
           onChange={event => onPatch(node, 'accessLevel', Number(event.target.value))}
           inputProps={{ min: 0, max: 255 }}
+          helperText="Known modding convention: 0x05 (platform-dependent)"
         />
         {(['failsafe', 'optimal'] as const).map(property => {
           const fieldLabel = property === 'failsafe' ? 'Failsafe default' : 'Optimal default';
