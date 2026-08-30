@@ -60,6 +60,27 @@ public class IfrTreeRendererTests
         Assert.Equal((ushort)0, Assert.Single(question.Defaults).Id);
     }
 
+    [Fact]
+    public void RenderPreservesRefTargetFormId()
+    {
+        var document = new IfrTreeRenderer().Render(
+        [
+            Operation("FormSet", true, 10),
+            Operation("Form", true, 20, fields => fields.FormId = 1),
+            Operation("Ref", false, 30, fields =>
+            {
+                fields.QuestionId = 8;
+                fields.FormId = 85;
+            }),
+            Operation("End", false, 40),
+            Operation("End", false, 50),
+        ]);
+
+        var reference = Assert.Single(Assert.Single(document.Formsets).Forms[0].Children);
+        Assert.Equal("Ref", reference.Opcode);
+        Assert.Equal((ushort)85, reference.FormId);
+    }
+
     private static List<IfrOperation> CreateOperations() =>
     [
         Operation("FormSet", true, 10, fields =>

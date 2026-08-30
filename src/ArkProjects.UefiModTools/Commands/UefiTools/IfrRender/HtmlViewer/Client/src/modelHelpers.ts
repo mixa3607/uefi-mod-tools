@@ -4,6 +4,7 @@ import type { ChipProps } from '@mui/material';
 export type DocumentIndex = {
   byId: Map<string, NodeRef>;
   questionsById: Map<number, QuestionNodeRef[]>;
+  formsById: Map<number, NodeRef[]>;
 };
 
 export type QuestionNodeRef = NodeRef & { node: Node };
@@ -65,6 +66,7 @@ export function nodeColor(node: Node): ChipProps['color'] {
 export function indexDocument(document: Document): DocumentIndex {
   const byId = new Map<string, NodeRef>();
   const questionsById = new Map<number, QuestionNodeRef[]>();
+  const formsById = new Map<number, NodeRef[]>();
 
   document.Formsets.forEach(formset => {
     const formsetReference: NodeRef = {
@@ -83,6 +85,9 @@ export function indexDocument(document: Document): DocumentIndex {
         formTitle: label(form.Title) || `Form ${form.Id ?? '?'}`,
       };
       byId.set(formReference.id, formReference);
+      if (form.Id != null) {
+        formsById.set(form.Id, [...(formsById.get(form.Id) ?? []), formReference]);
+      }
 
       const visit = (node: Node, parentIds: string[]) => {
         const reference: QuestionNodeRef = {
@@ -108,7 +113,7 @@ export function indexDocument(document: Document): DocumentIndex {
     });
   });
 
-  return { byId, questionsById };
+  return { byId, questionsById, formsById };
 }
 
 export function questionDefaults(node: Node): OptionDefault[] {

@@ -50,6 +50,7 @@ public class IfrRenderNode
     public IfrStringReference? Prompt { get; set; }
     public IfrStringReference? Help { get; set; }
     public ushort? QuestionId { get; set; }
+    public ushort? FormId { get; set; }
     public ushort? VarstoreId { get; set; }
     public ushort? VarOffset { get; set; }
     public byte? QuestionFlags { get; set; }

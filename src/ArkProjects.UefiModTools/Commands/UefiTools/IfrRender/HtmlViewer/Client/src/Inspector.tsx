@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { conditionText, expressionText, label, type DocumentIndex, type OptionDefault } from './modelHelpers';
 import { QuestionReference } from './QuestionReference';
+import { FormReference } from './FormReference';
 import type { Form, Formset, Node, NodeRef, SelectableNode, SetupPatchQuestion } from './types';
 
 type InspectorProps = {
@@ -57,6 +58,8 @@ export function Inspector({
         node={node}
         patch={setupPatch}
         defaults={defaults}
+        index={index}
+        navigate={onNavigate}
         onPatch={onPatchSetup}
       />
     );
@@ -101,11 +104,15 @@ function QuestionInspector({
   node,
   patch,
   defaults,
+  index,
+  navigate,
   onPatch,
 }: {
   node: Node;
   patch?: SetupPatchQuestion;
   defaults: OptionDefault[];
+  index: DocumentIndex;
+  navigate: (reference: NodeRef) => void;
   onPatch: (node: Node, property: keyof SetupPatchQuestion['question'], value: number) => void;
 }) {
   return (
@@ -120,6 +127,15 @@ function QuestionInspector({
           ['Range', node.Range ? `${node.Range.min}..${node.Range.max}, step ${node.Range.step}` : undefined],
         ]}
       />
+      {node.Opcode === 'Ref' && node.FormId != null && (
+        <Paper variant="outlined" sx={{ p: 1.5 }}>
+          <Typography variant="subtitle2">Navigation target</Typography>
+          <Typography color="text.secondary" variant="body2" sx={{ mb: 0.5 }}>
+            This IFR Ref opens another form.
+          </Typography>
+          <FormReference formId={node.FormId} index={index} navigate={navigate} />
+        </Paper>
+      )}
       {node.Options.length > 0 && (
         <Paper variant="outlined" sx={{ p: 1.5 }}>
           <Typography variant="subtitle2">OneOf values</Typography>
