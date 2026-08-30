@@ -11,6 +11,7 @@ public static class CommandRegistration
     {
         services
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrSct.Default)
+            .AddSingleton<IfrSctPatcher>()
             .AddSingleton<CommandHandlers>();
 
         var command = parentCommand.AddCommand("ifr-sct-patch", "Patch Platform_setup.sct using IFR dump and json patch");

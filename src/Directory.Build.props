@@ -32,10 +32,8 @@
   <!-- Usage: export WSL_DOTNET_BIN_RELDIR=wsl -->
   <!-- Check whether WSL_DOTNET_BIN_RELDIR is set. -->
   <PropertyGroup Condition="'$(WSL_DOTNET_BIN_RELDIR)' != ''">
-    <WSLDotNetBinRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../bin/$(WSL_DOTNET_BIN_RELDIR)/'))</WSLDotNetBinRoot>
-
     <!-- The project name prevents output conflicts between solution projects. -->
-    <BaseOutputPath>$(WSLDotNetBinRoot)$(MSBuildProjectName)/</BaseOutputPath>
+    <BaseOutputPath>./bin/$(WSL_DOTNET_BIN_RELDIR)</BaseOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin/**</DefaultItemExcludes>
   </PropertyGroup>
 
