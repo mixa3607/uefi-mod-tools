@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, CssBaseline, Divider, Drawer, Paper, ThemeProvider, Typography, createTheme } from '@mui/material';
-import { IfrTree } from './IfrTree';
-import { Inspector } from './Inspector';
-import { indexDocument, questionDefaults } from './modelHelpers';
+import { Box, CssBaseline, Divider, Drawer, Tab, Tabs, ThemeProvider, Typography, createTheme } from '@mui/material';
+import { ChangesView } from './ChangesView';
+import { IfrView } from './IfrView';
+import { indexDocument } from './modelHelpers';
 import { downloadJson, importPatch, setupPatch, type PatchKind } from './patchHelpers';
 import type { Document, Node, NodeRef, SetupPatchQuestion } from './types';
 import { ViewerToolbar } from './ViewerToolbar';
@@ -28,6 +28,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   const [rawOpen, setRawOpen] = useState(false);
   const [setupPatches, setSetupPatches] = useState<Record<number, SetupPatchQuestion>>({});
   const [disabledSuppressions, setDisabledSuppressions] = useState<number[]>([]);
+  const [view, setView] = useState<'ifr' | 'changes'>('ifr');
 
   const theme = useMemo(
     () =>
@@ -64,6 +65,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   }, [index, query]);
 
   const navigate = (reference: NodeRef) => {
+    setView('ifr');
     setExpanded(current => [...new Set([...current, ...reference.parentIds])]);
     setSelectedId(reference.id);
     setTimeout(() => {
@@ -171,16 +173,10 @@ export function App({ document: viewerDocument }: { document: Document }) {
     }
   };
 
-  const selectedNode = selected?.node;
-  const selectedSetupPatch =
-    selectedNode?.NodeType === 'question' && selectedNode.SetupDataQuestion
-    ? setupPatch(selectedNode, setupPatches)
-    : undefined;
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ height: '100vh', display: 'grid', gridTemplateRows: '48px minmax(0, 1fr)' }}>
+      <Box sx={{ height: '100vh', display: 'grid', gridTemplateRows: '48px 36px minmax(0, 1fr)' }}>
         <ViewerToolbar
           query={query}
           themeMode={themeMode}
@@ -212,56 +208,41 @@ export function App({ document: viewerDocument }: { document: Document }) {
             })
           }
         />
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(320px, 38%) minmax(0, 1fr)' },
-            minHeight: 0,
-          }}
-        >
-          <Paper square variant="outlined" sx={{ overflow: 'auto', p: 1 }}>
-            <IfrTree
-              document={activeDocument}
-              expanded={expanded}
-              selectedId={selectedId}
-              query={query}
-              index={index}
-              setupPatches={setupPatches}
-              disabledSuppressions={disabledSuppressions}
-              onExpandedChange={setExpanded}
-              onSelectedChange={id => {
-                if (id && index.byId.has(id)) {
-                  setSelectedId(id);
-                }
-              }}
-              onNavigate={navigate}
-            />
-          </Paper>
-          <Box sx={{ overflow: 'auto', p: 2 }}>
-            <Inspector
-              selected={selected}
-              index={index}
-              setupPatch={selectedSetupPatch}
-              defaults={selectedNode?.NodeType === 'question' ? questionDefaults(selectedNode) : []}
-              suppressionDisabled={Boolean(
-                selectedNode?.NodeType === 'condition' && disabledSuppressions.includes(selectedNode.Source.Offset),
-              )}
-              onNavigate={navigate}
-              onPatchSetup={patchSetup}
-              onSuppressionDisabled={disabled => {
-                if (!selectedNode) {
-                  return;
-                }
-
-                setDisabledSuppressions(current =>
-                  disabled
-                    ? [...new Set([...current, selectedNode.Source.Offset])]
-                    : current.filter(offset => offset !== selectedNode.Source.Offset),
-                );
-              }}
-            />
-          </Box>
-        </Box>
+        <Tabs value={view} onChange={(_, value) => setView(value)} variant="fullWidth">
+          <Tab value="ifr" label="IFR" />
+          <Tab value="changes" label="Changes" />
+        </Tabs>
+        {view === 'ifr' ? (
+          <IfrView
+            document={activeDocument}
+            index={index}
+            selectedId={selectedId}
+            expanded={expanded}
+            query={query}
+            setupPatches={setupPatches}
+            disabledSuppressions={disabledSuppressions}
+            onExpandedChange={setExpanded}
+            onSelectedChange={id => {
+              if (id && index.byId.has(id)) {
+                setSelectedId(id);
+              }
+            }}
+            onNavigate={navigate}
+            onPatchSetup={patchSetup}
+            onSuppressionDisabled={(offset, disabled) => {
+              setDisabledSuppressions(current =>
+                disabled ? [...new Set([...current, offset])] : current.filter(item => item !== offset),
+              );
+            }}
+          />
+        ) : (
+          <ChangesView
+            index={index}
+            setupPatches={setupPatches}
+            disabledSuppressions={disabledSuppressions}
+            onNavigate={navigate}
+          />
+        )}
       </Box>
       <Drawer anchor="right" open={rawOpen} onClose={() => setRawOpen(false)}>
         <Box sx={{ width: { xs: '100vw', sm: 540 }, p: 2 }}>

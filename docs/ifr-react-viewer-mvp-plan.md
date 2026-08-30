@@ -10,6 +10,7 @@
 - The tree marks actual SetupData patch changes with a hoverable field-level diff and marks SCT-disabled `SuppressIf` scopes separately.
 - `ifr-render --format html --serve 127.0.0.1:4060` serves the self-contained viewer from a loopback-only local HTTP origin for File System Access API support in Chromium.
 - The viewer can load and save a directory workspace. `ifr-editor.json` names the render and patch files; without it, unambiguous conventional filenames are discovered. File System Access API is used when available, with directory-input/download fallback.
+- The workspace has top-level `IFR` and `Changes` views. `Changes` is a logical patch review of SetupData field deltas and SCT suppression edits; it only consumes render and patch JSON.
 - The CLI patch formats are already applied by separate commands and must remain unchanged:
   - SetupData: `ExtractedAmiSetupDataQuestions` for `AccessLevel`, `Failsafe`, and `Optimal`.
   - SCT: `IfrSctPatches` for disabling patchable `SuppressIf` scopes by original IFR offset.
@@ -60,6 +61,7 @@
 6. `QuestionReference`: linked QuestionId with hover popover and tree navigation.
 7. `PatchStore`: import, edit, reset, validation, and export for existing SetupData and SCT patch schemas.
 8. `RawJsonDrawer`: optional raw selected-node JSON in a MUI drawer.
+9. `ChangesView`: review of staged JSON patch deltas with navigation back to the corresponding IFR node.
 
 ## Engineering Guidelines
 
