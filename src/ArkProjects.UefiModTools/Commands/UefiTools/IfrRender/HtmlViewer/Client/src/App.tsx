@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, CssBaseline, Divider, Drawer, Tab, Tabs, ThemeProvider, Typography, createTheme } from '@mui/material';
 import { ChangesView } from './ChangesView';
 import { IfrView } from './IfrView';
+import { VarStoreView } from './VarStoreView';
 import { indexDocument } from './modelHelpers';
 import { downloadJson, importPatch, setupPatch, type PatchKind } from './patchHelpers';
 import type { Document, Node, NodeRef, SetupPatchQuestion } from './types';
@@ -28,7 +29,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   const [rawOpen, setRawOpen] = useState(false);
   const [setupPatches, setSetupPatches] = useState<Record<number, SetupPatchQuestion>>({});
   const [disabledSuppressions, setDisabledSuppressions] = useState<number[]>([]);
-  const [view, setView] = useState<'ifr' | 'changes'>('ifr');
+  const [view, setView] = useState<'ifr' | 'changes' | 'varstore'>('ifr');
 
   const theme = useMemo(
     () =>
@@ -211,6 +212,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
         <Tabs value={view} onChange={(_, value) => setView(value)} variant="fullWidth">
           <Tab value="ifr" label="IFR" />
           <Tab value="changes" label="Changes" />
+          <Tab value="varstore" label="VarStore map" />
         </Tabs>
         {view === 'ifr' ? (
           <IfrView
@@ -235,12 +237,22 @@ export function App({ document: viewerDocument }: { document: Document }) {
               );
             }}
           />
-        ) : (
+        ) : view === 'changes' ? (
           <ChangesView
             index={index}
             setupPatches={setupPatches}
             disabledSuppressions={disabledSuppressions}
             onNavigate={navigate}
+          />
+        ) : (
+          <VarStoreView
+            document={activeDocument}
+            onOpenQuestion={questionId => {
+              const reference = index.questionsById.get(questionId)?.[0];
+              if (reference) {
+                navigate(reference);
+              }
+            }}
           />
         )}
       </Box>
