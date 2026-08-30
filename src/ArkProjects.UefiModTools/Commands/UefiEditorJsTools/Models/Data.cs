@@ -3,9 +3,9 @@ namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools.Models;
 
 public class Data
 {
-    public List<Menu> Menu { get; set; }
-    public List<VarStore> VarStores { get; set; }
-    public List<Form> Forms { get; set; }
-    public List<Suppression> Suppressions { get; set; }
-    public string Version { get; set; }
+    public required List<Menu> Menu { get; set; }
+    public required List<VarStore> VarStores { get; set; }
+    public required List<Form> Forms { get; set; }
+    public required List<Suppression> Suppressions { get; set; }
+    public required string Version { get; set; }
 }

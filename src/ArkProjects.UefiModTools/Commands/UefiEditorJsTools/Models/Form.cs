@@ -2,9 +2,9 @@ namespace ArkProjects.UefiModTools.Commands.UefiEditorJsTools.Models;
 
 public class Form
 {
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public string Type { get; set; } = "Form";
-    public string FormId { get; set; }
-    public List<string> ReferencedIn { get; set; }
-    public List<FormChild> Children { get; set; }
+    public required string FormId { get; set; }
+    public required List<string> ReferencedIn { get; set; }
+    public required List<FormChild> Children { get; set; }
 }
