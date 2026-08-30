@@ -122,12 +122,14 @@ export function App({ document: viewerDocument }: { document: Document }) {
               expanded={expanded}
               selectedId={selectedId}
               query={query}
+              index={index}
               onExpandedChange={setExpanded}
               onSelectedChange={id => {
                 if (id && index.byId.has(id)) {
                   setSelectedId(id);
                 }
               }}
+              onNavigate={navigate}
             />
           </Paper>
           <Box sx={{ overflow: 'auto', p: 2 }}>

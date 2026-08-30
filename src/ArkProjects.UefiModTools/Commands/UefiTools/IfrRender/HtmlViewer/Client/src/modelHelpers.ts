@@ -1,4 +1,5 @@
 import type { Document, Expression, Node, NodeRef, Option } from './types';
+import type { ChipProps } from '@mui/material';
 
 export type DocumentIndex = {
   byId: Map<string, NodeRef>;
@@ -40,6 +41,23 @@ export function expressionText(expression: Expression) {
 export function conditionText(node: Node) {
   const expressions = node.ExpressionOperations.map(expressionText).join(' -> ');
   return `${(node.Effect ?? node.Opcode).toUpperCase()} when ${expressions || 'expression unavailable'}`;
+}
+
+export function nodeColor(node: Node): ChipProps['color'] {
+  if (node.NodeType === 'question') {
+    return 'success';
+  }
+
+  switch (node.Effect) {
+    case 'suppress':
+      return 'error';
+    case 'disable':
+      return 'warning';
+    case 'grayout':
+      return 'info';
+    default:
+      return 'secondary';
+  }
 }
 
 export function indexDocument(document: Document): DocumentIndex {

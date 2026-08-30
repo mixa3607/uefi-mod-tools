@@ -1,14 +1,11 @@
-import { useState } from 'react';
 import {
   Alert,
   Box,
-  Button,
   Chip,
   FormControl,
   InputLabel,
   MenuItem,
   Paper,
-  Popover,
   Select,
   Stack,
   Switch,
@@ -16,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { conditionText, expressionText, label, type DocumentIndex, type OptionDefault } from './modelHelpers';
+import { QuestionReference } from './QuestionReference';
 import type { Node, NodeRef, SetupPatchQuestion } from './types';
 
 type InspectorProps = {
@@ -180,30 +178,30 @@ function ConditionInspector({
     child.NodeType === 'question' ? [child] : child.Children.filter(item => item.NodeType === 'question'),
   );
   const patchable = node.Opcode === 'SuppressIf' && node.Children.length > 0;
+  const severity =
+    node.Effect === 'suppress'
+      ? 'error'
+      : node.Effect === 'disable'
+        ? 'warning'
+        : node.Effect === 'grayout'
+          ? 'info'
+          : 'success';
 
   return (
     <Stack spacing={2}>
       <Typography variant="h5">{(node.Effect ?? node.Opcode).toUpperCase()}</Typography>
-      <Alert severity={node.Effect === 'suppress' ? 'warning' : 'info'}>{conditionText(node)}</Alert>
+      <Alert severity={severity}>{conditionText(node)}</Alert>
       <Paper variant="outlined" sx={{ p: 1.5 }}>
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Expression
         </Typography>
-        <Stack direction="row" flexWrap="wrap" gap={1}>
+        <Stack direction="row" flexWrap="wrap" gap={1} alignItems="center">
           {node.ExpressionOperations.map(expression => (
-            <Chip
+            <ExpressionOperation
               key={expression.Source.Offset}
-              label={
-                expression.QuestionId != null ? (
-                  <QuestionReference
-                    questionId={expression.QuestionId}
-                    index={index}
-                    navigate={navigate}
-                  />
-                ) : (
-                  expressionText(expression)
-                )
-              }
+              expression={expression}
+              index={index}
+              navigate={navigate}
             />
           ))}
         </Stack>
@@ -235,61 +233,39 @@ function ConditionInspector({
   );
 }
 
-function QuestionReference({
-  questionId,
+function ExpressionOperation({
+  expression,
   index,
   navigate,
 }: {
-  questionId: number;
+  expression: Node['ExpressionOperations'][number];
   index: DocumentIndex;
   navigate: (reference: NodeRef) => void;
 }) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const targets = index.questionsById.get(questionId) ?? [];
+  if (expression.Opcode === 'EqIdVal' && expression.QuestionId != null) {
+    return (
+      <Stack direction="row" spacing={0.5} alignItems="center">
+        <QuestionReference questionId={expression.QuestionId} index={index} navigate={navigate} />
+        <Typography variant="body2">equals {String(expression.Value)}</Typography>
+      </Stack>
+    );
+  }
 
-  return (
-    <>
-      <Button
-        size="small"
-        onMouseEnter={event => setAnchor(event.currentTarget)}
-        onClick={() => targets[0] && navigate(targets[0])}
-      >
-        Question #{questionId}
-      </Button>
-      <Popover
-        open={Boolean(anchor)}
-        anchorEl={anchor}
-        onClose={() => setAnchor(null)}
-        disableRestoreFocus
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Box sx={{ p: 1, maxWidth: 360 }}>
-          {targets.length ? (
-            targets.map(target => (
-              <Button
-                key={target.id}
-                fullWidth
-                sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-                onClick={() => {
-                  navigate(target);
-                  setAnchor(null);
-                }}
-              >
-                <Stack alignItems="flex-start">
-                  <Typography>{label(target.node.Prompt) || target.node.Opcode}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {target.formTitle}, IFR 0x{target.node.Source.Offset.toString(16).toUpperCase()}
-                  </Typography>
-                </Stack>
-              </Button>
-            ))
-          ) : (
-            <Typography variant="body2">Question is not present in this document.</Typography>
-          )}
-        </Box>
-      </Popover>
-    </>
-  );
+  if (
+    expression.Opcode === 'EqIdId' &&
+    expression.QuestionId != null &&
+    expression.OtherQuestionId != null
+  ) {
+    return (
+      <Stack direction="row" spacing={0.5} alignItems="center">
+        <QuestionReference questionId={expression.QuestionId} index={index} navigate={navigate} />
+        <Typography variant="body2">equals</Typography>
+        <QuestionReference questionId={expression.OtherQuestionId} index={index} navigate={navigate} />
+      </Stack>
+    );
+  }
+
+  return <Chip label={expressionText(expression)} />;
 }
 
 function Metadata({ rows }: { rows: [string, unknown][] }) {
