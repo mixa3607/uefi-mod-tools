@@ -3,7 +3,7 @@ import { Box, Chip, Menu, MenuItem, Stack, Typography } from '@mui/material';
 import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import { conditionText, label, nodeColor, nodeId, type DocumentIndex } from './modelHelpers';
 import { QuestionReference } from './QuestionReference';
-import type { Document, Node, NodeRef } from './types';
+import type { Document, Form, Formset, Node, NodeRef, SelectableNode } from './types';
 
 type IfrTreeProps = {
   document: Document;
@@ -36,6 +36,34 @@ export function IfrTree({
     JSON.stringify(node).toLowerCase().includes(query.toLowerCase()) ||
     node.Children.some(matches);
 
+  const matchesForm = (form: Form) =>
+    !query || JSON.stringify(form).toLowerCase().includes(query.toLowerCase()) || form.Children.some(matches);
+
+  const matchesFormset = (formset: Formset) =>
+    !query || JSON.stringify(formset).toLowerCase().includes(query.toLowerCase()) || formset.Forms.some(matchesForm);
+
+  const structureLabel = (node: Form | Formset) => (
+    <Box
+      onClick={event => {
+        event.stopPropagation();
+        onSelectedChange(nodeId(node));
+      }}
+      onContextMenu={event => {
+        event.preventDefault();
+        setContextMenu({ mouseX: event.clientX, mouseY: event.clientY, nodeIds: collectNodeIds(node) });
+      }}
+    >
+      <Stack direction="row" spacing={0.75} alignItems="center" minWidth={0}>
+        <Chip size="small" color="primary" label={node.NodeType.toUpperCase()} />
+        <Typography variant="body2" noWrap>
+          {node.NodeType === 'formset'
+            ? label(node.Title) || node.Guid || 'Formset'
+            : label(node.Title) || `Form ${node.Id ?? '?'}`}
+        </Typography>
+      </Stack>
+    </Box>
+  );
+
   const renderNode = (node: Node) => {
     if (!matches(node)) {
       return null;
@@ -55,6 +83,10 @@ export function IfrTree({
         id={`tree-${id}`}
         label={
           <Box
+            onClick={event => {
+              event.stopPropagation();
+              onSelectedChange(id);
+            }}
             onContextMenu={event => {
               event.preventDefault();
               setContextMenu({ mouseX: event.clientX, mouseY: event.clientY, nodeIds });
@@ -90,17 +122,19 @@ export function IfrTree({
         selectedItems={selectedId}
         onSelectedItemsChange={(_, id) => onSelectedChange(id ?? undefined)}
       >
-        {document.Formsets.map((formset, formsetIndex) => (
+        {document.Formsets.filter(matchesFormset).map(formset => (
         <TreeItem
-          key={formsetIndex}
-          itemId={`formset:${formsetIndex}`}
-          label={label(formset.Title) || formset.Guid || 'Formset'}
+          key={nodeId(formset)}
+          itemId={nodeId(formset)}
+          id={`tree-${nodeId(formset)}`}
+          label={structureLabel(formset)}
         >
-          {formset.Forms.map((form, formIndex) => (
+          {formset.Forms.filter(matchesForm).map(form => (
             <TreeItem
-              key={formIndex}
-              itemId={`form:${formsetIndex}:${formIndex}`}
-              label={label(form.Title) || `Form ${form.Id ?? '?'}`}
+              key={nodeId(form)}
+              itemId={nodeId(form)}
+              id={`tree-${nodeId(form)}`}
+              label={structureLabel(form)}
             >
               {form.Children.map(renderNode)}
             </TreeItem>
@@ -178,6 +212,7 @@ function ConditionLabel({
   return <Typography variant="body2" noWrap>{conditionText(node)}</Typography>;
 }
 
-function collectNodeIds(node: Node): string[] {
-  return [nodeId(node), ...node.Children.flatMap(collectNodeIds)];
+function collectNodeIds(node: SelectableNode): string[] {
+  const children = node.NodeType === 'formset' ? node.Forms : node.Children;
+  return [nodeId(node), ...children.flatMap(collectNodeIds)];
 }

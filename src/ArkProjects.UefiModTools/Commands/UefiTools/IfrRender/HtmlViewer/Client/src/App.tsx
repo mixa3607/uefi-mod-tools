@@ -38,6 +38,19 @@ export function App({ document: viewerDocument }: { document: Document }) {
     }
   }, [index, selectedId]);
 
+  useEffect(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return;
+    }
+
+    const matchingParents = [...index.byId.values()]
+      .filter(reference => JSON.stringify(reference.node).toLowerCase().includes(normalizedQuery))
+      .flatMap(reference => reference.parentIds);
+
+    setExpanded(current => [...new Set([...current, ...matchingParents])]);
+  }, [index, query]);
+
   const navigate = (reference: NodeRef) => {
     setExpanded(current => [...new Set([...current, ...reference.parentIds])]);
     setSelectedId(reference.id);
@@ -77,7 +90,8 @@ export function App({ document: viewerDocument }: { document: Document }) {
   };
 
   const selectedNode = selected?.node;
-  const selectedSetupPatch = selectedNode?.SetupDataQuestion
+  const selectedSetupPatch =
+    selectedNode?.NodeType === 'question' && selectedNode.SetupDataQuestion
     ? setupPatch(selectedNode, setupPatches)
     : undefined;
 
@@ -137,9 +151,9 @@ export function App({ document: viewerDocument }: { document: Document }) {
               selected={selected}
               index={index}
               setupPatch={selectedSetupPatch}
-              defaults={selectedNode ? questionDefaults(selectedNode) : []}
+              defaults={selectedNode?.NodeType === 'question' ? questionDefaults(selectedNode) : []}
               suppressionDisabled={Boolean(
-                selectedNode && disabledSuppressions.includes(selectedNode.Source.Offset),
+                selectedNode?.NodeType === 'condition' && disabledSuppressions.includes(selectedNode.Source.Offset),
               )}
               onNavigate={navigate}
               onPatchSetup={patchSetup}

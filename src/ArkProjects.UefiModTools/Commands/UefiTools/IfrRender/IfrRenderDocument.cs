@@ -12,6 +12,8 @@ public class IfrRenderDocument
 
 public class IfrRenderFormset
 {
+    public string NodeType { get; set; } = string.Empty;
+    public IfrRenderSource Source { get; set; } = new();
     public string? Guid { get; set; }
     public IfrStringReference? Title { get; set; }
     public IfrStringReference? Help { get; set; }
@@ -31,6 +33,8 @@ public class IfrRenderVarstore
 
 public class IfrRenderForm
 {
+    public string NodeType { get; set; } = string.Empty;
+    public IfrRenderSource Source { get; set; } = new();
     public ushort? Id { get; set; }
     public IfrStringReference? Title { get; set; }
     public List<IfrRenderNode> Children { get; set; } = [];

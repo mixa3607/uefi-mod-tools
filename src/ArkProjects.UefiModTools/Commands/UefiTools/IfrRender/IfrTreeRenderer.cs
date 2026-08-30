@@ -42,6 +42,8 @@ public class IfrTreeRenderer
     {
         return new IfrRenderFormset
         {
+            NodeType = "formset",
+            Source = CreateSource(formset.Operation),
             Guid = formset.Operation.Fields.Guid,
             Title = formset.Operation.Fields.Title,
             Help = formset.Operation.Fields.Help,
@@ -61,6 +63,8 @@ public class IfrTreeRenderer
                 .Where(x => x.Operation.Opcode == "Form")
                 .Select(x => new IfrRenderForm
                 {
+                    NodeType = "form",
+                    Source = CreateSource(x.Operation),
                     Id = x.Operation.Fields.FormId,
                     Title = x.Operation.Fields.Title,
                     Children = RenderNodes(x.Children, setupDataQuestions),

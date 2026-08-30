@@ -31,12 +31,16 @@ public class IfrTreeRendererTests
         ]);
 
         var formset = Assert.Single(document.Formsets);
+        Assert.Equal("formset", formset.NodeType);
+        Assert.Equal((ulong)10, formset.Source.Offset);
         Assert.Equal("Platform Configuration", formset.Title!.Text);
         var varstore = Assert.Single(formset.Varstores);
         Assert.Equal((ushort)1, varstore.Id);
         Assert.Equal("IntelSetup", varstore.Name);
 
         var form = Assert.Single(formset.Forms);
+        Assert.Equal("form", form.NodeType);
+        Assert.Equal((ulong)30, form.Source.Offset);
         var condition = Assert.Single(form.Children);
         Assert.Equal("condition", condition.NodeType);
         Assert.Equal("grayout", condition.Effect);

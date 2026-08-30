@@ -1,10 +1,12 @@
-import type { Document, Expression, Node, NodeRef, Option } from './types';
+import type { Document, Expression, Node, NodeRef, Option, SelectableNode } from './types';
 import type { ChipProps } from '@mui/material';
 
 export type DocumentIndex = {
   byId: Map<string, NodeRef>;
-  questionsById: Map<number, NodeRef[]>;
+  questionsById: Map<number, QuestionNodeRef[]>;
 };
+
+export type QuestionNodeRef = NodeRef & { node: Node };
 
 export type OptionDefault = {
   value: number;
@@ -15,7 +17,7 @@ export function label(value?: { text: string }) {
   return value?.text ?? '';
 }
 
-export function nodeId(node: Node) {
+export function nodeId(node: SelectableNode) {
   return `${node.NodeType}:${node.Source.Offset}`;
 }
 
@@ -62,14 +64,28 @@ export function nodeColor(node: Node): ChipProps['color'] {
 
 export function indexDocument(document: Document): DocumentIndex {
   const byId = new Map<string, NodeRef>();
-  const questionsById = new Map<number, NodeRef[]>();
+  const questionsById = new Map<number, QuestionNodeRef[]>();
 
-  document.Formsets.forEach((formset, formsetIndex) => {
-    formset.Forms.forEach((form, formIndex) => {
-      const formId = `form:${formsetIndex}:${formIndex}`;
+  document.Formsets.forEach(formset => {
+    const formsetReference: NodeRef = {
+      id: nodeId(formset),
+      node: formset,
+      parentIds: [],
+      formTitle: label(formset.Title) || formset.Guid || 'Formset',
+    };
+    byId.set(formsetReference.id, formsetReference);
+
+    formset.Forms.forEach(form => {
+      const formReference: NodeRef = {
+        id: nodeId(form),
+        node: form,
+        parentIds: [formsetReference.id],
+        formTitle: label(form.Title) || `Form ${form.Id ?? '?'}`,
+      };
+      byId.set(formReference.id, formReference);
 
       const visit = (node: Node, parentIds: string[]) => {
-        const reference: NodeRef = {
+        const reference: QuestionNodeRef = {
           id: nodeId(node),
           node,
           parentIds,
@@ -88,7 +104,7 @@ export function indexDocument(document: Document): DocumentIndex {
         node.Children.forEach(child => visit(child, [...parentIds, reference.id]));
       };
 
-      form.Children.forEach(node => visit(node, [`formset:${formsetIndex}`, formId]));
+      form.Children.forEach(node => visit(node, [...formReference.parentIds, formReference.id]));
     });
   });
 

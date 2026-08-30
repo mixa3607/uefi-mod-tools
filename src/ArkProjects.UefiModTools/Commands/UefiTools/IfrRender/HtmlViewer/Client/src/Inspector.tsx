@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { conditionText, expressionText, label, type DocumentIndex, type OptionDefault } from './modelHelpers';
 import { QuestionReference } from './QuestionReference';
-import type { Node, NodeRef, SetupPatchQuestion } from './types';
+import type { Form, Formset, Node, NodeRef, SelectableNode, SetupPatchQuestion } from './types';
 
 type InspectorProps = {
   selected?: NodeRef;
@@ -45,10 +45,16 @@ export function Inspector({
     return <Typography color="text.secondary">Select a question or condition.</Typography>;
   }
 
-  if (selected.node.NodeType === 'question') {
+  const node = selected.node;
+
+  if (isStructure(node)) {
+    return <StructureInspector node={node} />;
+  }
+
+  if (node.NodeType === 'question') {
     return (
       <QuestionInspector
-        node={selected.node}
+        node={node}
         patch={setupPatch}
         defaults={defaults}
         onPatch={onPatchSetup}
@@ -58,12 +64,36 @@ export function Inspector({
 
   return (
     <ConditionInspector
-      node={selected.node}
+      node={node}
       index={index}
       navigate={onNavigate}
       disabled={suppressionDisabled}
       onDisabled={onSuppressionDisabled}
     />
+  );
+}
+
+function isStructure(node: SelectableNode): node is Form | Formset {
+  return node.NodeType === 'form' || node.NodeType === 'formset';
+}
+
+function StructureInspector({ node }: { node: Form | Formset }) {
+  const isFormset = node.NodeType === 'formset';
+  const title = label(node.Title) || (isFormset ? node.Guid : `Form ${node.Id ?? '?'}`) || 'Unnamed';
+  const childCount = isFormset ? node.Forms.length : node.Children.length;
+
+  const rows: [string, unknown][] = [
+    ['IFR', `0x${node.Source.Offset.toString(16).toUpperCase()} (${node.Source.Length} bytes)`],
+    ...(isFormset ? [['GUID', node.Guid] as [string, unknown]] : [['Form ID', node.Id] as [string, unknown]]),
+    [isFormset ? 'Forms' : 'Top-level nodes', childCount],
+  ];
+
+  return (
+    <Stack spacing={2}>
+      <Typography variant="h5">{title}</Typography>
+      <Typography color="text.secondary">{isFormset ? 'IFR formset' : 'IFR form'}</Typography>
+      <Metadata rows={rows} />
+    </Stack>
   );
 }
 
