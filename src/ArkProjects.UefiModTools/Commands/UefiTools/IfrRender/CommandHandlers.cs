@@ -1,6 +1,7 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.Json.Serialization;

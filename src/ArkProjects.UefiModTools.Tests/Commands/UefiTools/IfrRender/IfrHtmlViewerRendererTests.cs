@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
 using Xunit;
 
 namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrRender;
@@ -10,10 +11,11 @@ public class IfrHtmlViewerRendererTests
     {
         var html = new IfrHtmlViewerRenderer().Render("{\"Formsets\":[]}");
 
+        Assert.Contains("<div id=\"root\"></div>", html);
         Assert.Contains("<script id=\"ifr-data\" type=\"application/json\">{\"Formsets\":[]}</script>", html);
         Assert.Contains("JSON.parse(document.getElementById('ifr-data').textContent)", html);
-        Assert.Contains("Search prompt, QuestionId, VarOffset, condition", html);
-        Assert.Contains("always true", html);
-        Assert.Contains("The nested items are affected only while this condition is true", html);
+        Assert.Contains("@media", html);
+        Assert.DoesNotContain("IFR_VIEWER_", html);
+        Assert.DoesNotContain("<script src=", html);
     }
 }

@@ -1,0 +1,11 @@
+export type StringReference = { id: number; text: string };
+export type Source = { Offset: number; Length: number };
+export type Option = { Text?: StringReference; Value?: { type?: string; value?: number } | number };
+export type SetupDataQuestion = { BeginAddress: number; EndAddress: number; QuestionId: number; PageId: number; AccessLevel: number; HelpStringId: number; PromptStringId: number; Failsafe: number; Optimal: number };
+export type Expression = { Opcode: string; QuestionId?: number; OtherQuestionId?: number; ReferencedQuestionId?: number; Value?: unknown; Source: Source };
+export type Node = { NodeType: 'question' | 'condition'; Opcode: string; Source: Source; Effect?: string; Kind?: string; Prompt?: StringReference; Help?: StringReference; QuestionId?: number; VarstoreId?: number; VarOffset?: number; Range?: { min: number; max: number; step: number; size_bits: number }; SetupDataQuestion?: SetupDataQuestion; Options: Option[]; Defaults: unknown[]; ExpressionOperations: Expression[]; Children: Node[] };
+export type Form = { Id?: number; Title?: StringReference; Children: Node[] };
+export type Formset = { Guid?: string; Title?: StringReference; Forms: Form[] };
+export type Document = { Schema: string; Formsets: Formset[] };
+export type SetupPatchQuestion = { beginAddress: number; endAddress: number; type: string; question: { questionId: number; pageId: number; accessLevel: number; helpStringId: number; promptStringId: number; failsafe: number; optimal: number } };
+export type NodeRef = { id: string; node: Node; parentIds: string[]; formTitle: string };

@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
