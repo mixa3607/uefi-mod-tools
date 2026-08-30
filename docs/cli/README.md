@@ -7,6 +7,5 @@ Each guide documents one top-level CLI module and its file contracts.
 - [AMI BMC and POST data](ami.md)
 - [U-Boot environments](uboot.md)
 - [UEFI data and IFR workflow](uefi.md)
-- [UEFI-Editor JSON menu rendering](uefi-editor-js.md)
 
 All commands support `--help`. Global logging is controlled with `--log-level`; it defaults to `Information`.

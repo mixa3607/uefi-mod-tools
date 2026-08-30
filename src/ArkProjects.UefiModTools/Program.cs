@@ -22,7 +22,6 @@ internal class Program
         };
         rootCommand.Add(logLevelOpt);
 
-        Commands.UefiEditorJsTools.CommandRegistration.Register(rootCommand, services);
         Commands.BinTools.CommandRegistration.Register(rootCommand, services);
         Commands.SmbiosTools.CommandRegistration.Register(rootCommand, services);
         Commands.AmiTools.CommandRegistration.Register(rootCommand, services);

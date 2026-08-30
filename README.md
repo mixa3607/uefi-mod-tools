@@ -65,7 +65,6 @@ See [the UEFI and IFR guide](docs/cli/uefi.md) for the render, workspace, SetupD
 - [AMI BMC and POST data](docs/cli/ami.md)
 - [U-Boot environments](docs/cli/uboot.md)
 - [UEFI, FIT, microcode, IFR, SetupData, and SCT](docs/cli/uefi.md)
-- [UEFI-Editor JSON menu rendering](docs/cli/uefi-editor-js.md)
 
 Run `uefi-mod-tools <module> <command> --help` for the exact options in the installed version.
 
