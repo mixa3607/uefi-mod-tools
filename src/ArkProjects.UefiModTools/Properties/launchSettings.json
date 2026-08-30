@@ -4,6 +4,14 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug"
     },
+    "uefi ifr-setupdata-extract": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/SetupData.json"
+    },
+    "uefi ifr-setupdata-patch": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr-setupdata-patch -i test-files/ifr/SetupData_body.bin --patch test-files/ifr/SetupData.json -o test-files/ifr/SetupData_body.bin"
+    },
     // uboot
     "uboot env-read": {
       "commandName": "Project",
@@ -20,82 +28,6 @@
     "uboot env-scan": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uboot env-scan -i test-files/backup_rd450x_pve2_03-01-26.bin -o -"
-    },
-    // ami bmc-backup
-    "ami bmc-backup-extract [config-full-sha]": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-backup-extract -i ./test-files/config-full-sha.bak -o test-files/config-full-sha"
-    },
-    "ami bmc-backup-extract [config-bugged-sha]": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-backup-extract -i ./test-files/config-bugged-sha.bak -o test-files/config-bugged-sha"
-    },
-    "ami bmc-backup-pack": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-backup-pack -i test-files/bak-unpack -o ./test-files/config.mod.bak"
-    },
-    // ami bios-post-decode
-    "ami bios-post-decode": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bios-post-decode -i ./test-files/ipmitool-bios-codes.txt -o -"
-    },
-    // ami bmc-fmh-scan
-    "ami bmc-fmh-scan [backup_rd450x_pve2_03-01-26.bin]": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-fmh-scan -i test-files/backup_rd450x_pve2_03-01-26.bin -s 0x10000 -o ./test-files/backup_rd450x_pve2_03-01-26_FMH.json"
-    },
-    // smbios
-    "smbios table2json": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug smbios table2json -i ./test-files/SMBiosStaticData_body.bin -o ./test-files/SMBiosStaticData_body.json"
-    },
-    "smbios known-structs": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug smbios known-structs"
-    },
-    "smbios extract-struct [BiosInformation]": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug smbios extract-struct -i ./test-files/SMBiosStaticData_body.json --handle 0 -o 00.BiosInformation.json"
-    },
-    "smbios extract-struct [SystemInformation]": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug smbios extract-struct -i ./test-files/SMBiosStaticData_body.json --handle 1 -o 01.SystemInformation.json"
-    },
-    "smbios inject-struct": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug smbios inject-struct -i ./test-files/SMBiosStaticData_body.json -s 01.SystemInformation.json"
-    },
-    // uefi-editor-js
-    "uefi-editor-js render-menu": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi-editor-js render-menu -i ./test-files/ServerMgmtSetup_data.json -o ./test-files/ServerMgmtSetup_data.md"
-    },
-    // uefi
-    "uefi mcodes-combine": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi mcodes-combine -t ./test-files/microcodes.json -o ./test-files/microcodes.bin --input-fit ./test-files/FIT_table_base.bin --output-fit ./test-files/FIT_table.bin"
-    },
-    "uefi fit-read": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi fit-read -i ./test-files/FIT_table_base.bin -o -"
-    },
-
-    //
-    "bin split": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug bin split -i ./test-files/bmc.bin -t ./test-files/partitions-table.json -o ./test-files/bmc"
-    },
-    "ami bmc unpack-bak": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc unpack-bak -i ./test-files/config.bak -o test-files/bak-unpack"
-    },
-    "ami bmc pack-bak": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc pack-bak -i test-files/bak-unpack -o ./test-files/config.mod.bak --bugged-sha true"
-    },
-    "ami bmc-bios2hpm": {
-      "commandName": "Project",
-      "commandLineArgs": "--log-level debug ami bmc-bios2hpm -i test-files/bak-unpack -o ./test-files/config.mod.bak"
     }
   }
 }

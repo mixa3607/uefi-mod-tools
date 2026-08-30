@@ -20,5 +20,8 @@
     <None Include="test-files\FIT_table_base.bin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="test-files\ifr\SetupData_question_0001.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

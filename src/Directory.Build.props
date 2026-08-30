@@ -1,64 +1,83 @@
 <Project>
-	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
-	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
-	<!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
-	<!--VERSION 1.1.2-->
-	<!--TARGET PACKAGE-->
+  <!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+  <!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+  <!--!!!!!!!!!! PLEASE DONT EDIT THIS FILE !!!!!!!!!!-->
+  <!--VERSION 1.1.3-->
+  <!--TARGET PACKAGE-->
 
-	<PropertyGroup>
-		<Authors>mixa3607</Authors>
-		<Company>ArkProjects</Company>
+  <PropertyGroup>
+    <Authors>mixa3607</Authors>
+    <Company>ArkProjects</Company>
 
-		<BUILD_DATE>$([System.DateTime]::Now.ToString())</BUILD_DATE>
-		<CI_COMMIT_REF_NAME Condition="'$(CI_COMMIT_REF_NAME)' == ''">local</CI_COMMIT_REF_NAME>
-		<CI_COMMIT_SHORT_SHA Condition="'$(CI_COMMIT_SHORT_SHA)' == ''">deadbeef</CI_COMMIT_SHORT_SHA>
-		<CI_COMMIT_SHA Condition="'$(CI_COMMIT_SHA)' == ''">deadbeefdeadbeefdeadbeefdeadbeef</CI_COMMIT_SHA>
+    <BUILD_DATE>$([System.DateTime]::Now.ToString())</BUILD_DATE>
+    <CI_COMMIT_REF_NAME Condition="'$(CI_COMMIT_REF_NAME)' == ''">local</CI_COMMIT_REF_NAME>
+    <CI_COMMIT_SHORT_SHA Condition="'$(CI_COMMIT_SHORT_SHA)' == ''">deadbeef</CI_COMMIT_SHORT_SHA>
+    <CI_COMMIT_SHA Condition="'$(CI_COMMIT_SHA)' == ''">deadbeefdeadbeefdeadbeefdeadbeef</CI_COMMIT_SHA>
 
-		<NoWarn>$(NoWarn);1591</NoWarn>
-		<NuGetAudit>false</NuGetAudit>
-	</PropertyGroup>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
 
-	<Import Project="Directory.Build.custom.props" Condition="Exists('Directory.Build.custom.props')" />
+  <Import Project="Directory.Build.custom.props" Condition="Exists('Directory.Build.custom.props')" />
 
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-	</PropertyGroup>
+  <!-- Usage: export WSL_DOTNET_TEMP_DIR=/tmp/dotnet-builds/$USER -->
+  <!-- Check whether WSL_DOTNET_TEMP_DIR is set. -->
+  <PropertyGroup Condition="'$(WSL_DOTNET_TEMP_DIR)' != ''">
+    <WSLBuildRoot>$(WSL_DOTNET_TEMP_DIR)/$(MSBuildProjectName)</WSLBuildRoot>
 
-	<!-- source link -->
-	<PropertyGroup>
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>$(CI_PROJECT_URL)</RepositoryUrl>
-		<RepositoryBranch>$(CI_COMMIT_REF_NAME)</RepositoryBranch>
-		<RepositoryCommit>$(CI_COMMIT_SHA)</RepositoryCommit>
-	</PropertyGroup>
+    <BaseIntermediateOutputPath>$(WSLBuildRoot)/obj/</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**</DefaultItemExcludes>
+  </PropertyGroup>
 
-	<!-- CI/CD build -->
-	<PropertyGroup Condition="'$(CI)' == 'true'">
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-	</PropertyGroup>
+  <!-- Usage: export WSL_DOTNET_BIN_RELDIR=wsl -->
+  <!-- Check whether WSL_DOTNET_BIN_RELDIR is set. -->
+  <PropertyGroup Condition="'$(WSL_DOTNET_BIN_RELDIR)' != ''">
+    <WSLDotNetBinRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../bin/$(WSL_DOTNET_BIN_RELDIR)/'))</WSLDotNetBinRoot>
 
-	<!-- Inject build info -->
-	<ItemGroup>
-		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-			<_Parameter1>BUILD_DATE</_Parameter1>
-			<_Parameter2>$(BUILD_DATE)</_Parameter2>
-		</AssemblyAttribute>
-		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-			<_Parameter1>CI_COMMIT_REF_NAME</_Parameter1>
-			<_Parameter2>$(CI_COMMIT_REF_NAME)</_Parameter2>
-		</AssemblyAttribute>
-		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-			<_Parameter1>CI_COMMIT_SHORT_SHA</_Parameter1>
-			<_Parameter2>$(CI_COMMIT_SHORT_SHA)</_Parameter2>
-		</AssemblyAttribute>
-		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-			<_Parameter1>CI_COMMIT_SHA</_Parameter1>
-			<_Parameter2>$(CI_COMMIT_SHA)</_Parameter2>
-		</AssemblyAttribute>
-		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-			<_Parameter1>CI_PROJECT_URL</_Parameter1>
-			<_Parameter2>$(CI_PROJECT_URL)</_Parameter2>
-		</AssemblyAttribute>
-	</ItemGroup>
+    <!-- The project name prevents output conflicts between solution projects. -->
+    <BaseOutputPath>$(WSLDotNetBinRoot)$(MSBuildProjectName)/</BaseOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <!-- source link -->
+  <PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>$(CI_PROJECT_URL)</RepositoryUrl>
+    <RepositoryBranch>$(CI_COMMIT_REF_NAME)</RepositoryBranch>
+    <RepositoryCommit>$(CI_COMMIT_SHA)</RepositoryCommit>
+  </PropertyGroup>
+
+  <!-- CI/CD build -->
+  <PropertyGroup Condition="'$(CI)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Inject build info -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BUILD_DATE</_Parameter1>
+      <_Parameter2>$(BUILD_DATE)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CI_COMMIT_REF_NAME</_Parameter1>
+      <_Parameter2>$(CI_COMMIT_REF_NAME)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CI_COMMIT_SHORT_SHA</_Parameter1>
+      <_Parameter2>$(CI_COMMIT_SHORT_SHA)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CI_COMMIT_SHA</_Parameter1>
+      <_Parameter2>$(CI_COMMIT_SHA)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CI_PROJECT_URL</_Parameter1>
+      <_Parameter2>$(CI_PROJECT_URL)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

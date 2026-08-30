@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Ifr;
 using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
+using System.Text.Json.Serialization.Metadata;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
 
@@ -8,7 +10,10 @@ public static class CommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
-        services.AddSingleton<CommandHandlers>();
+        services
+            .AddSingleton<SetupDataParser>()
+            .AddSingleton<IJsonTypeInfoResolver>(IfrJsonSerializerContext.Default)
+            .AddSingleton<CommandHandlers>();
 
         RegisterSetupDataExtract(parentCommand, services);
         RegisterSetupDataPatch(parentCommand, services);
@@ -47,12 +52,12 @@ public static class CommandRegistration
         var command = parentCommand.AddCommand("ifr-setupdata-patch", "Patch SetupData binary file using json patch");
         var inputOpt = command.AddOption(new Option<string>("--input", "-i")
         {
-            Description = "SetupData json file",
+            Description = "SetupData binary file",
             Required = true,
         });
         var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
         {
-            Description = "SetupData patch json file",
+            Description = "Partial edited SetupData json file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")

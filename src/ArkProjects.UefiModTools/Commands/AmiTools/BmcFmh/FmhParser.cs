@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text;
+using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.AmiTools.BmcFmh;
@@ -72,7 +73,7 @@ public class FmhParser
         var bytes = flashBytes.AsSpan(fmhBytes);
         if (!bytes.EndsWith(FmhSignature))
             return null;
-        var fmhTail = FromBytes<AmiFlashModuleHeaderTailed>(bytes);
+        var fmhTail = MarshalHelper.FromBytes<AmiFlashModuleHeaderTailed>(bytes);
 
         var sct = new FmhTailSectionModel()
         {
@@ -96,7 +97,7 @@ public class FmhParser
         var bytes = flashBytes.AsSpan(fmhBytes);
         if (!bytes.StartsWith(FmhSignature))
             return null;
-        var fmh = FromBytes<AmiFlashModuleHeader>(bytes);
+        var fmh = MarshalHelper.FromBytes<AmiFlashModuleHeader>(bytes);
 
         var sectionPointerRange = new Range(
             page.Start.Value + (int)fmh.ModuleInfo.Location,
@@ -121,28 +122,5 @@ public class FmhParser
             sct.BeginAddress, sct.EndAddress, sct.ModuleName, sct.ModuleBeginAddress, sct.ModuleEndAddress);
 
         return sct;
-    }
-
-    private static T FromBytes<T>(Span<byte> span) where T : struct
-    {
-        var data = span.ToArray();
-        var offset = 0;
-
-        var size = Marshal.SizeOf<T>();
-        if (offset + size > data.Length)
-            throw new ArgumentException("Недостаточно данных");
-
-        var ptr = Marshal.AllocHGlobal(size);
-        try
-        {
-            Marshal.Copy(data, offset, ptr, size);
-#pragma warning disable IL2091
-            return Marshal.PtrToStructure<T>(ptr);
-#pragma warning restore IL2091
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
     }
 }
