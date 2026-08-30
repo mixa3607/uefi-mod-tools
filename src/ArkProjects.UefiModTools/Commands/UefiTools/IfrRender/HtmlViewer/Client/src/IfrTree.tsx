@@ -4,6 +4,7 @@ import { EditNote, RemoveCircleOutline } from '@mui/icons-material';
 import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import { conditionText, label, nodeColor, nodeId, type DocumentIndex } from './modelHelpers';
 import { QuestionReference } from './QuestionReference';
+import { FormReference } from './FormReference';
 import { setupPatchChanges } from './patchHelpers';
 import type { Document, Form, Formset, Node, NodeRef, SelectableNode, SetupPatchQuestion } from './types';
 
@@ -114,9 +115,14 @@ export function IfrTree({
               {isCondition ? (
                 <ConditionLabel node={node} index={index} navigate={onNavigate} />
               ) : (
-                <Typography variant="body2" noWrap>
-                  {title}
-                </Typography>
+                <>
+                  <Typography variant="body2" noWrap>{title}</Typography>
+                  {node.Opcode === 'Ref' && node.FormId != null && (
+                    <Box component="span" onClick={event => event.stopPropagation()}>
+                      <FormReference formId={node.FormId} index={index} navigate={onNavigate} />
+                    </Box>
+                  )}
+                </>
               )}
               {changes.length > 0 && <PatchMarker changes={changes} />}
               {suppressionDisabled && <SuppressionMarker />}

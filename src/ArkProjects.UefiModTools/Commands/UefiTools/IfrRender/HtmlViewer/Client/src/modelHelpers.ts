@@ -5,6 +5,7 @@ export type DocumentIndex = {
   byId: Map<string, NodeRef>;
   questionsById: Map<number, QuestionNodeRef[]>;
   formsById: Map<number, NodeRef[]>;
+  referencesByFormId: Map<number, QuestionNodeRef[]>;
 };
 
 export type QuestionNodeRef = NodeRef & { node: Node };
@@ -67,6 +68,7 @@ export function indexDocument(document: Document): DocumentIndex {
   const byId = new Map<string, NodeRef>();
   const questionsById = new Map<number, QuestionNodeRef[]>();
   const formsById = new Map<number, NodeRef[]>();
+  const referencesByFormId = new Map<number, QuestionNodeRef[]>();
 
   document.Formsets.forEach(formset => {
     const formsetReference: NodeRef = {
@@ -105,6 +107,12 @@ export function indexDocument(document: Document): DocumentIndex {
             reference,
           ]);
         }
+        if (node.Opcode === 'Ref' && node.FormId != null) {
+          referencesByFormId.set(node.FormId, [
+            ...(referencesByFormId.get(node.FormId) ?? []),
+            reference,
+          ]);
+        }
 
         node.Children.forEach(child => visit(child, [...parentIds, reference.id]));
       };
@@ -113,7 +121,7 @@ export function indexDocument(document: Document): DocumentIndex {
     });
   });
 
-  return { byId, questionsById, formsById };
+  return { byId, questionsById, formsById, referencesByFormId };
 }
 
 export function questionDefaults(node: Node): OptionDefault[] {

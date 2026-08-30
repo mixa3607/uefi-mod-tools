@@ -49,7 +49,7 @@ export function Inspector({
   const node = selected.node;
 
   if (isStructure(node)) {
-    return <StructureInspector node={node} />;
+    return <StructureInspector node={node} index={index} navigate={onNavigate} />;
   }
 
   if (node.NodeType === 'question') {
@@ -80,10 +80,15 @@ function isStructure(node: SelectableNode): node is Form | Formset {
   return node.NodeType === 'form' || node.NodeType === 'formset';
 }
 
-function StructureInspector({ node }: { node: Form | Formset }) {
+function StructureInspector({ node, index, navigate }: {
+  node: Form | Formset;
+  index: DocumentIndex;
+  navigate: (reference: NodeRef) => void;
+}) {
   const isFormset = node.NodeType === 'formset';
   const title = label(node.Title) || (isFormset ? node.Guid : `Form ${node.Id ?? '?'}`) || 'Unnamed';
   const childCount = isFormset ? node.Forms.length : node.Children.length;
+  const references = !isFormset && node.Id != null ? index.referencesByFormId.get(node.Id) ?? [] : [];
 
   const rows: [string, unknown][] = [
     ['IFR', `0x${node.Source.Offset.toString(16).toUpperCase()} (${node.Source.Length} bytes)`],
@@ -96,6 +101,20 @@ function StructureInspector({ node }: { node: Form | Formset }) {
       <Typography variant="h5">{title}</Typography>
       <Typography color="text.secondary">{isFormset ? 'IFR formset' : 'IFR form'}</Typography>
       <Metadata rows={rows} />
+      {!isFormset && references.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 1.5 }}>
+          <Typography variant="subtitle2">Referenced by ({references.length})</Typography>
+          {references.map(reference => (
+            <Chip
+              key={reference.id}
+              clickable
+              sx={{ mt: 1, mr: 1 }}
+              label={label(reference.node.Prompt) || `Question #${reference.node.QuestionId ?? '?'}`}
+              onClick={() => navigate(reference)}
+            />
+          ))}
+        </Paper>
+      )}
     </Stack>
   );
 }
