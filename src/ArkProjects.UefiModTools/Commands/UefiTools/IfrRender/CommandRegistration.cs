@@ -14,6 +14,7 @@ public static class CommandRegistration
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrRender.Default)
             .AddSingleton<IfrTreeRenderer>()
             .AddSingleton<IfrHtmlViewerRenderer>()
+            .AddSingleton<IfrHtmlViewerServer>()
             .AddSingleton<CommandHandlers>();
 
         var command = parentCommand.AddCommand("ifr-render", "Render IFR data from Platform_setup.sct and SetupData");
@@ -42,6 +43,10 @@ public static class CommandRegistration
             Description = "Output file",
             DefaultValueFactory = _ => "-",
         });
+        var serveOpt = command.AddOption(new Option<string?>("--serve")
+        {
+            Description = "Serve the HTML viewer at a loopback host:port, for example 127.0.0.1:4060",
+        });
 
         command.SetAction<CommandHandlers>(services,
             (handler, opts) => handler.Render(
@@ -49,7 +54,8 @@ public static class CommandRegistration
                 opts.GetRequiredValue(setupDataOpt),
                 opts.GetRequiredValue(ifrOpt),
                 opts.GetRequiredValue(formatOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetValue(serveOpt)
             ));
     }
 }

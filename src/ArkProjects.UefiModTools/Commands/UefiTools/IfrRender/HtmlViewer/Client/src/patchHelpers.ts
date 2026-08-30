@@ -2,6 +2,12 @@ import type { Node, SetupPatchQuestion } from './types';
 
 export type PatchKind = 'setup' | 'sct';
 
+export type SetupPatchChange = {
+  label: string;
+  original: number;
+  patched: number;
+};
+
 export function downloadJson(name: string, value: unknown) {
   const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -31,6 +37,21 @@ export function setupPatch(node: Node, patches: Record<number, SetupPatchQuestio
       optimal: source.Optimal,
     },
   };
+}
+
+export function setupPatchChanges(node: Node, patch?: SetupPatchQuestion): SetupPatchChange[] {
+  const source = node.SetupDataQuestion;
+  if (!source || !patch) {
+    return [];
+  }
+
+  return [
+    ['Access level', source.AccessLevel, patch.question.accessLevel],
+    ['Failsafe', source.Failsafe, patch.question.failsafe],
+    ['Optimal', source.Optimal, patch.question.optimal],
+  ].flatMap(([label, original, patched]) =>
+    original === patched ? [] : [{ label, original, patched }] as SetupPatchChange[],
+  );
 }
 
 export async function importPatch(file: File | undefined, kind: PatchKind) {

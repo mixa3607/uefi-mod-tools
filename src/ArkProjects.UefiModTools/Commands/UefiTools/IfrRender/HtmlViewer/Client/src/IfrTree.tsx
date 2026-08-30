@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Box, Chip, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import { Box, Chip, Menu, MenuItem, Stack, Tooltip, Typography } from '@mui/material';
+import { EditNote, RemoveCircleOutline } from '@mui/icons-material';
 import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import { conditionText, label, nodeColor, nodeId, type DocumentIndex } from './modelHelpers';
 import { QuestionReference } from './QuestionReference';
-import type { Document, Form, Formset, Node, NodeRef, SelectableNode } from './types';
+import { setupPatchChanges } from './patchHelpers';
+import type { Document, Form, Formset, Node, NodeRef, SelectableNode, SetupPatchQuestion } from './types';
 
 type IfrTreeProps = {
   document: Document;
@@ -11,6 +13,8 @@ type IfrTreeProps = {
   selectedId?: string;
   query: string;
   index: DocumentIndex;
+  setupPatches: Record<number, SetupPatchQuestion>;
+  disabledSuppressions: number[];
   onExpandedChange: (ids: string[]) => void;
   onSelectedChange: (id: string | undefined) => void;
   onNavigate: (reference: NodeRef) => void;
@@ -22,6 +26,8 @@ export function IfrTree({
   selectedId,
   query,
   index,
+  setupPatches,
+  disabledSuppressions,
   onExpandedChange,
   onSelectedChange,
   onNavigate,
@@ -75,6 +81,13 @@ export function IfrTree({
       ? conditionText(node)
       : label(node.Prompt) || `${node.Opcode} #${node.QuestionId ?? '?'}`;
     const nodeIds = collectNodeIds(node);
+    const changes = node.NodeType === 'question' && node.SetupDataQuestion
+      ? setupPatchChanges(node, setupPatches[node.SetupDataQuestion.BeginAddress])
+      : [];
+    const suppressionDisabled =
+      node.NodeType === 'condition' &&
+      node.Opcode === 'SuppressIf' &&
+      disabledSuppressions.includes(node.Source.Offset);
 
     return (
       <TreeItem
@@ -105,6 +118,8 @@ export function IfrTree({
                   {title}
                 </Typography>
               )}
+              {changes.length > 0 && <PatchMarker changes={changes} />}
+              {suppressionDisabled && <SuppressionMarker />}
             </Stack>
           </Box>
         }
@@ -170,6 +185,33 @@ export function IfrTree({
         </MenuItem>
       </Menu>
     </>
+  );
+}
+
+function PatchMarker({ changes }: { changes: ReturnType<typeof setupPatchChanges> }) {
+  return (
+    <Tooltip
+      arrow
+      title={
+        <Stack spacing={0.25} sx={{ p: 0.25 }}>
+          {changes.map(change => (
+            <Typography key={change.label} variant="caption">
+              {change.label}: {change.original} -&gt; {change.patched}
+            </Typography>
+          ))}
+        </Stack>
+      }
+    >
+      <EditNote color="warning" fontSize="small" />
+    </Tooltip>
+  );
+}
+
+function SuppressionMarker() {
+  return (
+    <Tooltip arrow title="Suppression disabled in SCT patch">
+      <RemoveCircleOutline color="error" fontSize="small" />
+    </Tooltip>
   );
 }
 

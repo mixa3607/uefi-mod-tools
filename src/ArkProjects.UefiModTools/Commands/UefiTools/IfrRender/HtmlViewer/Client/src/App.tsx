@@ -137,6 +137,8 @@ export function App({ document: viewerDocument }: { document: Document }) {
               selectedId={selectedId}
               query={query}
               index={index}
+              setupPatches={setupPatches}
+              disabledSuppressions={disabledSuppressions}
               onExpandedChange={setExpanded}
               onSelectedChange={id => {
                 if (id && index.byId.has(id)) {

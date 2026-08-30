@@ -6,6 +6,9 @@
 - The current `ifr-render --format json` output contains formsets, forms, question nodes, conditional nodes, IFR source locations, OneOf options/defaults, and matched `AmiSetupDataQuestion` data.
 - The current `ifr-render --format html` output is a self-contained React/MUI viewer. Vite source is in `Commands/UefiTools/IfrRender/HtmlViewer/Client/`; the .NET build embeds generated `viewer.js` and `viewer.css` into the HTML shell.
 - The React MVP provides tree search/navigation, dark/light themes, question and condition inspectors, QuestionId links/popovers, raw JSON, SetupData editing, and import/export for both existing patch formats.
+- FormSet, Form, question, and condition are selectable nodes with IFR source metadata, a readable inspector, raw JSON, and recursive context-menu expand/collapse.
+- The tree marks actual SetupData patch changes with a hoverable field-level diff and marks SCT-disabled `SuppressIf` scopes separately.
+- `ifr-render --format html --serve 127.0.0.1:4060` serves the self-contained viewer from a loopback-only local HTTP origin for File System Access API support in Chromium.
 - The CLI patch formats are already applied by separate commands and must remain unchanged:
   - SetupData: `ExtractedAmiSetupDataQuestions` for `AccessLevel`, `Failsafe`, and `Optimal`.
   - SCT: `IfrSctPatches` for disabling patchable `SuppressIf` scopes by original IFR offset.
@@ -44,6 +47,7 @@
 6. Continue embedding the built frontend in the .NET assembly. `IfrHtmlViewerRenderer` inserts IFR render JSON into the generated page.
 7. Build a `QuestionId -> question node` index when the document loads. Do not repeatedly traverse the tree for references.
 8. Keep the render JSON immutable; frontend state records selection, expansion, and patch changes separately.
+9. Support `ifr-render --format html --serve 127.0.0.1:4060` through a minimal loopback-only `TcpListener` server. It serves the generated single HTML document at `/` and enables reliable File System Access API support in Chromium without Kestrel or HTTPS.
 
 ## Components
 
@@ -77,6 +81,7 @@
 9. Replace the current vanilla embedded resources with the Vite single-file output and update the .NET resource/build integration.
 10. Add frontend unit tests for patch mapping, reference indexing, and condition descriptions; retain .NET generation tests.
 11. Validate the generated viewer with the real `Platform_setup` fixture, both themes, imports/exports, question navigation, and existing CLI patch commands.
+12. Add directory-based load/save after local serve is available. Use `ifr-editor.json` as an optional manifest that names `<name>.ifr-render.json`, `SetupData.patch.json`, and `<name>.sct.patch.json`.
 
 ## Non-Goals For MVP
 
@@ -84,7 +89,7 @@
 2. Patch SetupData or SCT binaries in the browser.
 3. Edit arbitrary IFR opcodes or rebuild IFR bytecode.
 4. Add undo/redo, patch history, conflict resolution, or an interactive dependency graph.
-5. Add a backend, local HTTP service, user accounts, or telemetry.
+5. Add a backend, user accounts, telemetry, or any network-accessible service.
 
 ## Acceptance Criteria
 

@@ -22,10 +22,11 @@ public class CommandHandlers
     private readonly IfrTreeRenderer _treeRenderer;
     private readonly SetupDataParser _setupDataParser;
     private readonly IfrHtmlViewerRenderer _htmlViewerRenderer;
+    private readonly IfrHtmlViewerServer _htmlViewerServer;
 
     public CommandHandlers(ILogger<CommandHandlers> logger, ICommandFileManager fileManager,
         IJsonSerializationService jsonSerializer, IfrTreeRenderer treeRenderer, SetupDataParser setupDataParser,
-        IfrHtmlViewerRenderer htmlViewerRenderer)
+        IfrHtmlViewerRenderer htmlViewerRenderer, IfrHtmlViewerServer htmlViewerServer)
     {
         _logger = logger;
         _fileManager = fileManager;
@@ -33,9 +34,11 @@ public class CommandHandlers
         _treeRenderer = treeRenderer;
         _setupDataParser = setupDataParser;
         _htmlViewerRenderer = htmlViewerRenderer;
+        _htmlViewerServer = htmlViewerServer;
     }
 
-    public int Render(string inputFile, string setupDataFile, string ifrFile, string format, string outputFile)
+    public int Render(string inputFile, string setupDataFile, string ifrFile, string format, string outputFile,
+        string? serveAddress)
     {
         var sct = _fileManager.ReadBytes(inputFile);
         var setupData = _fileManager.ReadBytes(setupDataFile);
@@ -53,12 +56,22 @@ public class CommandHandlers
             _logger.LogError("IFR rendering to ascii-tree is not implemented; output {outputFile} was not written", outputFile);
             return 1;
         }
+        if (serveAddress != null && format != "html")
+        {
+            throw new ArgumentException("--serve requires --format html.", nameof(serveAddress));
+        }
 
         var setupDataQuestions = _setupDataParser.ExtractAll(ifr.Operations, setupData);
         var rendered = _treeRenderer.Render(ifr.Operations, setupDataQuestions.Questions);
         var renderedJson = JsonSerializer.Serialize(rendered, RenderJsonContext.IfrRenderDocument);
         _logger.LogInformation("Rendered {formsetCount} formsets to {format}", rendered.Formsets.Count, format);
-        _fileManager.Write(format == "html" ? _htmlViewerRenderer.Render(renderedJson) : renderedJson, outputFile, true);
+        var output = format == "html" ? _htmlViewerRenderer.Render(renderedJson) : renderedJson;
+        if (serveAddress != null)
+        {
+            return _htmlViewerServer.Serve(output, serveAddress);
+        }
+
+        _fileManager.Write(output, outputFile, true);
         return 0;
     }
 }
