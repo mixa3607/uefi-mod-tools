@@ -10,7 +10,7 @@
 - FormSet, Form, question, and condition are selectable nodes with IFR source metadata, a readable inspector, raw JSON, and recursive context-menu expand/collapse.
 - The tree marks actual SetupData patch changes with a hoverable field-level diff and marks SCT-disabled `SuppressIf` scopes separately.
 - `ifr-render --format html --serve 127.0.0.1:4060` serves the self-contained viewer from a loopback-only local HTTP origin for File System Access API support in Chromium.
-- The viewer can load and save a directory workspace. `ifr-editor.json` names the render and patch files; without it, unambiguous conventional filenames are discovered. File System Access API is used when available, with directory-input/download fallback.
+- The viewer can load and save a directory workspace. `ifr-editor.json` always names SetupData and SCT patch files; it names an IFR render file only when that document is external rather than embedded. File System Access API is used when available, with directory-input/download fallback.
 - The workspace has top-level `IFR` and `Changes` views. `Changes` is a logical patch review of SetupData field deltas and SCT suppression edits; it only consumes render and patch JSON.
 - `VarStore map` visualizes declared IFR VarStores, question offsets, known-size ranges, and unknown-size anchors from render JSON. It is not a physical NVAR/NVRAM map.
 - Browser-local UI preferences currently persist the selected theme only; firmware documents and patch state remain explicit workspace data.

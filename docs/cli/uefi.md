@@ -161,26 +161,37 @@ Opening the viewer from `http://127.0.0.1` allows Chromium's File System Access 
 
 ### Workspace Files
 
-Save all writes these files:
+For an embedded render document, Save all writes patch-only workspace files:
 
 ```text
 ifr-editor.json
-<name>.ifr-render.json
 SetupData.patch.json
 <name>.sct.patch.json
 ```
 
-The optional manifest selects files deterministically:
+Its manifest names both patch files and deliberately omits `IfrRenderFile`:
 
 ```json
 {
   "Version": 1,
-  "SetupDataFile": "SetupData.patch.json",
+  "SetupDataPatchFile": "SetupData.patch.json",
+  "SctPatchFile": "Platform_setup.sct.patch.json"
+}
+```
+
+Load directory applies this patch-only workspace to the render document embedded in the HTML viewer.
+
+When the render document was loaded from a directory or through `Load IFR render JSON`, Save all also writes `<name>.ifr-render.json` and adds its name to the manifest:
+
+```json
+{
+  "Version": 1,
+  "SetupDataPatchFile": "SetupData.patch.json",
   "SctPatchFile": "Platform_setup.sct.patch.json",
   "IfrRenderFile": "Platform_setup.ifr-render.json"
 }
 ```
 
-Without `ifr-editor.json`, Load directory discovers unambiguous conventional filenames. If multiple candidate render or SCT patch files exist, add the manifest instead of relying on an arbitrary selection.
+Loading a manifest with `IfrRenderFile` replaces the embedded document before applying patches. Without `ifr-editor.json`, Load directory discovers unambiguous conventional filenames. If multiple candidate render or SCT patch files exist, add the manifest instead of relying on an arbitrary selection.
 
 The browser never patches SCT or SetupData binaries. Export or save patch JSON, then use `ifr-setupdata-patch` and `ifr-sct-patch` to produce binary outputs.

@@ -22,6 +22,7 @@ type DirectoryWindow = Window & { showDirectoryPicker?: () => Promise<DirectoryH
 export function App({ document: viewerDocument }: { document: Document }) {
   const [activeDocument, setActiveDocument] = useState(viewerDocument);
   const [renderFileName, setRenderFileName] = useState('Platform_setup.ifr-render.json');
+  const [renderOrigin, setRenderOrigin] = useState<'embedded' | 'external'>('embedded');
   const index = useMemo(() => indexDocument(activeDocument), [activeDocument]);
   const [selectedId, setSelectedId] = useState<string>();
   const [expanded, setExpanded] = useState<string[]>([]);
@@ -117,6 +118,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
     try {
       setActiveDocument(parseDocument(await file.text()));
       setRenderFileName(file.name);
+      setRenderOrigin('external');
       setSetupPatches({});
       setDisabledSuppressions([]);
     } catch {
@@ -126,14 +128,15 @@ export function App({ document: viewerDocument }: { document: Document }) {
 
   const applyWorkspace = (workspace: Awaited<ReturnType<typeof loadWorkspace>>) => {
     setActiveDocument(workspace.document);
-    setRenderFileName(workspace.renderFileName);
+    setRenderFileName(workspace.renderFileName ?? 'Platform_setup.ifr-render.json');
+    setRenderOrigin(workspace.renderOrigin);
     setSetupPatches(workspace.setupPatches ?? {});
     setDisabledSuppressions(workspace.disabledSuppressions ?? []);
   };
 
   const loadDirectoryFiles = async (files: File[]) => {
     try {
-      applyWorkspace(await loadWorkspace(files));
+      applyWorkspace(await loadWorkspace(files, viewerDocument));
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Directory could not be loaded.');
     }
@@ -159,7 +162,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   };
 
   const saveAll = async () => {
-    const files = workspaceFiles(activeDocument, renderFileName, setupPatches, disabledSuppressions);
+    const files = workspaceFiles(activeDocument, renderOrigin, renderFileName, setupPatches, disabledSuppressions);
     if (!directoryAccess) {
       Object.entries(files).forEach(([name, value]) => downloadJson(name, value));
       return;
