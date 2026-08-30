@@ -176,7 +176,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ height: '100vh', display: 'grid', gridTemplateRows: '48px 36px minmax(0, 1fr)' }}>
+      <Box sx={{ height: '100vh', display: 'grid', gridTemplateRows: '48px 48px minmax(0, 1fr)' }}>
         <ViewerToolbar
           query={query}
           themeMode={themeMode}
