@@ -1,5 +1,6 @@
 import {
   Alert,
+  Autocomplete,
   Box,
   Chip,
   FormControl,
@@ -189,13 +190,26 @@ function SetupPatchEditor({
         SetupData patch
       </Typography>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-        <TextField
-          label="Access level"
-          type="number"
-          size="small"
-          value={patch.question.accessLevel}
-          onChange={event => onPatch(node, 'accessLevel', Number(event.target.value))}
-          inputProps={{ min: 0, max: 255 }}
+        <Autocomplete
+          key={patch.beginAddress}
+          freeSolo
+          options={['0', '1', '2', '3', '4', '5']}
+          defaultValue={String(patch.question.accessLevel)}
+          onInputChange={(_, value) => {
+            const accessLevel = parseAccessLevel(value);
+            if (accessLevel != null) {
+              onPatch(node, 'accessLevel', accessLevel);
+            }
+          }}
+          sx={{ minWidth: 170 }}
+          renderInput={params => (
+            <TextField
+              {...params}
+              label="Access level"
+              size="small"
+              helperText="0..255, decimal or 0x"
+            />
+          )}
         />
         {(['failsafe', 'optimal'] as const).map(property => {
           const fieldLabel = property === 'failsafe' ? 'Failsafe default' : 'Optimal default';
@@ -224,6 +238,16 @@ function SetupPatchEditor({
       </Stack>
     </Paper>
   );
+}
+
+function parseAccessLevel(value: string) {
+  const normalized = value.trim();
+  if (!/^(?:0x[0-9a-f]+|\d+)$/i.test(normalized)) {
+    return undefined;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isInteger(parsed) && parsed >= 0 && parsed <= 0xff ? parsed : undefined;
 }
 
 function ConditionInspector({
