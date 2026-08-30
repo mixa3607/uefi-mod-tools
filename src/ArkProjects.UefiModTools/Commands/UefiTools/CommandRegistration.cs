@@ -14,5 +14,6 @@ public class CommandRegistration
         Fit.CommandRegistration.Register(command, services);
         IfrSetupData.CommandRegistration.Register(command, services);
         IfrSct.CommandRegistration.Register(command, services);
+        IfrRender.CommandRegistration.Register(command, services);
     }
 }
