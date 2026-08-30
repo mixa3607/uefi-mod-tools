@@ -6,9 +6,21 @@ import { indexDocument, questionDefaults } from './modelHelpers';
 import { downloadJson, importPatch, setupPatch, type PatchKind } from './patchHelpers';
 import type { Document, Node, NodeRef, SetupPatchQuestion } from './types';
 import { ViewerToolbar } from './ViewerToolbar';
+import { loadWorkspace, parseDocument, workspaceFiles } from './workspaceHelpers';
+
+type DirectoryHandle = {
+  values: () => AsyncIterable<{ kind: string; getFile: () => Promise<File> }>;
+  getFileHandle: (name: string, options: { create: true }) => Promise<{
+    createWritable: () => Promise<{ write: (data: string) => Promise<void>; close: () => Promise<void> }>;
+  }>;
+};
+
+type DirectoryWindow = Window & { showDirectoryPicker?: () => Promise<DirectoryHandle> };
 
 export function App({ document: viewerDocument }: { document: Document }) {
-  const index = useMemo(() => indexDocument(viewerDocument), [viewerDocument]);
+  const [activeDocument, setActiveDocument] = useState(viewerDocument);
+  const [renderFileName, setRenderFileName] = useState('Platform_setup.ifr-render.json');
+  const index = useMemo(() => indexDocument(activeDocument), [activeDocument]);
   const [selectedId, setSelectedId] = useState<string>();
   const [expanded, setExpanded] = useState<string[]>([]);
   const [query, setQuery] = useState('');
@@ -33,7 +45,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
   const selected = selectedId ? index.byId.get(selectedId) : undefined;
 
   useEffect(() => {
-    if (!selectedId) {
+    if (!selectedId || !index.byId.has(selectedId)) {
       setSelectedId(index.byId.keys().next().value);
     }
   }, [index, selectedId]);
@@ -89,6 +101,76 @@ export function App({ document: viewerDocument }: { document: Document }) {
     }
   };
 
+  const loadRender = async (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+
+    try {
+      setActiveDocument(parseDocument(await file.text()));
+      setRenderFileName(file.name);
+      setSetupPatches({});
+      setDisabledSuppressions([]);
+    } catch {
+      alert('The selected file is not a compatible IFR render document.');
+    }
+  };
+
+  const applyWorkspace = (workspace: Awaited<ReturnType<typeof loadWorkspace>>) => {
+    setActiveDocument(workspace.document);
+    setRenderFileName(workspace.renderFileName);
+    setSetupPatches(workspace.setupPatches ?? {});
+    setDisabledSuppressions(workspace.disabledSuppressions ?? []);
+  };
+
+  const loadDirectoryFiles = async (files: File[]) => {
+    try {
+      applyWorkspace(await loadWorkspace(files));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Directory could not be loaded.');
+    }
+  };
+
+  const directoryAccess = window.isSecureContext && 'showDirectoryPicker' in window;
+  const loadDirectory = async () => {
+    try {
+      const handle = await (window as DirectoryWindow).showDirectoryPicker!();
+      const files: File[] = [];
+      for await (const entry of handle.values()) {
+        if (entry.kind === 'file') {
+          files.push(await entry.getFile());
+        }
+      }
+
+      await loadDirectoryFiles(files);
+    } catch (error) {
+      if ((error as DOMException).name !== 'AbortError') {
+        alert(error instanceof Error ? error.message : 'Directory could not be loaded.');
+      }
+    }
+  };
+
+  const saveAll = async () => {
+    const files = workspaceFiles(activeDocument, renderFileName, setupPatches, disabledSuppressions);
+    if (!directoryAccess) {
+      Object.entries(files).forEach(([name, value]) => downloadJson(name, value));
+      return;
+    }
+
+    try {
+      const handle = await (window as DirectoryWindow).showDirectoryPicker!();
+      await Promise.all(Object.entries(files).map(async ([name, value]) => {
+        const writable = await (await handle.getFileHandle(name, { create: true })).createWritable();
+        await writable.write(JSON.stringify(value, null, 2));
+        await writable.close();
+      }));
+    } catch (error) {
+      if ((error as DOMException).name !== 'AbortError') {
+        alert(error instanceof Error ? error.message : 'Workspace could not be saved.');
+      }
+    }
+  };
+
   const selectedNode = selected?.node;
   const selectedSetupPatch =
     selectedNode?.NodeType === 'question' && selectedNode.SetupDataQuestion
@@ -104,10 +186,17 @@ export function App({ document: viewerDocument }: { document: Document }) {
           themeMode={themeMode}
           setupPatchCount={Object.keys(setupPatches).length}
           disabledSuppressionCount={disabledSuppressions.length}
+          renderFileName={renderFileName}
+          directoryAccess={directoryAccess}
           onQueryChange={setQuery}
           onToggleTheme={() => setThemeMode(current => (current === 'dark' ? 'light' : 'dark'))}
           onOpenRaw={() => setRawOpen(true)}
           onImport={handleImport}
+          onLoadRender={loadRender}
+          onLoadDirectory={loadDirectory}
+          onLoadDirectoryFiles={loadDirectoryFiles}
+          onSaveAll={saveAll}
+          onExportRender={() => downloadJson(renderFileName, activeDocument)}
           onExportSetup={() =>
             downloadJson('SetupData.patch.json', {
               version: 1,
@@ -132,7 +221,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
         >
           <Paper square variant="outlined" sx={{ overflow: 'auto', p: 1 }}>
             <IfrTree
-              document={viewerDocument}
+              document={activeDocument}
               expanded={expanded}
               selectedId={selectedId}
               query={query}
@@ -178,7 +267,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
         <Box sx={{ width: { xs: '100vw', sm: 540 }, p: 2 }}>
           <Typography variant="h6">Raw JSON</Typography>
           <Divider sx={{ my: 1 }} />
-          <pre>{JSON.stringify(selected?.node ?? viewerDocument, null, 2)}</pre>
+          <pre>{JSON.stringify(selected?.node ?? activeDocument, null, 2)}</pre>
         </Box>
       </Drawer>
     </ThemeProvider>

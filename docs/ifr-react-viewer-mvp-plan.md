@@ -9,6 +9,7 @@
 - FormSet, Form, question, and condition are selectable nodes with IFR source metadata, a readable inspector, raw JSON, and recursive context-menu expand/collapse.
 - The tree marks actual SetupData patch changes with a hoverable field-level diff and marks SCT-disabled `SuppressIf` scopes separately.
 - `ifr-render --format html --serve 127.0.0.1:4060` serves the self-contained viewer from a loopback-only local HTTP origin for File System Access API support in Chromium.
+- The viewer can load and save a directory workspace. `ifr-editor.json` names the render and patch files; without it, unambiguous conventional filenames are discovered. File System Access API is used when available, with directory-input/download fallback.
 - The CLI patch formats are already applied by separate commands and must remain unchanged:
   - SetupData: `ExtractedAmiSetupDataQuestions` for `AccessLevel`, `Failsafe`, and `Optimal`.
   - SCT: `IfrSctPatches` for disabling patchable `SuppressIf` scopes by original IFR offset.
@@ -81,7 +82,7 @@
 9. Replace the current vanilla embedded resources with the Vite single-file output and update the .NET resource/build integration.
 10. Add frontend unit tests for patch mapping, reference indexing, and condition descriptions; retain .NET generation tests.
 11. Validate the generated viewer with the real `Platform_setup` fixture, both themes, imports/exports, question navigation, and existing CLI patch commands.
-12. Add directory-based load/save after local serve is available. Use `ifr-editor.json` as an optional manifest that names `<name>.ifr-render.json`, `SetupData.patch.json`, and `<name>.sct.patch.json`.
+12. Add directory-based load/save using `ifr-editor.json` as an optional manifest that names `<name>.ifr-render.json`, `SetupData.patch.json`, and `<name>.sct.patch.json`.
 
 ## Non-Goals For MVP
 

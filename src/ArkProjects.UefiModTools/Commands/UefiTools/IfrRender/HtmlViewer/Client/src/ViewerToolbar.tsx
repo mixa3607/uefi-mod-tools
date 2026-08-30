@@ -19,6 +19,13 @@ type ViewerToolbarProps = {
   onToggleTheme: () => void;
   onOpenRaw: () => void;
   onImport: (file: File | undefined, kind: PatchKind) => void;
+  renderFileName: string;
+  directoryAccess: boolean;
+  onLoadRender: (file: File | undefined) => void;
+  onLoadDirectory: () => void;
+  onLoadDirectoryFiles: (files: File[]) => void;
+  onSaveAll: () => void;
+  onExportRender: () => void;
   onExportSetup: () => void;
   onExportSct: () => void;
 };
@@ -32,6 +39,13 @@ export function ViewerToolbar({
   onToggleTheme,
   onOpenRaw,
   onImport,
+  renderFileName,
+  directoryAccess,
+  onLoadRender,
+  onLoadDirectory,
+  onLoadDirectoryFiles,
+  onSaveAll,
+  onExportRender,
   onExportSetup,
   onExportSct,
 }: ViewerToolbarProps) {
@@ -50,6 +64,37 @@ export function ViewerToolbar({
           sx={{ width: 280 }}
         />
         <Box sx={{ flex: 1 }} />
+        <Button component="label" size="small" startIcon={<Upload />}>
+          Render
+          <input
+            hidden
+            type="file"
+            accept="application/json"
+            onChange={event => onLoadRender(event.target.files?.[0])}
+          />
+        </Button>
+        <Button size="small" title={renderFileName} startIcon={<Download />} onClick={onExportRender}>
+          Render
+        </Button>
+        <Button component={directoryAccess ? 'button' : 'label'} size="small" startIcon={<FolderOpen />}
+          onClick={directoryAccess ? onLoadDirectory : undefined}>
+          Load directory
+          {!directoryAccess && (
+            <input
+              hidden
+              type="file"
+              onClick={event => {
+                (event.currentTarget as HTMLInputElement & { webkitdirectory: boolean }).webkitdirectory = true;
+              }}
+              onChange={event => onLoadDirectoryFiles(Array.from(event.target.files ?? []))}
+            />
+          )}
+        </Button>
+        <Tooltip title={directoryAccess ? 'Save workspace to a directory' : 'Downloads all workspace files'}>
+          <Button size="small" startIcon={<Download />} onClick={onSaveAll}>
+            Save all
+          </Button>
+        </Tooltip>
         <Tooltip title="Raw JSON">
           <IconButton onClick={onOpenRaw}>
             <Settings />
