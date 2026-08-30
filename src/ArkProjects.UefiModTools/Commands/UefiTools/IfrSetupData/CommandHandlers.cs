@@ -2,7 +2,7 @@ using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public class CommandHandlers
 {
@@ -47,11 +47,5 @@ public class CommandHandlers
         _logger.LogInformation("Writing patched SetupData to {outputFile}", outputFile);
         _fileManager.Write(setupData, outputFile, true);
         return 0;
-    }
-
-    public int PatchSct(string inputFile, string ifrFile, string patchFile, string outputFile)
-    {
-        _logger.LogError("IFR Platform_setup.sct patching is not implemented");
-        return 1;
     }
 }

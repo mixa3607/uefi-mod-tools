@@ -1,10 +1,9 @@
-using ArkProjects.UefiModTools.Ifr;
 using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public static class CommandRegistration
 {
@@ -12,12 +11,11 @@ public static class CommandRegistration
     {
         services
             .AddSingleton<SetupDataParser>()
-            .AddSingleton<IJsonTypeInfoResolver>(IfrJsonSerializerContext.Default)
+            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrSetupData.Default)
             .AddSingleton<CommandHandlers>();
 
         RegisterSetupDataExtract(parentCommand, services);
         RegisterSetupDataPatch(parentCommand, services);
-        RegisterSctPatch(parentCommand, services);
     }
 
     private static void RegisterSetupDataExtract(Command parentCommand, IServiceCollection services)
@@ -74,36 +72,4 @@ public static class CommandRegistration
             ));
     }
 
-    private static void RegisterSctPatch(Command parentCommand, IServiceCollection services)
-    {
-        var command = parentCommand.AddCommand("ifr-sct-patch", "Patch Platform_setup.sct using IFR dump and json patch");
-        var inputOpt = command.AddOption(new Option<string>("--input", "-i")
-        {
-            Description = "Platform_setup.sct file",
-            Required = true,
-        });
-        var ifrOpt = command.AddOption(new Option<string>("--ifr", "-s")
-        {
-            Description = "IFR dump json file",
-            Required = true,
-        });
-        var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
-        {
-            Description = "IFR patch json file",
-            Required = true,
-        });
-        var outputOpt = command.AddOption(new Option<string>("--output", "-o")
-        {
-            Description = "Output Platform_setup.sct file",
-            Required = true,
-        });
-
-        command.SetAction<CommandHandlers>(services,
-            (handler, opts) => handler.PatchSct(
-                opts.GetRequiredValue(inputOpt),
-                opts.GetRequiredValue(ifrOpt),
-                opts.GetRequiredValue(patchOpt),
-                opts.GetRequiredValue(outputOpt)
-            ));
-    }
 }

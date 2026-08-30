@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1, Size = Size)]
 public struct AmiSetupDataQuestion

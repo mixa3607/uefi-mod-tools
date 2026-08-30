@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public static class AmiSetupDataQuestionOffset
 {

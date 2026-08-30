@@ -1,7 +1,7 @@
 using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Utils.BinDataPattern;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public sealed class AmiSetupDataQuestionDataPattern : IBinaryDataPattern<AmiSetupDataQuestion>
 {

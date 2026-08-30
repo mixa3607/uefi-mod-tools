@@ -1,7 +1,7 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public class SetupDataParser
 {

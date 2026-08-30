@@ -1,10 +1,10 @@
 using System.Text.Json;
-using ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrSetupData;
 
 public class SetupDataParserTests
 {

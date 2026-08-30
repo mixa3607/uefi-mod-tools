@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using ArkProjects.UefiModTools.Utils;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public class ExtractedAmiSetupDataQuestion
 {
