@@ -1,7 +1,8 @@
-# IFR React Viewer MVP Plan
+# IFR React Viewer Architecture Record
 
 ## Status
 
+- This document records the design and implementation decisions behind the viewer. For command usage and workspace files, see [the UEFI CLI guide](cli/uefi.md).
 - Branch: `feat/ifr-react-viewer-mvp`.
 - The current `ifr-render --format json` output contains formsets, forms, question nodes, conditional nodes, IFR source locations, OneOf options/defaults, and matched `AmiSetupDataQuestion` data.
 - The current `ifr-render --format html` output is a self-contained React/MUI viewer. Vite source is in `Commands/UefiTools/IfrRender/HtmlViewer/Client/`; the .NET build embeds generated `viewer.js` and `viewer.css` into the HTML shell.
