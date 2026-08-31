@@ -35,7 +35,7 @@ OutputType: $(OutputType)
 BUILD_DATE: $(BUILD_DATE)</DEBUG_MSG>
 	</PropertyGroup>
 	<Target Name="DisplayBuildDebugMessage" AfterTargets="Build">
-		<Message Text="$(DEBUG_MSG)" Importance="high" />
+		<Message Text="$(DEBUG_MSG)" Importance="Normal" />
 	</Target>
 
 </Project>

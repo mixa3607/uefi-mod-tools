@@ -20,23 +20,6 @@
 
   <Import Project="Directory.Build.custom.props" Condition="Exists('Directory.Build.custom.props')" />
 
-  <!-- Usage: export WSL_DOTNET_TEMP_DIR=/tmp/dotnet-builds/$USER -->
-  <!-- Check whether WSL_DOTNET_TEMP_DIR is set. -->
-  <PropertyGroup Condition="'$(WSL_DOTNET_TEMP_DIR)' != ''">
-    <WSLBuildRoot>$(WSL_DOTNET_TEMP_DIR)/$(MSBuildProjectName)</WSLBuildRoot>
-
-    <BaseIntermediateOutputPath>$(WSLBuildRoot)/obj/</BaseIntermediateOutputPath>
-    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**</DefaultItemExcludes>
-  </PropertyGroup>
-
-  <!-- Usage: export WSL_DOTNET_BIN_RELDIR=wsl -->
-  <!-- Check whether WSL_DOTNET_BIN_RELDIR is set. -->
-  <PropertyGroup Condition="'$(WSL_DOTNET_BIN_RELDIR)' != ''">
-    <!-- The project name prevents output conflicts between solution projects. -->
-    <BaseOutputPath>./bin/$(WSL_DOTNET_BIN_RELDIR)</BaseOutputPath>
-    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**</DefaultItemExcludes>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

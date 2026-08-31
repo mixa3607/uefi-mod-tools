@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <IsWindows>$([MSBuild]::IsOSPlatform('Windows'))</IsWindows>
+    <IsLinux>$([MSBuild]::IsOSPlatform('Linux'))</IsLinux>
+  </PropertyGroup>
+
+  <!-- Windows -->
+  <PropertyGroup Condition="'$(IsWindows)' == 'true'">
+    <BuildRoot>$(TEMP)\dotnet-builds\$(MSBuildProjectName)</BuildRoot>
+
+    <BaseIntermediateOutputPath>$(BuildRoot)\obj\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\win\</BaseOutputPath>
+  </PropertyGroup>
+
+  <!-- Linux -->
+  <PropertyGroup Condition="'$(IsLinux)' == 'true'">
+    <BuildRoot>/tmp/dotnet-builds/$(MSBuildProjectName)</BuildRoot>
+
+    <BaseIntermediateOutputPath>$(BuildRoot)/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)bin/linux/</BaseOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWindows)' == 'true' Or '$(IsLinux)' == 'true'">
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);
+      obj/**;
+      bin/**
+    </DefaultItemExcludes>
+  </PropertyGroup>
+</Project>
