@@ -35,7 +35,9 @@ public class NvarMapExtractorTests
     [Fact]
     public void ExtractStopsAtDataAfterRecords()
     {
-        var source = CreateRecord("BootOrder", NvarAttributes.AsciiName, []).Concat([0xFF, 0x00]).ToArray();
+        var source = CreateRecord("BootOrder", NvarAttributes.AsciiName, [])
+            .Concat(new byte[] { 0xFF, 0x00 })
+            .ToArray();
 
         var variable = Assert.Single(CreateExtractor().Extract(source));
 
