@@ -27,6 +27,9 @@ public class CommandHandlers
 
         var result = new BiosDefaultsMapDocument
         {
+            Version = BiosDefaultsMapDocument.SupportedVersion,
+            Type = BiosDefaultsMapDocument.SupportedType,
+
             Variables = _extractor.Extract(defaultsFileBytes),
             SourceName = Path.GetFileName(inputFile),
             SourceSha256 = Convert.ToHexString(SHA256.HashData(defaultsFileBytes)).ToLowerInvariant(),

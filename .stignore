@@ -1,3 +1,2 @@
 #include ./.gitignore
-#include ./src/ArkProjects.UefiModTools/.gitignore
 #include ./src/.gitignore
