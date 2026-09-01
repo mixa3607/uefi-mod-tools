@@ -12,6 +12,10 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi ifr-setupdata-patch -i test-files/ifr/SetupData_body.bin --patch test-files/ifr/SetupData.json -o test-files/ifr/SetupData_body.bin"
     },
+    "uefi ifr-extdefaults-extract": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr-extdefaults-extract -i test-files/ifr/AF516361-BiosDefaults.bin -o -"
+    },
     // uboot
     "uboot env-read": {
       "commandName": "Project",

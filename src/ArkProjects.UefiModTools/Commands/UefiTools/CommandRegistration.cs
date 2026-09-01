@@ -15,5 +15,6 @@ public class CommandRegistration
         IfrSetupData.CommandRegistration.Register(command, services);
         IfrSct.CommandRegistration.Register(command, services);
         IfrRender.CommandRegistration.Register(command, services);
+        IfrBiosDefaults.CommandRegistration.Register(command, services);
     }
 }
