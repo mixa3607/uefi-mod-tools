@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "type": "AF516361-BiosDefaults-Store-Patch",
+  "varPatches": [
+    {
+      "id": "0001-FpgaSocketConfig-0000-0000057F",
+      "value": "4"
+    }
+  ]
+}

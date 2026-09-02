@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "type": "AF516361-BiosDefaults-Store-Patch",
+  "varPatches": [
+    {
+      "id": "000E-IntelSetup-00E8-00002E1D",
+      "value": "true"
+    }
+  ]
+}

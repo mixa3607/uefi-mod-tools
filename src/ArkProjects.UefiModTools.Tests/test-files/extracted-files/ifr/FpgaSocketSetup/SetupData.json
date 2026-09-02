@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "beginAddress": "0x0001DCFC",
+      "endAddress": "0x0001DD32",
+      "type": "Numeric",
+      "question": {
+        "questionId": 1,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 39,
+        "promptStringId": 38,
+        "failsafe": 3,
+        "optimal": 3
+      }
+    },
+    {
+      "beginAddress": "0x0001DD8C",
+      "endAddress": "0x0001DDC2",
+      "type": "OneOf",
+      "question": {
+        "questionId": 2,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 11,
+        "promptStringId": 9,
+        "failsafe": 0,
+        "optimal": 0
+      }
+    },
+    {
+      "beginAddress": "0x0001DDD4",
+      "endAddress": "0x0001DE0A",
+      "type": "OneOf",
+      "question": {
+        "questionId": 3,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 11,
+        "promptStringId": 10,
+        "failsafe": 0,
+        "optimal": 0
+      }
+    },
+    {
+      "beginAddress": "0x0001DE5C",
+      "endAddress": "0x0001DE92",
+      "type": "OneOf",
+      "question": {
+        "questionId": 4,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 15,
+        "promptStringId": 16,
+        "failsafe": 90,
+        "optimal": 90
+      }
+    },
+    {
+      "beginAddress": "0x0001DEA4",
+      "endAddress": "0x0001DEDA",
+      "type": "OneOf",
+      "question": {
+        "questionId": 5,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 15,
+        "promptStringId": 17,
+        "failsafe": 93,
+        "optimal": 93
+      }
+    },
+    {
+      "beginAddress": "0x0001DEEC",
+      "endAddress": "0x0001DF22",
+      "type": "OneOf",
+      "question": {
+        "questionId": 6,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 15,
+        "promptStringId": 18,
+        "failsafe": 90,
+        "optimal": 90
+      }
+    },
+    {
+      "beginAddress": "0x0001DF34",
+      "endAddress": "0x0001DF6A",
+      "type": "OneOf",
+      "question": {
+        "questionId": 7,
+        "pageId": 65535,
+        "accessLevel": 9,
+        "helpStringId": 15,
+        "promptStringId": 19,
+        "failsafe": 93,
+        "optimal": 93
+      }
+    }
+  ]
+}
