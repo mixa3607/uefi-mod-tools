@@ -104,6 +104,6 @@
 2. A user can identify a condition's effect, expression, and affected questions without reading raw JSON.
 3. A user can follow an expression reference to its target question and return via normal tree navigation.
 4. A user can select real OneOf labels for `Failsafe` and `Optimal`.
-5. Exported SetupData JSON is accepted by `ifr-setupdata-patch`.
+5. Exported SetupData JSON is accepted by `setup-data apply-patch`.
 6. Exported SCT JSON is accepted by `ifr-sct-patch` for supported non-empty `SuppressIf` scopes.
 7. Dark and light themes retain readable dense layouts on desktop and narrow screens.

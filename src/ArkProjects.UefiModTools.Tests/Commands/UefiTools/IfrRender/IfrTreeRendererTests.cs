@@ -14,6 +14,7 @@ public class IfrTreeRendererTests
         [
             new ExtractedAmiSetupDataQuestion
             {
+                Id = "OneOf-0012",
                 BeginAddress = 100,
                 EndAddress = 154,
                 Type = "OneOf",

@@ -4,17 +4,17 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug"
     },
-    "uefi ifr-setupdata-extract [Platform]": {
+    "uefi setup-data map-ifr [Platform]": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/SetupData.json"
+      "commandLineArgs": "--log-level debug uefi setup-data map-ifr -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/SetupData.map.json"
     },
-    "uefi ifr-setupdata-extract [FpgaSocketSetup]": {
+    "uefi setup-data map-ifr [FpgaSocketSetup]": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/SetupData.json"
+      "commandLineArgs": "--log-level debug uefi setup-data map-ifr -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/SetupData.map.json"
     },
-    "uefi ifr-setupdata-patch": {
+    "uefi setup-data apply-patch [Platform]": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-setupdata-patch -i test-files/ifr/SetupData_body.bin --patch test-files/ifr/SetupData.json -o test-files/ifr/SetupData_body.bin"
+      "commandLineArgs": "--log-level debug uefi setup-data apply-patch -i test-files/ifr/SetupData_body.bin --map test-files/ifr/Platform/SetupData.map.json --patch test-files/ifr/Platform/SetupData.patch.json -o test-files/ifr/Platform/SetupData_body.patched.bin"
     },
     "uefi nvar map": {
       "commandName": "Project",

@@ -1,7 +1,11 @@
 {
   "version": 1,
+  "type": "AMI-SetupData-IFR-Map",
+  "setupDataSha256": "c8e9f8db0cf2708c0cb8c0b0f4b8f6b6598152a0066132575da14a880bb68631",
+  "ifrSha256": "4a51ac0dadfbeecbd8a2e899e1934667456740337c65890523ca263fb3f1a83d",
   "questions": [
     {
+      "id": "Numeric-0001",
       "beginAddress": "0x0001DCFC",
       "endAddress": "0x0001DD32",
       "type": "Numeric",
@@ -16,6 +20,7 @@
       }
     },
     {
+      "id": "OneOf-0002",
       "beginAddress": "0x0001DD8C",
       "endAddress": "0x0001DDC2",
       "type": "OneOf",
@@ -30,6 +35,7 @@
       }
     },
     {
+      "id": "OneOf-0003",
       "beginAddress": "0x0001DDD4",
       "endAddress": "0x0001DE0A",
       "type": "OneOf",
@@ -44,6 +50,7 @@
       }
     },
     {
+      "id": "OneOf-0004",
       "beginAddress": "0x0001DE5C",
       "endAddress": "0x0001DE92",
       "type": "OneOf",
@@ -58,6 +65,7 @@
       }
     },
     {
+      "id": "OneOf-0005",
       "beginAddress": "0x0001DEA4",
       "endAddress": "0x0001DEDA",
       "type": "OneOf",
@@ -72,6 +80,7 @@
       }
     },
     {
+      "id": "OneOf-0006",
       "beginAddress": "0x0001DEEC",
       "endAddress": "0x0001DF22",
       "type": "OneOf",
@@ -86,6 +95,7 @@
       }
     },
     {
+      "id": "OneOf-0007",
       "beginAddress": "0x0001DF34",
       "endAddress": "0x0001DF6A",
       "type": "OneOf",

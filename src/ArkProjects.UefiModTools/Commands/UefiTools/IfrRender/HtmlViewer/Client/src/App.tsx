@@ -4,7 +4,7 @@ import { ChangesView } from './ChangesView';
 import { IfrView } from './IfrView';
 import { VarStoreView } from './VarStoreView';
 import { indexDocument } from './modelHelpers';
-import { downloadJson, importPatch, setupPatch, type PatchKind } from './patchHelpers';
+import { createSetupPatchDocument, downloadJson, importPatch, setupPatch, type PatchKind } from './patchHelpers';
 import type { Document, Node, NodeRef, SetupPatchQuestion } from './types';
 import { ViewerToolbar } from './ViewerToolbar';
 import { loadWorkspace, parseDocument, workspaceFiles } from './workspaceHelpers';
@@ -98,7 +98,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
 
   const handleImport = async (file: File | undefined, kind: PatchKind) => {
     try {
-      const imported = await importPatch(file, kind);
+      const imported = await importPatch(file, kind, activeDocument);
 
       if (imported?.kind === 'setup') {
         setSetupPatches(imported.setupPatches);
@@ -203,10 +203,7 @@ export function App({ document: viewerDocument }: { document: Document }) {
           onSaveAll={saveAll}
           onExportRender={() => downloadJson(renderFileName, activeDocument)}
           onExportSetup={() =>
-            downloadJson('SetupData.patch.json', {
-              version: 1,
-              questions: Object.values(setupPatches),
-            })
+            downloadJson('SetupData.patch.json', createSetupPatchDocument(activeDocument, setupPatches))
           }
           onExportSct={() =>
             downloadJson('Platform_setup.sct.patch.json', {

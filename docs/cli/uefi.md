@@ -22,11 +22,13 @@ flowchart TD
 
     Sct -->|IFRExtractor-RS-structured| Ifr[Platform_setup.sct.0.0.uefi.ifr.json]
 
-    SetupData -->|ifr-setupdata-extract + IFR| SetupPatch[SetupData.patch.json]
-    Ifr -->|ifr-setupdata-extract| SetupPatch
+    SetupData -->|setup-data map-ifr + IFR| SetupMap[SetupData.map.json]
+    Ifr -->|setup-data map-ifr| SetupMap
+    SetupMap -->|edit selected values| SetupPatch[SetupData.patch.json]
     SetupPatch -->|edit manually or in viewer| EditedSetupPatch[edited SetupData.patch.json]
-    SetupData -->|ifr-setupdata-patch + edited patch| ModifiedSetupData[modified SetupData.bin]
-    EditedSetupPatch -->|ifr-setupdata-patch| ModifiedSetupData
+    SetupData -->|setup-data apply-patch + map + edited patch| ModifiedSetupData[modified SetupData.bin]
+    SetupMap -->|setup-data apply-patch| ModifiedSetupData
+    EditedSetupPatch -->|setup-data apply-patch| ModifiedSetupData
 
     Sct -->|ifr-render + SetupData + IFR| Viewer[IFR render JSON or HTML viewer]
     SetupData -->|ifr-render| Viewer
@@ -163,14 +165,14 @@ The tool does not produce the IFR dump itself. Use an IFR extractor compatible w
 ### Extract and Patch SetupData
 
 ```bash
-uefi-mod-tools uefi ifr-setupdata-extract \
-  --input SetupData.bin --ifr Platform_setup.ifr.json --output SetupData.patch.json
+uefi-mod-tools uefi setup-data map-ifr \
+  --input SetupData.bin --ifr Platform_setup.ifr.json --output SetupData.map.json
 
-uefi-mod-tools uefi ifr-setupdata-patch \
-  --input SetupData.bin --patch SetupData.patch.json --output modified-SetupData.bin
+uefi-mod-tools uefi setup-data apply-patch \
+  --input SetupData.bin --map SetupData.map.json --patch SetupData.patch.json --output modified-SetupData.bin
 ```
 
-Extraction writes a versioned JSON document containing matching AMI SetupData questions. The patch command applies the listed question metadata directly to the SetupData binary. Use a different output filename to preserve the original.
+Mapping writes an `AMI-SetupData-IFR-Map` document containing matching AMI SetupData questions and SHA-256 hashes of the source SetupData and IFR files. The `AMI-SetupData-Patch` document identifies questions by `id` and may set `accessLevel`, `failsafe`, and `optimal` independently. The patch command verifies the map and source hashes before modifying the SetupData binary. Use `--ignore-versions` only for a schema-compatible map or patch with a newer version; it cannot ignore a different document type. Use a different output filename to preserve the original.
 
 The supported editable metadata is `accessLevel`, `failsafe`, and `optimal`. Access-level meaning is platform-dependent; a commonly used modding value is `0x05`, but it is not a universal AMI role or a guarantee that a setup item becomes usable.
 
@@ -288,4 +290,4 @@ When the render document was loaded from a directory or through `Load IFR render
 
 Loading a manifest with `IfrRenderFile` replaces the embedded document before applying patches. Without `ifr-editor.json`, Load directory discovers unambiguous conventional filenames. If multiple candidate render or SCT patch files exist, add the manifest instead of relying on an arbitrary selection.
 
-The browser never patches SCT or SetupData binaries. Export or save patch JSON, then use `ifr-setupdata-patch` and `ifr-sct-patch` to produce binary outputs.
+The browser never patches SCT or SetupData binaries. Export or save patch JSON, then use `setup-data apply-patch` and `ifr-sct-patch` to produce binary outputs.

@@ -12,74 +12,7 @@ public class SetupDataParser
         _logger = logger;
     }
 
-    public void PatchAll(IReadOnlyList<ExtractedAmiSetupDataQuestion> questions, Memory<byte> setupData)
-    {
-        var patched = 0;
-        var error = 0;
-        var all = questions.Count;
-        foreach (var question in questions)
-        {
-            if (question.BeginAddress < 0 || question.EndAddress < question.BeginAddress ||
-                question.EndAddress > setupData.Length)
-            {
-                _logger.LogWarning("{type} question range {beginAddress}-{endAddress} is outside SetupData. Skipping patch",
-                    question.Type, question.BeginAddress, question.EndAddress);
-                error++;
-                continue;
-            }
-
-            var pattern = new AmiSetupDataQuestionDataPattern(question.Question.QuestionId,
-                question.Question.HelpStringId, question.Question.PromptStringId);
-            var matched =
-                pattern.IsMatch(
-                    setupData.Slice(question.BeginAddress, question.EndAddress - question.BeginAddress).Span);
-            if (!matched)
-            {
-                _logger.LogWarning("{type} question at SetupData offset {offset} does not match the patch data. Skipping patch",
-                    question.Type, question.BeginAddress);
-                error++;
-                continue;
-            }
-
-            var origAccessLevel =
-                setupData.Slice(question.BeginAddress + AmiSetupDataQuestionOffset.AccessLevel, 1).Span;
-            var origFailsafe =
-                setupData.Slice(question.BeginAddress + AmiSetupDataQuestionOffset.Failsafe, 1).Span;
-            var origOptimal =
-                setupData.Slice(question.BeginAddress + AmiSetupDataQuestionOffset.Optimal, 1).Span;
-
-            var edited = false;
-            if (origAccessLevel[0] != question.Question.AccessLevel)
-            {
-                origAccessLevel[0] = question.Question.AccessLevel;
-                edited = true;
-            }
-
-            if (origFailsafe[0] != question.Question.Failsafe)
-            {
-                origFailsafe[0] = question.Question.Failsafe;
-                edited = true;
-            }
-
-            if (origOptimal[0] != question.Question.Optimal)
-            {
-                origOptimal[0] = question.Question.Optimal;
-                edited = true;
-            }
-
-            if (edited)
-            {
-                _logger.LogInformation("{type} question at SetupData offset {offset} patched",
-                    question.Type, question.BeginAddress);
-                patched++;
-            }
-        }
-
-        _logger.LogInformation("Patched {patched} of {all} questions; skipped {errors}", patched, all, error);
-    }
-
-    public ExtractedAmiSetupDataQuestions ExtractAll(IReadOnlyList<IfrOperation> allOpCodes,
-        ReadOnlyMemory<byte> setupData)
+    public List<ExtractedAmiSetupDataQuestion> ExtractAll(IReadOnlyList<IfrOperation> allOpCodes, ReadOnlyMemory<byte> setupData)
     {
         var supportedOpCodes = new[]
         {
@@ -91,18 +24,20 @@ public class SetupDataParser
         };
         var opCodes = allOpCodes.Where(x => supportedOpCodes.Contains(x.Opcode)).ToList();
 
-        var result = new ExtractedAmiSetupDataQuestions()
+        var questions = opCodes
+            .AsParallel()
+            .AsOrdered()
+            .Select(x => ExtractOne(x, setupData.Span))
+            .OfType<ExtractedAmiSetupDataQuestion>()
+            .ToList();
+        var duplicateId = questions.GroupBy(x => x.Id).FirstOrDefault(x => x.Count() > 1);
+        if (duplicateId != null)
         {
-            Questions = opCodes
-                .AsParallel()
-                .AsOrdered()
-                .Select(x => ExtractOne(x, setupData.Span))
-                .OfType<ExtractedAmiSetupDataQuestion>()
-                .ToList(),
-        };
+            throw new InvalidDataException($"SetupData map contains duplicate question id '{duplicateId.Key}'");
+        }
 
-        _logger.LogInformation("Found {count} questions of {ops}", result.Questions.Count, opCodes.Count);
-        return result;
+        _logger.LogInformation("Found {count} questions of {ops}", questions.Count, opCodes.Count);
+        return questions;
     }
 
     public ExtractedAmiSetupDataQuestion? ExtractOne(IfrOperation opCode, ReadOnlySpan<byte> setupData)
@@ -140,6 +75,7 @@ public class SetupDataParser
             var l = range.GetOffsetAndLength(setupData.Length);
             return new ExtractedAmiSetupDataQuestion()
             {
+                Id = $"{opCode.Opcode}-{opCode.Fields.QuestionId.Value:X4}",
                 BeginAddress = l.Offset,
                 EndAddress = l.Offset + l.Length,
                 Type = opCode.Opcode,

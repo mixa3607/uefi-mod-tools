@@ -27,7 +27,7 @@
 		<IfrHtmlViewerClientSource Include="Commands\UefiTools\IfrRender\HtmlViewer\Client\**\*" Exclude="Commands\UefiTools\IfrRender\HtmlViewer\Client\node_modules\**" />
 	</ItemGroup>
 
-	<Target Name="BuildIfrHtmlViewer" BeforeTargets="PrepareResources" Inputs="@(IfrHtmlViewerClientSource)" Outputs="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.js;$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.css">
+	<Target Condition="'$(BuildEditorFrontend)'==True" Name="BuildIfrHtmlViewer" BeforeTargets="PrepareResources" Inputs="@(IfrHtmlViewerClientSource)" Outputs="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.js;$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.css">
 		<Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client" Condition="!Exists('$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client\node_modules')" />
 		<Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client" />
 	</Target>

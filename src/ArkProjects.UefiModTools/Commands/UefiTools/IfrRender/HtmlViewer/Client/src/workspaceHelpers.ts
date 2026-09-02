@@ -1,4 +1,4 @@
-import { importPatch, type PatchKind } from './patchHelpers';
+import { createSetupPatchDocument, importPatch, type PatchKind } from './patchHelpers';
 import type { Document, SetupPatchQuestion } from './types';
 
 export type WorkspaceManifest = {
@@ -30,10 +30,12 @@ export async function loadWorkspace(files: File[], embeddedDocument: Document): 
   const setupPatches = await loadPatch(
     selectOptionalFile(byName, manifest?.SetupDataPatchFile, file => file.name === 'SetupData.patch.json', 'SetupData patch'),
     'setup',
+    document,
   );
   const disabledSuppressions = await loadPatch(
     selectOptionalFile(byName, manifest?.SctPatchFile, file => file.name.endsWith('.sct.patch.json'), 'SCT patch'),
     'sct',
+    document,
   );
 
   return {
@@ -81,7 +83,7 @@ export function workspaceFiles(
   };
   const files: Record<string, unknown> = {
     'ifr-editor.json': manifest,
-    [names.SetupDataPatchFile]: { version: 1, questions: Object.values(setupPatches) },
+    [names.SetupDataPatchFile]: createSetupPatchDocument(document, setupPatches),
     [names.SctPatchFile]: {
       version: 1,
       suppressIfPatches: [...disabledSuppressions].sort((a, b) => a - b).map(offset => ({ disable: true, offset })),
@@ -94,8 +96,8 @@ export function workspaceFiles(
   return files;
 }
 
-async function loadPatch(file: File | undefined, kind: PatchKind) {
-  return file ? importPatch(file, kind) : undefined;
+async function loadPatch(file: File | undefined, kind: PatchKind, document: Document) {
+  return file ? importPatch(file, kind, document) : undefined;
 }
 
 function selectFile(byName: Map<string, File>, preferred: string | undefined,

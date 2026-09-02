@@ -62,7 +62,7 @@ public class CommandHandlers
         }
 
         var setupDataQuestions = _setupDataParser.ExtractAll(ifr.Operations, setupData);
-        var rendered = _treeRenderer.Render(ifr.Operations, setupDataQuestions.Questions);
+        var rendered = _treeRenderer.Render(ifr.Operations, setupDataQuestions);
         var renderedJson = JsonSerializer.Serialize(rendered, RenderJsonContext.IfrRenderDocument);
         _logger.LogInformation("Rendered {formsetCount} formsets to {format}", rendered.Formsets.Count, format);
         var output = format == "html" ? _htmlViewerRenderer.Render(renderedJson) : renderedJson;

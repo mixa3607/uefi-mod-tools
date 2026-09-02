@@ -13,9 +13,10 @@ public class SetupDataParserTests
     {
         var result = CreateParser().ExtractAll([CreateOperation()], ReadFixture());
 
-        var question = Assert.Single(result.Questions);
+        var question = Assert.Single(result);
         Assert.Equal(0, question.BeginAddress);
         Assert.Equal(AmiSetupDataQuestion.Size, question.EndAddress);
+        Assert.Equal("OneOf-0001", question.Id);
         Assert.Equal("OneOf", question.Type);
         Assert.Equal((ushort)1, question.Question.QuestionId);
         Assert.Equal((ushort)1182, question.Question.HelpStringId);
@@ -24,29 +25,34 @@ public class SetupDataParserTests
     }
 
     [Fact]
-    public void PatchAllUpdatesQuestionValuesInRealSetupDataSlice()
+    public void PatchApplierUpdatesOnlySpecifiedQuestionValues()
     {
         var parser = CreateParser();
         var setupData = ReadFixture();
-        var question = Assert.Single(parser.ExtractAll([CreateOperation()], setupData).Questions);
-        var editedQuestion = question.Question;
-        editedQuestion.AccessLevel = 0;
-        editedQuestion.Failsafe = 1;
-        editedQuestion.Optimal = 1;
-        question.Question = editedQuestion;
+        var map = parser.ExtractAll([CreateOperation()], setupData);
+        var question = Assert.Single(map);
+        var originalOptimal = question.Question.Optimal;
 
-        parser.PatchAll([question], setupData);
+        new SetupDataPatchApplier(NullLogger<SetupDataPatchApplier>.Instance).Apply(setupData, map,
+        [
+            new SetupDataQuestionPatch
+            {
+                Id = question.Id,
+                AccessLevel = 0,
+                Failsafe = 1,
+            },
+        ]);
 
-        var patched = Assert.Single(parser.ExtractAll([CreateOperation()], setupData).Questions);
+        var patched = Assert.Single(parser.ExtractAll([CreateOperation()], setupData));
         Assert.Equal((byte)0, patched.Question.AccessLevel);
         Assert.Equal((byte)1, patched.Question.Failsafe);
-        Assert.Equal((byte)1, patched.Question.Optimal);
+        Assert.Equal(originalOptimal, patched.Question.Optimal);
     }
 
     [Fact]
     public void SerializesQuestionFieldsForEditablePatchJson()
     {
-        var question = Assert.Single(CreateParser().ExtractAll([CreateOperation()], ReadFixture()).Questions);
+        var question = Assert.Single(CreateParser().ExtractAll([CreateOperation()], ReadFixture()));
 
         var json = JsonSerializer.Serialize(question);
 

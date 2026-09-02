@@ -5,6 +5,8 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
 
 public class ExtractedAmiSetupDataQuestion
 {
+    public required string Id { get; set; }
+
     [JsonConverter(typeof(NumberConverterAsHex<int>))]
     public required int BeginAddress { get; set; }
 
