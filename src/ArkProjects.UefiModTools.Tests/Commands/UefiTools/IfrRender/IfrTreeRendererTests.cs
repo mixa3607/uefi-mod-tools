@@ -1,4 +1,4 @@
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
+using ArkProjects.UefiModTools.Commands.UefiTools.Ifr.Rendering;
 using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
 using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 using ArkProjects.UefiModTools.Ifr.Structures;
@@ -11,28 +11,9 @@ public class IfrTreeRendererTests
     [Fact]
     public void RenderBuildsFormQuestionAndConditionTree()
     {
-        var document = new IfrTreeRenderer().Render(CreateOperations(),
-        [
-            new SetupDataQuestionMapping
-            {
-                Id = "OneOf-0012",
-                BeginAddress = 100,
-                EndAddress = 154,
-                Type = "OneOf",
-                Question = new AmiSetupDataQuestion
-                {
-                    QuestionId = 18,
-                    PageId = 2,
-                    AccessLevel = 3,
-                    HelpStringId = 1243,
-                    PromptStringId = 1242,
-                    Failsafe = 0,
-                    Optimal = 1,
-                },
-            },
-        ]);
+        var formsets = new IfrDocumentRenderer().RenderFormsets(CreateOperations());
 
-        var formset = Assert.Single(document.Formsets);
+        var formset = Assert.Single(formsets);
         Assert.Equal("formset", formset.NodeType);
         Assert.Equal((ulong)10, formset.Source.Offset);
         Assert.Equal("Platform Configuration", formset.Title!.Text);
@@ -55,9 +36,6 @@ public class IfrTreeRendererTests
         Assert.Equal((ushort)18, question.QuestionId);
         Assert.Equal((ushort)1, question.VarstoreId);
         Assert.Equal((ushort)241, question.VarOffset);
-        Assert.Equal(100, question.SetupDataQuestion!.BeginAddress);
-        Assert.Equal((byte)3, question.SetupDataQuestion.AccessLevel);
-        Assert.Equal((byte)1, question.SetupDataQuestion.Optimal);
         Assert.Equal("Yes", Assert.Single(question.Options).Text!.Text);
         Assert.Equal((ushort)0, Assert.Single(question.Defaults).Id);
     }
@@ -65,7 +43,7 @@ public class IfrTreeRendererTests
     [Fact]
     public void RenderPreservesRefTargetFormId()
     {
-        var document = new IfrTreeRenderer().Render(
+        var formsets = new IfrDocumentRenderer().RenderFormsets(
         [
             Operation("FormSet", true, 10),
             Operation("Form", true, 20, fields => fields.FormId = 1),
@@ -78,7 +56,7 @@ public class IfrTreeRendererTests
             Operation("End", false, 50),
         ]);
 
-        var reference = Assert.Single(Assert.Single(document.Formsets).Forms[0].Children);
+        var reference = Assert.Single(Assert.Single(formsets).Forms[0].Children);
         Assert.Equal("Ref", reference.Opcode);
         Assert.Equal((ushort)85, reference.FormId);
     }

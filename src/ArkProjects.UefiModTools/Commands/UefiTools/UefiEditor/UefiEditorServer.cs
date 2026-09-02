@@ -3,13 +3,13 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.UefiEditor;
 
-public class IfrHtmlViewerServer
+public class UefiEditorServer
 {
-    private readonly ILogger<IfrHtmlViewerServer> _logger;
+    private readonly ILogger<UefiEditorServer> _logger;
 
-    public IfrHtmlViewerServer(ILogger<IfrHtmlViewerServer> logger)
+    public UefiEditorServer(ILogger<UefiEditorServer> logger)
     {
         _logger = logger;
     }
@@ -29,7 +29,7 @@ public class IfrHtmlViewerServer
         try
         {
             listener.Start();
-            _logger.LogInformation("Serving IFR viewer at http://{address}. Press Ctrl+C to stop.", listenAddress);
+            _logger.LogInformation("Serving UEFI editor at http://{address}. Press Ctrl+C to stop.", listenAddress);
 
             while (!cancellationSource.IsCancellationRequested)
             {

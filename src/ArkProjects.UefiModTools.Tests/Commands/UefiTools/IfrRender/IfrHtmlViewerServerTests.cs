@@ -1,5 +1,5 @@
 using System.Net;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
+using ArkProjects.UefiModTools.Commands.UefiTools.UefiEditor;
 using Xunit;
 
 namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrRender;
@@ -12,7 +12,7 @@ public class IfrHtmlViewerServerTests
     [InlineData("::1:4060", "::1", 4060)]
     public void ParseEndpointAcceptsLoopbackAddresses(string input, string expectedAddress, int expectedPort)
     {
-        var endpoint = IfrHtmlViewerServer.ParseEndpoint(input);
+        var endpoint = UefiEditorServer.ParseEndpoint(input);
 
         Assert.Equal(IPAddress.Parse(expectedAddress), endpoint.Address);
         Assert.Equal(expectedPort, endpoint.Port);
@@ -26,6 +26,6 @@ public class IfrHtmlViewerServerTests
     [InlineData("example.com:4060")]
     public void ParseEndpointRejectsInvalidOrNonLoopbackAddresses(string input)
     {
-        Assert.Throws<ArgumentException>(() => IfrHtmlViewerServer.ParseEndpoint(input));
+        Assert.Throws<ArgumentException>(() => UefiEditorServer.ParseEndpoint(input));
     }
 }

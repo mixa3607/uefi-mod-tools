@@ -14,7 +14,8 @@ public class CommandRegistration
         Fit.CommandRegistration.Register(command, services);
         SetupData.SetupDataCommandRegistration.Register(command, services);
         Sct.SctCommandRegistration.Register(command, services);
-        IfrRender.CommandRegistration.Register(command, services);
+        Ifr.IfrCommandRegistration.Register(command, services);
+        UefiEditor.UefiEditorCommandRegistration.Register(command, services);
         BiosDefaults.BiosDefaultsCommandRegistration.Register(command, services);
     }
 }

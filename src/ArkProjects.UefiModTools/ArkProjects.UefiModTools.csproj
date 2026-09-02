@@ -15,15 +15,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\viewer.html" LogicalName="IfrHtmlViewer.Template" />
-		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.css" LogicalName="IfrHtmlViewer.Styles" />
-		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.js" LogicalName="IfrHtmlViewer.Script" />
-		<IfrHtmlViewerClientSource Include="Commands\UefiTools\IfrRender\HtmlViewer\Client\**\*" Exclude="Commands\UefiTools\IfrRender\HtmlViewer\Client\node_modules\**" />
+		<EmbeddedResource Include="Commands\UefiTools\UefiEditor\Resources\editor.html" LogicalName="UefiEditor.Template" />
+		<EmbeddedResource Include="Commands\UefiTools\UefiEditor\HtmlViewer\Resources\dist\viewer.css" LogicalName="UefiEditor.Styles" />
+		<EmbeddedResource Include="Commands\UefiTools\UefiEditor\HtmlViewer\Resources\dist\viewer.js" LogicalName="UefiEditor.Script" />
+		<UefiEditorClientSource Include="Commands\UefiTools\UefiEditor\HtmlViewer\Client\**\*" Exclude="Commands\UefiTools\UefiEditor\HtmlViewer\Client\node_modules\**" />
 	</ItemGroup>
 
-	<Target Condition="'$(BuildEditorFrontend)'==True" Name="BuildIfrHtmlViewer" BeforeTargets="PrepareResources" Inputs="@(IfrHtmlViewerClientSource)" Outputs="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.js;$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.css">
-		<Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client" Condition="!Exists('$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client\node_modules')" />
-		<Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\IfrRender\HtmlViewer\Client" />
+	<Target Condition="'$(BuildEditorFrontend)'==True" Name="BuildUefiEditor" BeforeTargets="PrepareResources" Inputs="@(UefiEditorClientSource)" Outputs="$(MSBuildProjectDirectory)\Commands\UefiTools\UefiEditor\HtmlViewer\Resources\dist\viewer.js;$(MSBuildProjectDirectory)\Commands\UefiTools\UefiEditor\HtmlViewer\Resources\dist\viewer.css">
+		<Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\UefiEditor\HtmlViewer\Client" Condition="!Exists('$(MSBuildProjectDirectory)\Commands\UefiTools\UefiEditor\HtmlViewer\Client\node_modules')" />
+		<Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\Commands\UefiTools\UefiEditor\HtmlViewer\Client" />
 	</Target>
 
 	<ItemGroup>

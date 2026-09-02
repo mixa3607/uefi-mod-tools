@@ -2,26 +2,31 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ArkProjects.UefiModTools.Ifr.Structures;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr.Rendering;
 
-public class IfrRenderDocument
+public class IfrDocument
 {
-    public string Schema { get; set; } = "ifr-render-tree/v1";
-    public List<IfrRenderFormset> Formsets { get; set; } = [];
+    public const int SupportedVersion = 1;
+    public const string SupportedType = "AMI-IFR-Render";
+
+    public int Version { get; set; } = -1;
+    public string Type { get; set; } = "Unknown";
+    public required string IfrSha256 { get; set; }
+    public List<IfrDocumentFormset> Formsets { get; set; } = [];
 }
 
-public class IfrRenderFormset
+public class IfrDocumentFormset
 {
     public string NodeType { get; set; } = string.Empty;
-    public IfrRenderSource Source { get; set; } = new();
+    public IfrDocumentSource Source { get; set; } = new();
     public string? Guid { get; set; }
     public IfrStringReference? Title { get; set; }
     public IfrStringReference? Help { get; set; }
-    public List<IfrRenderVarstore> Varstores { get; set; } = [];
-    public List<IfrRenderForm> Forms { get; set; } = [];
+    public List<IfrDocumentVarstore> Varstores { get; set; } = [];
+    public List<IfrDocumentForm> Forms { get; set; } = [];
 }
 
-public class IfrRenderVarstore
+public class IfrDocumentVarstore
 {
     public ushort? Id { get; set; }
     public string? Name { get; set; }
@@ -31,20 +36,20 @@ public class IfrRenderVarstore
     public uint? Attributes { get; set; }
 }
 
-public class IfrRenderForm
+public class IfrDocumentForm
 {
     public string NodeType { get; set; } = string.Empty;
-    public IfrRenderSource Source { get; set; } = new();
+    public IfrDocumentSource Source { get; set; } = new();
     public ushort? Id { get; set; }
     public IfrStringReference? Title { get; set; }
-    public List<IfrRenderNode> Children { get; set; } = [];
+    public List<IfrDocumentNode> Children { get; set; } = [];
 }
 
-public class IfrRenderNode
+public class IfrDocumentNode
 {
     public string NodeType { get; set; } = string.Empty;
     public string Opcode { get; set; } = string.Empty;
-    public IfrRenderSource Source { get; set; } = new();
+    public IfrDocumentSource Source { get; set; } = new();
     public string? Effect { get; set; }
     public string? Kind { get; set; }
     public IfrStringReference? Prompt { get; set; }
@@ -56,27 +61,13 @@ public class IfrRenderNode
     public byte? QuestionFlags { get; set; }
     public byte? Flags { get; set; }
     public IfrMinMaxStep? Range { get; set; }
-    public IfrRenderSetupDataQuestion? SetupDataQuestion { get; set; }
-    public List<IfrRenderOption> Options { get; set; } = [];
-    public List<IfrRenderDefault> Defaults { get; set; } = [];
-    public List<IfrRenderExpression> ExpressionOperations { get; set; } = [];
-    public List<IfrRenderNode> Children { get; set; } = [];
+    public List<IfrDocumentOption> Options { get; set; } = [];
+    public List<IfrDocumentDefault> Defaults { get; set; } = [];
+    public List<IfrDocumentExpression> ExpressionOperations { get; set; } = [];
+    public List<IfrDocumentNode> Children { get; set; } = [];
 }
 
-public class IfrRenderSetupDataQuestion
-{
-    public int BeginAddress { get; set; }
-    public int EndAddress { get; set; }
-    public ushort QuestionId { get; set; }
-    public ushort PageId { get; set; }
-    public byte AccessLevel { get; set; }
-    public ushort HelpStringId { get; set; }
-    public ushort PromptStringId { get; set; }
-    public byte Failsafe { get; set; }
-    public byte Optimal { get; set; }
-}
-
-public class IfrRenderOption
+public class IfrDocumentOption
 {
     public IfrStringReference? Text { get; set; }
     public JsonElement? Value { get; set; }
@@ -84,23 +75,23 @@ public class IfrRenderOption
     public bool? ManufacturingDefault { get; set; }
 }
 
-public class IfrRenderDefault
+public class IfrDocumentDefault
 {
     public ushort? Id { get; set; }
     public JsonElement? Value { get; set; }
 }
 
-public class IfrRenderExpression
+public class IfrDocumentExpression
 {
     public string Opcode { get; set; } = string.Empty;
     public ushort? QuestionId { get; set; }
     public ushort? OtherQuestionId { get; set; }
     public ushort? ReferencedQuestionId { get; set; }
     public JsonElement? Value { get; set; }
-    public IfrRenderSource Source { get; set; } = new();
+    public IfrDocumentSource Source { get; set; } = new();
 }
 
-public class IfrRenderSource
+public class IfrDocumentSource
 {
     public ulong Offset { get; set; }
     public byte Length { get; set; }

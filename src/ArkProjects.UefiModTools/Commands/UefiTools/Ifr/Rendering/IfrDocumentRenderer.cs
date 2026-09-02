@@ -1,10 +1,9 @@
 using System.Text.Json;
 using ArkProjects.UefiModTools.Ifr.Structures;
-using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Ifr.Rendering;
 
-public class IfrTreeRenderer
+public class IfrDocumentRenderer
 {
     private static readonly HashSet<string> QuestionOpcodes =
     [
@@ -23,26 +22,18 @@ public class IfrTreeRenderer
         [IfrOpCodes.WarningIf] = "warning",
     };
 
-    public IfrRenderDocument Render(IReadOnlyList<IfrOperation> operations,
-        IReadOnlyList<SetupDataQuestionMapping>? setupDataQuestions = null)
+    public List<IfrDocumentFormset> RenderFormsets(IReadOnlyList<IfrOperation> operations)
     {
         var root = BuildScopeTree(operations);
-        var setupDataQuestionsByKey = (setupDataQuestions ?? [])
-            .GroupBy(x => (x.Type, x.Question.QuestionId, x.Question.HelpStringId, x.Question.PromptStringId))
-            .ToDictionary(x => x.Key, x => x.First());
-        return new IfrRenderDocument
-        {
-            Formsets = root.Children
+        return root.Children
                 .Where(x => x.Operation.Opcode == IfrOpCodes.FormSet)
-                .Select(x => BuildFormset(x, setupDataQuestionsByKey))
-                .ToList(),
-        };
+                .Select(BuildFormset)
+                .ToList();
     }
 
-    private static IfrRenderFormset BuildFormset(ScopeNode formset,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
+    private static IfrDocumentFormset BuildFormset(ScopeNode formset)
     {
-        return new IfrRenderFormset
+        return new IfrDocumentFormset
         {
             NodeType = "formset",
             Source = CreateSource(formset.Operation),
@@ -51,7 +42,7 @@ public class IfrTreeRenderer
             Help = formset.Operation.Fields.Help,
             Varstores = formset.Descendants()
                 .Where(x => x.Operation.Opcode is IfrOpCodes.VarStore or IfrOpCodes.VarStoreEfi or IfrOpCodes.VarStoreNameValue)
-                .Select(x => new IfrRenderVarstore
+                .Select(x => new IfrDocumentVarstore
                 {
                     Id = x.Operation.Fields.VarStoreId,
                     Name = GetString(x.Operation.Fields.Name),
@@ -63,35 +54,33 @@ public class IfrTreeRenderer
                 .ToList(),
             Forms = formset.Descendants()
                 .Where(x => x.Operation.Opcode == IfrOpCodes.Form)
-                .Select(x => new IfrRenderForm
+                .Select(x => new IfrDocumentForm
                 {
                     NodeType = "form",
                     Source = CreateSource(x.Operation),
                     Id = x.Operation.Fields.FormId,
                     Title = x.Operation.Fields.Title,
-                    Children = RenderNodes(x.Children, setupDataQuestions),
+                    Children = RenderNodes(x.Children),
                 })
                 .ToList(),
         };
     }
 
-    private static List<IfrRenderNode> RenderNodes(IEnumerable<ScopeNode> nodes,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
+    private static List<IfrDocumentNode> RenderNodes(IEnumerable<ScopeNode> nodes)
     {
         return nodes
             .Where(x => x.Operation.Opcode != IfrOpCodes.End)
-            .Select(x => RenderNode(x, setupDataQuestions))
-            .OfType<IfrRenderNode>()
+            .Select(RenderNode)
+            .OfType<IfrDocumentNode>()
             .ToList();
     }
 
-    private static IfrRenderNode? RenderNode(ScopeNode node,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
+    private static IfrDocumentNode? RenderNode(ScopeNode node)
     {
         var operation = node.Operation;
         if (ConditionEffects.TryGetValue(operation.Opcode, out var effect))
         {
-            return new IfrRenderNode
+            return new IfrDocumentNode
             {
                 NodeType = "condition",
                 Opcode = operation.Opcode,
@@ -101,7 +90,7 @@ public class IfrTreeRenderer
                     .Where(x => !QuestionOpcodes.Contains(x.Operation.Opcode) && !ConditionEffects.ContainsKey(x.Operation.Opcode))
                     .Select(CreateExpression)
                     .ToList(),
-                Children = RenderNodes(node.Children, setupDataQuestions),
+                Children = RenderNodes(node.Children),
             };
         }
 
@@ -110,7 +99,7 @@ public class IfrTreeRenderer
             return null;
         }
 
-        return new IfrRenderNode
+        return new IfrDocumentNode
         {
             NodeType = "question",
             Opcode = operation.Opcode,
@@ -125,10 +114,9 @@ public class IfrTreeRenderer
             QuestionFlags = operation.Fields.QuestionFlags,
             Flags = operation.Fields.Flags,
             Range = operation.Fields.MinMaxStep,
-            SetupDataQuestion = FindSetupDataQuestion(operation, setupDataQuestions),
             Options = node.Descendants()
                 .Where(x => x.Operation.Opcode == IfrOpCodes.OneOfOption)
-                .Select(x => new IfrRenderOption
+                .Select(x => new IfrDocumentOption
                 {
                     Text = x.Operation.Fields.Option,
                     Value = x.Operation.Fields.Value,
@@ -138,39 +126,16 @@ public class IfrTreeRenderer
                 .ToList(),
             Defaults = node.Descendants()
                 .Where(x => x.Operation.Opcode == IfrOpCodes.Default)
-                .Select(x => new IfrRenderDefault
+                .Select(x => new IfrDocumentDefault
                 {
                     Id = x.Operation.Fields.DefaultId,
                     Value = x.Operation.Fields.Value,
                 })
                 .ToList(),
-            Children = RenderNodes(node.Children, setupDataQuestions),
+            Children = RenderNodes(node.Children),
         };
     }
 
-    private static IfrRenderSetupDataQuestion? FindSetupDataQuestion(IfrOperation operation,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
-    {
-        if (operation.Fields.QuestionId is not { } questionId || operation.Fields.Help is not { } help ||
-            operation.Fields.Prompt is not { } prompt ||
-            !setupDataQuestions.TryGetValue((operation.Opcode, questionId, help.Id, prompt.Id), out var setupDataQuestion))
-        {
-            return null;
-        }
-
-        return new IfrRenderSetupDataQuestion
-        {
-            BeginAddress = setupDataQuestion.BeginAddress,
-            EndAddress = setupDataQuestion.EndAddress,
-            QuestionId = setupDataQuestion.Question.QuestionId,
-            PageId = setupDataQuestion.Question.PageId,
-            AccessLevel = setupDataQuestion.Question.AccessLevel,
-            HelpStringId = setupDataQuestion.Question.HelpStringId,
-            PromptStringId = setupDataQuestion.Question.PromptStringId,
-            Failsafe = setupDataQuestion.Question.Failsafe,
-            Optimal = setupDataQuestion.Question.Optimal,
-        };
-    }
 
     private static ScopeNode BuildScopeTree(IReadOnlyList<IfrOperation> operations)
     {
@@ -201,7 +166,7 @@ public class IfrTreeRenderer
         return root;
     }
 
-    private static IfrRenderExpression CreateExpression(ScopeNode node) => new()
+    private static IfrDocumentExpression CreateExpression(ScopeNode node) => new()
     {
         Opcode = node.Operation.Opcode,
         QuestionId = node.Operation.Fields.QuestionId,
@@ -211,7 +176,7 @@ public class IfrTreeRenderer
         Source = CreateSource(node.Operation),
     };
 
-    private static IfrRenderSource CreateSource(IfrOperation operation) => new()
+    private static IfrDocumentSource CreateSource(IfrOperation operation) => new()
     {
         Offset = operation.Offset,
         Length = operation.Length,
