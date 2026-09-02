@@ -1,17 +1,19 @@
 using System.Text.Json;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.SetupData;
 
-public class SetupDataParserTests
+public class SetupDataIfrMapperTests
 {
     [Fact]
     public void ExtractAllReadsQuestionFromRealSetupDataSlice()
     {
-        var result = CreateParser().ExtractAll([CreateOperation()], ReadFixture());
+        var result = CreateMapper().ExtractAll([CreateOperation()], ReadFixture());
 
         var question = Assert.Single(result);
         Assert.Equal(0, question.BeginAddress);
@@ -27,9 +29,9 @@ public class SetupDataParserTests
     [Fact]
     public void PatchApplierUpdatesOnlySpecifiedQuestionValues()
     {
-        var parser = CreateParser();
+        var mapper = CreateMapper();
         var setupData = ReadFixture();
-        var map = parser.ExtractAll([CreateOperation()], setupData);
+        var map = mapper.ExtractAll([CreateOperation()], setupData);
         var question = Assert.Single(map);
         var originalOptimal = question.Question.Optimal;
 
@@ -43,7 +45,7 @@ public class SetupDataParserTests
             },
         ]);
 
-        var patched = Assert.Single(parser.ExtractAll([CreateOperation()], setupData));
+        var patched = Assert.Single(mapper.ExtractAll([CreateOperation()], setupData));
         Assert.Equal((byte)0, patched.Question.AccessLevel);
         Assert.Equal((byte)1, patched.Question.Failsafe);
         Assert.Equal(originalOptimal, patched.Question.Optimal);
@@ -52,7 +54,7 @@ public class SetupDataParserTests
     [Fact]
     public void SerializesQuestionFieldsForEditablePatchJson()
     {
-        var question = Assert.Single(CreateParser().ExtractAll([CreateOperation()], ReadFixture()));
+        var question = Assert.Single(CreateMapper().ExtractAll([CreateOperation()], ReadFixture()));
 
         var json = JsonSerializer.Serialize(question);
 
@@ -61,7 +63,7 @@ public class SetupDataParserTests
         Assert.Contains("\"helpStringId\":1182", json);
     }
 
-    private static SetupDataParser CreateParser() => new(NullLogger<SetupDataParser>.Instance);
+    private static SetupDataIfrMapper CreateMapper() => new(NullLogger<SetupDataIfrMapper>.Instance);
 
     private static byte[] ReadFixture() => File.ReadAllBytes("test-files/ifr/SetupData_question_0001.bin");
 

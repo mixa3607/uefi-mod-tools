@@ -1,5 +1,6 @@
 using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Xunit;
 
@@ -12,7 +13,7 @@ public class IfrTreeRendererTests
     {
         var document = new IfrTreeRenderer().Render(CreateOperations(),
         [
-            new ExtractedAmiSetupDataQuestion
+            new SetupDataQuestionMapping
             {
                 Id = "OneOf-0012",
                 BeginAddress = 100,

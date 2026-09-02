@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 
 public class SetupDataPatchApplier
 {
@@ -11,7 +13,7 @@ public class SetupDataPatchApplier
         _logger = logger;
     }
 
-    public void Apply(byte[] setupData, IReadOnlyList<ExtractedAmiSetupDataQuestion> questions, IReadOnlyList<SetupDataQuestionPatch> patches)
+    public void Apply(byte[] setupData, IReadOnlyList<SetupDataQuestionMapping> questions, IReadOnlyList<SetupDataQuestionPatch> patches)
     {
         var questionsById = questions.ToDictionary(x => x.Id, StringComparer.Ordinal);
         foreach (var patch in patches)
@@ -44,7 +46,7 @@ public class SetupDataPatchApplier
         }
     }
 
-    private static (int Offset, int Length) ValidateRangeAndPattern(byte[] setupData, ExtractedAmiSetupDataQuestion mappedQuestion)
+    private static (int Offset, int Length) ValidateRangeAndPattern(byte[] setupData, SetupDataQuestionMapping mappedQuestion)
     {
         if (mappedQuestion.BeginAddress < 0 || mappedQuestion.EndAddress < mappedQuestion.BeginAddress ||
             mappedQuestion.EndAddress > setupData.Length)
@@ -52,7 +54,7 @@ public class SetupDataPatchApplier
             throw new InvalidDataException($"SetupData question '{mappedQuestion.Id}' is outside the input");
         }
 
-        var pattern = new AmiSetupDataQuestionDataPattern(
+        var pattern = new AmiSetupDataQuestionPattern(
             mappedQuestion.Question.QuestionId,
             mappedQuestion.Question.HelpStringId,
             mappedQuestion.Question.PromptStringId);

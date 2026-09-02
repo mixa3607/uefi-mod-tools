@@ -2,24 +2,26 @@ using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
 using Microsoft.Extensions.Logging;
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData;
 
-public class CommandHandlers
+public class SetupDataCommandHandlers
 {
-    private readonly ILogger<CommandHandlers> _logger;
+    private readonly ILogger<SetupDataCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
     private readonly IJsonSerializationService _jsonSerializer;
-    private readonly SetupDataParser _setupDataParser;
+    private readonly SetupDataIfrMapper _setupDataIfrMapper;
     private readonly SetupDataPatchApplier _patchApplier;
 
-    public CommandHandlers(ILogger<CommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, SetupDataParser setupDataParser, SetupDataPatchApplier patchApplier)
+    public SetupDataCommandHandlers(ILogger<SetupDataCommandHandlers> logger, ICommandFileManager fileManager,
+        IJsonSerializationService jsonSerializer, SetupDataIfrMapper setupDataIfrMapper, SetupDataPatchApplier patchApplier)
     {
         _logger = logger;
         _fileManager = fileManager;
         _jsonSerializer = jsonSerializer;
-        _setupDataParser = setupDataParser;
+        _setupDataIfrMapper = setupDataIfrMapper;
         _patchApplier = patchApplier;
     }
 
@@ -30,7 +32,7 @@ public class CommandHandlers
         _logger.LogInformation("Read {setupDataSize} bytes of SetupData and {operationCount} IFR operations",
             setupData.Length, ifr.Operations.Count);
 
-        var questions = _setupDataParser.ExtractAll(ifr.Operations, setupData);
+        var questions = _setupDataIfrMapper.ExtractAll(ifr.Operations, setupData);
         var result = new SetupDataMapDocument
         {
             Questions = questions, 

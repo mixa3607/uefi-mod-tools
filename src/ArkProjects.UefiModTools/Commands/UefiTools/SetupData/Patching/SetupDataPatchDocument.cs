@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 
 public class SetupDataPatchDocument
 {

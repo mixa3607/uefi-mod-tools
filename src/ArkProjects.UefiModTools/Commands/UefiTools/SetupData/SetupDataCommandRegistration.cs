@@ -1,19 +1,21 @@
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData;
 
-public static class CommandRegistration
+public static class SetupDataCommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
-            .AddSingleton<SetupDataParser>()
+            .AddSingleton<SetupDataIfrMapper>()
             .AddSingleton<SetupDataPatchApplier>()
-            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrSetupData.Default)
-            .AddSingleton<CommandHandlers>();
+            .AddSingleton<IJsonTypeInfoResolver>(SetupDataJsonSerializerContext.Default)
+            .AddSingleton<SetupDataCommandHandlers>();
 
         var setupDataCommand = parentCommand.AddCommand("setup-data", "AMI SetupData tools");
         RegisterSetupDataMapIfr(setupDataCommand, services);
@@ -39,7 +41,7 @@ public static class CommandRegistration
             Required = true,
         });
 
-        command.SetAction<CommandHandlers>(services,
+        command.SetAction<SetupDataCommandHandlers>(services,
             (handler, opts) => handler.MapIfr(
                 opts.GetRequiredValue(inputOpt),
                 opts.GetRequiredValue(ifrOpt),
@@ -75,7 +77,7 @@ public static class CommandRegistration
             Description = "Allow unsupported SetupData map and patch versions",
         });
 
-        command.SetAction<CommandHandlers>(services,
+        command.SetAction<SetupDataCommandHandlers>(services,
             (handler, opts) => handler.PatchSetupData(
                 opts.GetRequiredValue(inputOpt),
                 opts.GetRequiredValue(mapOpt),

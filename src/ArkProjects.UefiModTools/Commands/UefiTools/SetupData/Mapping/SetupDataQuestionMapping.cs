@@ -1,9 +1,10 @@
 using System.Text.Json.Serialization;
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
-public class ExtractedAmiSetupDataQuestion
+public class SetupDataQuestionMapping
 {
     public required string Id { get; set; }
 

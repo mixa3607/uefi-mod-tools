@@ -1,13 +1,13 @@
 using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Utils.BinDataPattern;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
 
-public sealed class AmiSetupDataQuestionDataPattern : IBinaryDataPattern<AmiSetupDataQuestion>
+public sealed class AmiSetupDataQuestionPattern : IBinaryDataPattern<AmiSetupDataQuestion>
 {
     private readonly BinaryDataPatternByte[] _mask = new BinaryDataPatternByte[AmiSetupDataQuestion.Size];
 
-    public AmiSetupDataQuestionDataPattern(ushort questionId, ushort helpId, ushort promptId)
+    public AmiSetupDataQuestionPattern(ushort questionId, ushort helpId, ushort promptId)
     {
         Array.Fill(_mask, BinaryDataPatternByte.Any);
         SetUInt16(AmiSetupDataQuestionOffset.QuestionId, questionId);

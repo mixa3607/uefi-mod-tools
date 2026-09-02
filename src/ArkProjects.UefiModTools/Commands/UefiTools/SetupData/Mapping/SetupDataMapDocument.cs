@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
 public class SetupDataMapDocument
 {
@@ -9,5 +9,5 @@ public class SetupDataMapDocument
     public string Type { get; set; } = "Unknown";
     public required string SetupDataSha256 { get; set; }
     public required string IfrSha256 { get; set; }
-    public List<ExtractedAmiSetupDataQuestion> Questions { get; set; } = [];
+    public List<SetupDataQuestionMapping> Questions { get; set; } = [];
 }

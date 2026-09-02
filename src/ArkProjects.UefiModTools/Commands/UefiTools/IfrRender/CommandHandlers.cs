@@ -1,6 +1,6 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 using ArkProjects.UefiModTools.Commands.UefiTools.IfrRender.HtmlViewer;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -20,19 +20,19 @@ public class CommandHandlers
     private readonly ICommandFileManager _fileManager;
     private readonly IJsonSerializationService _jsonSerializer;
     private readonly IfrTreeRenderer _treeRenderer;
-    private readonly SetupDataParser _setupDataParser;
+    private readonly SetupDataIfrMapper _setupDataIfrMapper;
     private readonly IfrHtmlViewerRenderer _htmlViewerRenderer;
     private readonly IfrHtmlViewerServer _htmlViewerServer;
 
     public CommandHandlers(ILogger<CommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, IfrTreeRenderer treeRenderer, SetupDataParser setupDataParser,
+        IJsonSerializationService jsonSerializer, IfrTreeRenderer treeRenderer, SetupDataIfrMapper setupDataIfrMapper,
         IfrHtmlViewerRenderer htmlViewerRenderer, IfrHtmlViewerServer htmlViewerServer)
     {
         _logger = logger;
         _fileManager = fileManager;
         _jsonSerializer = jsonSerializer;
         _treeRenderer = treeRenderer;
-        _setupDataParser = setupDataParser;
+        _setupDataIfrMapper = setupDataIfrMapper;
         _htmlViewerRenderer = htmlViewerRenderer;
         _htmlViewerServer = htmlViewerServer;
     }
@@ -61,7 +61,7 @@ public class CommandHandlers
             throw new ArgumentException("--serve requires --format html.", nameof(serveAddress));
         }
 
-        var setupDataQuestions = _setupDataParser.ExtractAll(ifr.Operations, setupData);
+        var setupDataQuestions = _setupDataIfrMapper.ExtractAll(ifr.Operations, setupData);
         var rendered = _treeRenderer.Render(ifr.Operations, setupDataQuestions);
         var renderedJson = JsonSerializer.Serialize(rendered, RenderJsonContext.IfrRenderDocument);
         _logger.LogInformation("Rendered {formsetCount} formsets to {format}", rendered.Formsets.Count, format);

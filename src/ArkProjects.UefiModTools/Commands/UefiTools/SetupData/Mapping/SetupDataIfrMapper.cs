@@ -1,18 +1,19 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Format;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
-public class SetupDataParser
+public class SetupDataIfrMapper
 {
-    private readonly ILogger<SetupDataParser> _logger;
+    private readonly ILogger<SetupDataIfrMapper> _logger;
 
-    public SetupDataParser(ILogger<SetupDataParser> logger)
+    public SetupDataIfrMapper(ILogger<SetupDataIfrMapper> logger)
     {
         _logger = logger;
     }
 
-    public List<ExtractedAmiSetupDataQuestion> ExtractAll(IReadOnlyList<IfrOperation> allOpCodes, ReadOnlyMemory<byte> setupData)
+    public List<SetupDataQuestionMapping> ExtractAll(IReadOnlyList<IfrOperation> allOpCodes, ReadOnlyMemory<byte> setupData)
     {
         var supportedOpCodes = new[]
         {
@@ -28,7 +29,7 @@ public class SetupDataParser
             .AsParallel()
             .AsOrdered()
             .Select(x => ExtractOne(x, setupData.Span))
-            .OfType<ExtractedAmiSetupDataQuestion>()
+            .OfType<SetupDataQuestionMapping>()
             .ToList();
         var duplicateId = questions.GroupBy(x => x.Id).FirstOrDefault(x => x.Count() > 1);
         if (duplicateId != null)
@@ -40,7 +41,7 @@ public class SetupDataParser
         return questions;
     }
 
-    public ExtractedAmiSetupDataQuestion? ExtractOne(IfrOperation opCode, ReadOnlySpan<byte> setupData)
+    public SetupDataQuestionMapping? ExtractOne(IfrOperation opCode, ReadOnlySpan<byte> setupData)
     {
         if (opCode.Fields.QuestionId == null)
         {
@@ -63,7 +64,7 @@ public class SetupDataParser
             return null;
         }
 
-        var pattern = new AmiSetupDataQuestionDataPattern(
+        var pattern = new AmiSetupDataQuestionPattern(
             opCode.Fields.QuestionId.Value,
             opCode.Fields.Help!.Id,
             opCode.Fields.Prompt.Id
@@ -73,7 +74,7 @@ public class SetupDataParser
         {
             var setupQuestion = pattern.Read(setupData, range);
             var l = range.GetOffsetAndLength(setupData.Length);
-            return new ExtractedAmiSetupDataQuestion()
+            return new SetupDataQuestionMapping()
             {
                 Id = $"{opCode.Opcode}-{opCode.Fields.QuestionId.Value:X4}",
                 BeginAddress = l.Offset,

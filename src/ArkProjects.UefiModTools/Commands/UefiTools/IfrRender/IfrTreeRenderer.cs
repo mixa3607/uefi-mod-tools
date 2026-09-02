@@ -1,6 +1,6 @@
 using System.Text.Json;
 using ArkProjects.UefiModTools.Ifr.Structures;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrSetupData;
+using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrRender;
 
@@ -24,7 +24,7 @@ public class IfrTreeRenderer
     };
 
     public IfrRenderDocument Render(IReadOnlyList<IfrOperation> operations,
-        IReadOnlyList<ExtractedAmiSetupDataQuestion>? setupDataQuestions = null)
+        IReadOnlyList<SetupDataQuestionMapping>? setupDataQuestions = null)
     {
         var root = BuildScopeTree(operations);
         var setupDataQuestionsByKey = (setupDataQuestions ?? [])
@@ -40,7 +40,7 @@ public class IfrTreeRenderer
     }
 
     private static IfrRenderFormset BuildFormset(ScopeNode formset,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), ExtractedAmiSetupDataQuestion> setupDataQuestions)
+        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
     {
         return new IfrRenderFormset
         {
@@ -76,7 +76,7 @@ public class IfrTreeRenderer
     }
 
     private static List<IfrRenderNode> RenderNodes(IEnumerable<ScopeNode> nodes,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), ExtractedAmiSetupDataQuestion> setupDataQuestions)
+        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
     {
         return nodes
             .Where(x => x.Operation.Opcode != IfrOpCodes.End)
@@ -86,7 +86,7 @@ public class IfrTreeRenderer
     }
 
     private static IfrRenderNode? RenderNode(ScopeNode node,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), ExtractedAmiSetupDataQuestion> setupDataQuestions)
+        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
     {
         var operation = node.Operation;
         if (ConditionEffects.TryGetValue(operation.Opcode, out var effect))
@@ -149,7 +149,7 @@ public class IfrTreeRenderer
     }
 
     private static IfrRenderSetupDataQuestion? FindSetupDataQuestion(IfrOperation operation,
-        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), ExtractedAmiSetupDataQuestion> setupDataQuestions)
+        IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), SetupDataQuestionMapping> setupDataQuestions)
     {
         if (operation.Fields.QuestionId is not { } questionId || operation.Fields.Help is not { } help ||
             operation.Fields.Prompt is not { } prompt ||
