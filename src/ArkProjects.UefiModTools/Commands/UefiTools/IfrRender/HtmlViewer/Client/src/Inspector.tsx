@@ -288,7 +288,7 @@ function ConditionInspector({
             <Box>
               <Typography variant="subtitle2">Disable suppression in SCT</Typography>
               <Typography variant="caption" color="text.secondary">
-                Exports an existing IfrSctPatches entry for this IFR offset.
+                Exports a SuppressIf patch entry for this IFR offset.
               </Typography>
             </Box>
             <Switch checked={disabled} onChange={event => onDisabled(event.target.checked)} />

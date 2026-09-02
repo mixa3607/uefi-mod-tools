@@ -34,9 +34,9 @@ flowchart TD
     SetupData -->|ifr-render| Viewer
     Ifr -->|ifr-render| Viewer
     Viewer -->|export| SctPatch[Platform_setup.sct.patch.json]
-    Sct -->|ifr-sct-patch + IFR + SCT patch| ModifiedSct[modified Platform_setup.sct]
-    Ifr -->|ifr-sct-patch| ModifiedSct
-    SctPatch -->|ifr-sct-patch| ModifiedSct
+    Sct -->|sct apply-patch + IFR + SCT patch| ModifiedSct[modified Platform_setup.sct]
+    Ifr -->|sct apply-patch| ModifiedSct
+    SctPatch -->|sct apply-patch| ModifiedSct
 
     Defaults -->|nvar map| DefaultsMap[BiosDefaults NVAR map JSON]
     DefaultsMap -->|nvar map-ifr-stores + IFR| DefaultsStoreMap[BiosDefaults store map JSON]
@@ -179,7 +179,7 @@ The supported editable metadata is `accessLevel`, `failsafe`, and `optimal`. Acc
 ### Patch Supported SCT Suppressions
 
 ```bash
-uefi-mod-tools uefi ifr-sct-patch \
+uefi-mod-tools uefi sct apply-patch \
   --input Platform_setup.sct \
   --ifr Platform_setup.ifr.json \
   --patch Platform_setup.sct.patch.json \
@@ -191,6 +191,7 @@ The patch document names original IFR offsets and only supports disabling patcha
 ```json
 {
   "version": 1,
+  "type": "AMI-IFR-SCT-Patch",
   "suppressIfPatches": [
     {
       "disable": true,
@@ -200,7 +201,7 @@ The patch document names original IFR offsets and only supports disabling patcha
 }
 ```
 
-Conditions can guard a value question, a `Ref` navigation item, or an entire nested scope. Removing a suppression does not bypass checks elsewhere in the firmware.
+The command accepts IFR extractor version `1.6.1` and SCT patch version `1`; use `--ignore-versions` only for a schema-compatible newer version. It cannot ignore another patch type or IFR extraction mode. Conditions can guard a value question, a `Ref` navigation item, or an entire nested scope. Removing a suppression does not bypass checks elsewhere in the firmware.
 
 ## IFR Render and Viewer
 
@@ -290,4 +291,4 @@ When the render document was loaded from a directory or through `Load IFR render
 
 Loading a manifest with `IfrRenderFile` replaces the embedded document before applying patches. Without `ifr-editor.json`, Load directory discovers unambiguous conventional filenames. If multiple candidate render or SCT patch files exist, add the manifest instead of relying on an arbitrary selection.
 
-The browser never patches SCT or SetupData binaries. Export or save patch JSON, then use `setup-data apply-patch` and `ifr-sct-patch` to produce binary outputs.
+The browser never patches SCT or SetupData binaries. Export or save patch JSON, then use `setup-data apply-patch` and `sct apply-patch` to produce binary outputs.

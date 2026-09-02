@@ -16,7 +16,7 @@
 - Browser-local UI preferences currently persist the selected theme only; firmware documents and patch state remain explicit workspace data.
 - The CLI patch formats are already applied by separate commands and must remain unchanged:
   - SetupData: `ExtractedAmiSetupDataQuestions` for `AccessLevel`, `Failsafe`, and `Optimal`.
-  - SCT: `IfrSctPatches` for disabling patchable `SuppressIf` scopes by original IFR offset.
+  - SCT: `SctPatchDocument` for disabling patchable `SuppressIf` scopes by original IFR offset.
 - The React MVP implementation is complete. Future work should be evaluated against the non-goals before adding new state, dependencies, or abstractions.
 
 ## MVP Goals
@@ -105,5 +105,5 @@
 3. A user can follow an expression reference to its target question and return via normal tree navigation.
 4. A user can select real OneOf labels for `Failsafe` and `Optimal`.
 5. Exported SetupData JSON is accepted by `setup-data apply-patch`.
-6. Exported SCT JSON is accepted by `ifr-sct-patch` for supported non-empty `SuppressIf` scopes.
+6. Exported SCT JSON is accepted by `sct apply-patch` for supported non-empty `SuppressIf` scopes.
 7. Dark and light themes retain readable dense layouts on desktop and narrow screens.

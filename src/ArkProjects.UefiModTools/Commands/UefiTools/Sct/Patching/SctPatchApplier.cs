@@ -1,22 +1,22 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSct;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 
 // IDK how it works, but it works
-public sealed class IfrSctPatcher
+public sealed class SctPatchApplier
 {
     private static readonly byte[] SuppressIfOpcode = [0x0A, 0x82];
     private static readonly byte[] EndOpcode = [0x29, 0x02];
 
-    private readonly ILogger<IfrSctPatcher> _logger;
+    private readonly ILogger<SctPatchApplier> _logger;
 
-    public IfrSctPatcher(ILogger<IfrSctPatcher> logger)
+    public SctPatchApplier(ILogger<SctPatchApplier> logger)
     {
         _logger = logger;
     }
 
-    public void Apply(byte[] sct, IReadOnlyList<IfrOperation> operations, IfrSctPatches patches)
+    public void Apply(byte[] sct, IReadOnlyList<IfrOperation> operations, SctPatchDocument patches)
     {
         var offsets = patches.SuppressIfPatches
             .Where(x => x.Disable)

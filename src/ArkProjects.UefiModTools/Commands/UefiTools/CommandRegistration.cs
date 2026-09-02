@@ -13,7 +13,7 @@ public class CommandRegistration
         Microcodes.CommandRegistration.Register(command, services);
         Fit.CommandRegistration.Register(command, services);
         SetupData.SetupDataCommandRegistration.Register(command, services);
-        IfrSct.CommandRegistration.Register(command, services);
+        Sct.SctCommandRegistration.Register(command, services);
         IfrRender.CommandRegistration.Register(command, services);
         BiosDefaults.BiosDefaultsCommandRegistration.Register(command, services);
     }

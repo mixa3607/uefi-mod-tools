@@ -86,6 +86,7 @@ export function workspaceFiles(
     [names.SetupDataPatchFile]: createSetupPatchDocument(document, setupPatches),
     [names.SctPatchFile]: {
       version: 1,
+      type: 'AMI-IFR-SCT-Patch',
       suppressIfPatches: [...disabledSuppressions].sort((a, b) => a - b).map(offset => ({ disable: true, offset })),
     },
   };

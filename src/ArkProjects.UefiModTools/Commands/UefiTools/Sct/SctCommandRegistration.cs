@@ -1,20 +1,22 @@
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrSct;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Sct;
 
-public static class CommandRegistration
+public static class SctCommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
-            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrSct.Default)
-            .AddSingleton<IfrSctPatcher>()
-            .AddSingleton<CommandHandlers>();
+            .AddSingleton<IJsonTypeInfoResolver>(SctJsonSerializerContext.Default)
+            .AddSingleton<SctPatchApplier>()
+            .AddSingleton<SctCommandHandlers>();
 
-        var command = parentCommand.AddCommand("ifr-sct-patch", "Patch Platform_setup.sct using IFR dump and json patch");
+        var sctCommand = parentCommand.AddCommand("sct", "Platform_setup.sct tools");
+        var command = sctCommand.AddCommand("apply-patch", "Apply an SCT patch using an IFR dump");
         var inputOpt = command.AddOption(new Option<string>("--input", "-i")
         {
             Description = "Platform_setup.sct file",
@@ -35,13 +37,18 @@ public static class CommandRegistration
             Description = "Output Platform_setup.sct file",
             Required = true,
         });
+        var ignoreVersionsOpt = command.AddOption(new Option<bool>("--ignore-versions")
+        {
+            Description = "Allow unsupported IFR extractor and SCT patch versions",
+        });
 
-        command.SetAction<CommandHandlers>(services,
+        command.SetAction<SctCommandHandlers>(services,
             (handler, opts) => handler.Patch(
                 opts.GetRequiredValue(inputOpt),
                 opts.GetRequiredValue(ifrOpt),
                 opts.GetRequiredValue(patchOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetValue(ignoreVersionsOpt)
             ));
     }
 }

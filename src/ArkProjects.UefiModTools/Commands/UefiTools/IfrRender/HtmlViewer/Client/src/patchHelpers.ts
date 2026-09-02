@@ -147,7 +147,10 @@ function isSetupPatch(value: unknown): value is SetupPatchDocument {
 }
 
 function isSctPatch(value: unknown): value is { suppressIfPatches: { disable: boolean; offset: number }[] } {
-  return typeof value === 'object' && value !== null && Array.isArray((value as { suppressIfPatches?: unknown }).suppressIfPatches);
+  return typeof value === 'object' && value !== null &&
+    (value as { version?: unknown }).version === 1 &&
+    (value as { type?: unknown }).type === 'AMI-IFR-SCT-Patch' &&
+    Array.isArray((value as { suppressIfPatches?: unknown }).suppressIfPatches);
 }
 
 function setupQuestionNodes(document: Document): Node[] {
