@@ -15,12 +15,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Smbios\**" />
-	  <EmbeddedResource Remove="Smbios\**" />
-	  <None Remove="Smbios\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\viewer.html" LogicalName="IfrHtmlViewer.Template" />
 		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.css" LogicalName="IfrHtmlViewer.Styles" />
 		<EmbeddedResource Include="Commands\UefiTools\IfrRender\HtmlViewer\Resources\dist\viewer.js" LogicalName="IfrHtmlViewer.Script" />
@@ -42,12 +36,6 @@
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<PackageReference Include="System.CommandLine" Version="2.0.1" />
 		<PackageReference Include="System.IO.Hashing" Version="10.0.1" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(Configuration)'=='Debug'">
-		<None Update="test-files/**/*">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>

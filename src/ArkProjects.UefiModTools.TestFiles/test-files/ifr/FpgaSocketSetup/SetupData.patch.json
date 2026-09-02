@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "type": "AMI-SetupData-Patch",
+  "questions": [
+    {
+      "id": "Numeric-0001",
+      "accessLevel": 5,
+      "failsafe": null,
+      "optimal": null
+    }
+  ]
+}

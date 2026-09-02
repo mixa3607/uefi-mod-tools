@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 		Directory.Build.targets = Directory.Build.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkProjects.UefiModTools.TestFiles", "ArkProjects.UefiModTools.TestFiles\ArkProjects.UefiModTools.TestFiles.csproj", "{1B343880-69D2-4A3D-B4C4-4F22B35D1018}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A24D4A91-1D5E-46A6-9A5D-0E8FD7C4B274}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B343880-69D2-4A3D-B4C4-4F22B35D1018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B343880-69D2-4A3D-B4C4-4F22B35D1018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B343880-69D2-4A3D-B4C4-4F22B35D1018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B343880-69D2-4A3D-B4C4-4F22B35D1018}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,9 +6,9 @@ using System.CommandLine;
 
 namespace ArkProjects.UefiModTools;
 
-internal class Program
+public class Program
 {
-    static async Task<int> Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         // init
         var services = new ServiceCollection();
