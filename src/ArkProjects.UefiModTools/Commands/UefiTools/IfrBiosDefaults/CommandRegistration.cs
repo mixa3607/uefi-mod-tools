@@ -15,6 +15,7 @@ public static class CommandRegistration
             .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrBiosDefaults.Default)
             .AddSingleton<NvarMapExtractor>()
             .AddSingleton<BiosDefaultsStoreMapper>()
+            .AddSingleton<BiosDefaultsStorePatchApplier>()
             .AddSingleton<CommandHandlers>();
 
         var nvarCommand = parentCommand.AddCommand("nvar", "NVAR defaults tools");
@@ -68,6 +69,41 @@ public static class CommandRegistration
                 opts.GetRequiredValue(ifrOpt),
                 opts.GetRequiredValue(mapOutputOpt),
                 opts.GetValue(ignoreVersionsOpt)
+            ));
+
+        var applyPatchCommand = nvarCommand.AddCommand("apply-patch", "Apply an NVAR question patch to a BIOS defaults stream");
+        var patchInputOpt = applyPatchCommand.AddOption(new Option<string>("--input", "-i")
+        {
+            Description = "BIOS defaults binary file",
+            Required = true,
+        });
+        var storeMapOpt = applyPatchCommand.AddOption(new Option<string>("--map", "-m")
+        {
+            Description = "BIOS defaults store map JSON file",
+            Required = true,
+        });
+        var patchOpt = applyPatchCommand.AddOption(new Option<string>("--patch", "-p")
+        {
+            Description = "BIOS defaults store patch JSON file",
+            Required = true,
+        });
+        var patchOutputOpt = applyPatchCommand.AddOption(new Option<string>("--output", "-o")
+        {
+            Description = "Output BIOS defaults binary file",
+            Required = true,
+        });
+        var ignorePatchVersionsOpt = applyPatchCommand.AddOption(new Option<bool>("--ignore-versions")
+        {
+            Description = "Allow unsupported BIOS defaults store map and patch versions",
+        });
+
+        applyPatchCommand.SetAction<CommandHandlers>(services,
+            (handler, opts) => handler.ApplyPatch(
+                opts.GetRequiredValue(patchInputOpt),
+                opts.GetRequiredValue(storeMapOpt),
+                opts.GetRequiredValue(patchOpt),
+                opts.GetRequiredValue(patchOutputOpt),
+                opts.GetValue(ignorePatchVersionsOpt)
             ));
     }
 }

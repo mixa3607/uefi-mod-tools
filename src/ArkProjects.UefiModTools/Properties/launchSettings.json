@@ -28,6 +28,14 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi nvar map-ifr-stores -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/AF516361-BiosDefaults-to-nvar-map.json"
     },
+    "uefi nvar apply-patch [Platform]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi nvar apply-patch -i test-files/ifr/AF516361-BiosDefaults.bin --map test-files/ifr/Platform/AF516361-BiosDefaults-to-nvar-map.json --patch test-files/ifr/Platform/AF516361-BiosDefaults-to-nvar-patch.json -o test-files/ifr/Platform/AF516361-BiosDefaults.patched.bin"
+    },
+    "uefi nvar apply-patch [FpgaSocketSetup]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi nvar apply-patch -i test-files/ifr/AF516361-BiosDefaults.bin --map test-files/ifr/FpgaSocketSetup/AF516361-BiosDefaults-to-nvar-map.json --patch test-files/ifr/FpgaSocketSetup/AF516361-BiosDefaults-to-nvar-patch.json -o test-files/ifr/FpgaSocketSetup/AF516361-BiosDefaults.patched.bin"
+    },
     // uboot
     "uboot env-read": {
       "commandName": "Project",

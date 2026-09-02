@@ -39,21 +39,53 @@ flowchart TD
     Defaults -->|nvar map| DefaultsMap[BiosDefaults NVAR map JSON]
     DefaultsMap -->|nvar map-ifr-stores + IFR| DefaultsStoreMap[BiosDefaults store map JSON]
     Ifr -->|nvar map-ifr-stores| DefaultsStoreMap
+    DefaultsStoreMap -->|edit mapped values| DefaultsPatch[BiosDefaults store patch JSON]
+    Defaults -->|nvar apply-patch + store map + patch| ModifiedDefaults[modified BiosDefaults NVAR stream]
+    DefaultsStoreMap -->|nvar apply-patch| ModifiedDefaults
+    DefaultsPatch -->|nvar apply-patch| ModifiedDefaults
 
     MicrocodePayload -->|mcodes-combine + table + microcode files| ModifiedMicrocodePayload[modified microcode payload body]
     Dump -->|fit-inject-mcodes + table + microcode files| ModifiedFitDump[firmware dump with updated FIT]
 
     ModifiedSetupData -->|UEFITool replace matching body| ReintegratedDump[working firmware dump]
     ModifiedSct -->|UEFITool replace matching body| ReintegratedDump
+    ModifiedDefaults -->|UEFITool replace matching body| ReintegratedDump
     ModifiedMicrocodePayload -->|UEFITool replace matching body| ReintegratedDump
     ModifiedFitDump -->|use as working dump before other replacements| ReintegratedDump
 ```
 
-`nvar map` and `nvar map-ifr-stores` are analysis-only today. They do not extract an NVAR stream from a firmware dump, create a patch, or write any data back to firmware.
+`nvar map` and `nvar map-ifr-stores` do not extract an NVAR stream from a firmware dump or write data back to firmware. `nvar apply-patch` writes a modified NVAR stream; replace the exact extracted NVAR object body with UEFITool to use it in a firmware dump.
 
 `nvar map` version 2 stores each complete NVAR payload in `variables[].value` as Base64. `nvar map-ifr-stores` version 2 takes the question-sized slice from that payload and writes a patchable mapping `id` plus a readable `value`. Numeric and OneOf values are decimal, CheckBox values are `true` or `false`, String and Password values are UTF-16LE text, and unsupported value types are uppercase hexadecimal bytes.
 
 The map filename is user-selected and is not part of its format. For example, use `AF516361-BiosDefaults-to-nvar-map.json` rather than embedding the source IFR filename such as `Platform` or `SocketSetup` in the filename.
+
+Create a patch document with the mapped question IDs and their new values:
+
+```json
+{
+  "version": 1,
+  "type": "AF516361-BiosDefaults-Store-Patch",
+  "varPatches": [
+    {
+      "id": "0001-Setup-0012-000004FA",
+      "value": "12"
+    }
+  ]
+}
+```
+
+Apply it to the exact NVAR stream used to create the store map:
+
+```bash
+uefi-mod-tools uefi nvar apply-patch \
+  --input AF516361-BiosDefaults.bin \
+  --map AF516361-BiosDefaults-to-nvar-map.json \
+  --patch AF516361-BiosDefaults-to-nvar-patch.json \
+  --output modified-AF516361-BiosDefaults.bin
+```
+
+Use `--ignore-versions` only when an older or newer map/patch JSON is known to retain the compatible schema. It does not ignore document type mismatches.
 
 ### Reintegration Order
 
