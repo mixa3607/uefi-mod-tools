@@ -1,8 +1,8 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 
 public class BiosDefaultsStoreMapDocument
 {
-    public const int SupportedVersion = 1;
+    public const int SupportedVersion = 2;
     public const string SupportedType = "AF516361-BiosDefaults-Store-Map";
 
     public int Version { get; set; } = -1;
@@ -15,6 +15,7 @@ public class BiosDefaultsStoreMapDocument
 
 public class BiosDefaultsQuestionMapping
 {
+    public string? Id { get; set; }
     public ushort QuestionId { get; set; }
     public required string Opcode { get; set; }
     public required string VarStoreName { get; set; }
@@ -22,6 +23,7 @@ public class BiosDefaultsQuestionMapping
     public int? DataLength { get; set; }
     public BiosDefaultsMappingStatus Status { get; set; }
     public int? NvarDataOffset { get; set; }
+    public string? Value { get; set; }
 }
 
 public enum BiosDefaultsMappingStatus

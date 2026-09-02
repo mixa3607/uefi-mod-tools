@@ -36,9 +36,9 @@ flowchart TD
     Ifr -->|ifr-sct-patch| ModifiedSct
     SctPatch -->|ifr-sct-patch| ModifiedSct
 
-    Defaults -->|ifr-extdefaults-extract| DefaultsMap[BiosDefaults NVAR map JSON]
-    DefaultsMap -->|ifr-extdefaults-map-store + IFR| DefaultsStoreMap[BiosDefaults store map JSON]
-    Ifr -->|ifr-extdefaults-map-store| DefaultsStoreMap
+    Defaults -->|nvar map| DefaultsMap[BiosDefaults NVAR map JSON]
+    DefaultsMap -->|nvar map-ifr-stores + IFR| DefaultsStoreMap[BiosDefaults store map JSON]
+    Ifr -->|nvar map-ifr-stores| DefaultsStoreMap
 
     MicrocodePayload -->|mcodes-combine + table + microcode files| ModifiedMicrocodePayload[modified microcode payload body]
     Dump -->|fit-inject-mcodes + table + microcode files| ModifiedFitDump[firmware dump with updated FIT]
@@ -49,7 +49,11 @@ flowchart TD
     ModifiedFitDump -->|use as working dump before other replacements| ReintegratedDump
 ```
 
-`ifr-extdefaults-extract` and `ifr-extdefaults-map-store` are analysis-only today. They do not extract an NVAR stream from a firmware dump, read individual default values, create a patch, or write any data back to firmware.
+`nvar map` and `nvar map-ifr-stores` are analysis-only today. They do not extract an NVAR stream from a firmware dump, create a patch, or write any data back to firmware.
+
+`nvar map` version 2 stores each complete NVAR payload in `variables[].value` as Base64. `nvar map-ifr-stores` version 2 takes the question-sized slice from that payload and writes a patchable mapping `id` plus a readable `value`. Numeric and OneOf values are decimal, CheckBox values are `true` or `false`, String and Password values are UTF-16LE text, and unsupported value types are uppercase hexadecimal bytes.
+
+The map filename is user-selected and is not part of its format. For example, use `AF516361-BiosDefaults-to-nvar-map.json` rather than embedding the source IFR filename such as `Platform` or `SocketSetup` in the filename.
 
 ### Reintegration Order
 

@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using ArkProjects.UefiModTools.Utils;
 using System.Text.Json.Serialization.Metadata;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
 
@@ -15,9 +17,11 @@ public static class CommandRegistration
             .AddSingleton<BiosDefaultsStoreMapper>()
             .AddSingleton<CommandHandlers>();
 
-        var extractCommand = parentCommand.AddCommand(
-            "ifr-extdefaults-extract",
-            "Extract IFR external BIOS defaults");
+        var nvarCommand = parentCommand.AddCommand("nvar", "NVAR defaults tools");
+
+        var extractCommand = nvarCommand.AddCommand(
+            "map",
+            "Create an NVAR record map from a BIOS defaults stream");
         var inputOpt = extractCommand.AddOption(new Option<string>("--input", "-i")
         {
             Description = "BIOS defaults binary file",
@@ -35,9 +39,9 @@ public static class CommandRegistration
                 opts.GetRequiredValue(outputOpt)
             ));
 
-        var mapStoreCommand = parentCommand.AddCommand(
-            "ifr-extdefaults-map-store",
-            "Map external BIOS defaults to IFR stores");
+        var mapStoreCommand = nvarCommand.AddCommand(
+            "map-ifr-stores",
+            "Map NVAR records to IFR VarStores and questions");
         var mapInputOpt = mapStoreCommand.AddOption(new Option<string>("--input", "-i")
         {
             Description = "BIOS defaults NVAR map JSON file",

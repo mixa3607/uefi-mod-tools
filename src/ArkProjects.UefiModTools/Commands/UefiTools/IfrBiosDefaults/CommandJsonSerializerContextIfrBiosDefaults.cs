@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 using ArkProjects.UefiModTools.Ifr.Structures;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;

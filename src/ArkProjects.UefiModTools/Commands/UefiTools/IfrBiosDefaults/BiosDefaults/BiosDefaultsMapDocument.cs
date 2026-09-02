@@ -1,8 +1,8 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
 
 public class BiosDefaultsMapDocument
 {
-    public const int SupportedVersion = 1;
+    public const int SupportedVersion = 2;
     public const string SupportedType = "AF516361-BiosDefaults-Map";
 
     public int Version { get; set; } = -1;
@@ -25,6 +25,7 @@ public class NvarVariableInfo
 
     public int DataOffset { get; set; }
     public int DataLength => RecordOffset + RecordSize - DataOffset;
+    public byte[] Value { get; set; } = [];
 }
 
 [Flags]

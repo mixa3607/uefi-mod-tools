@@ -2,6 +2,8 @@ using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 using Xunit;
 
 namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrBiosDefaults;
@@ -28,6 +30,7 @@ public class BiosDefaultsStoreMapperTests
                 RecordOffset = 0,
                 RecordSize = 32,
                 DataOffset = 8,
+                Value = [0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             },
         ];
         IfrOperation[] ifrOperations =
@@ -64,6 +67,8 @@ public class BiosDefaultsStoreMapperTests
         Assert.Equal(2, mapping.DataLength);
         Assert.Equal(BiosDefaultsMappingStatus.Mapped, mapping.Status);
         Assert.Equal(10, mapping.NvarDataOffset);
+        Assert.Equal("0007-Setup-0002-0000000A", mapping.Id);
+        Assert.Equal("12", mapping.Value);
     }
 
     private static BiosDefaultsStoreMapper CreateMapper() => new(NullLogger<BiosDefaultsStoreMapper>.Instance);

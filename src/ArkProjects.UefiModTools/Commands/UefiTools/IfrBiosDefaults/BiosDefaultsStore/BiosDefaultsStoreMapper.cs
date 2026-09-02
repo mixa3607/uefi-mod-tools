@@ -1,8 +1,11 @@
+using System.Buffers.Binary;
+using System.Text;
+using System.Text.Json;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 
 public class BiosDefaultsStoreMapper
 {
@@ -152,6 +155,13 @@ public class BiosDefaultsStoreMapper
         }
 
         var nvarVariable = sizeMatches[0];
+        if (nvarVariable.Value.Length != nvarVariable.DataLength)
+        {
+            throw new InvalidDataException(
+                $"NVAR variable {nvarVariable.Name} at 0x{nvarVariable.RecordOffset:X} has {nvarVariable.Value.Length} value bytes, " +
+                $"but its record declares {nvarVariable.DataLength}. Regenerate the NVAR map with version {BiosDefaultsMapDocument.SupportedVersion}.");
+        }
+
         if (mapping.VarStoreOffset + mapping.DataLength.Value > nvarVariable.DataLength)
         {
             mapping.Status = BiosDefaultsMappingStatus.NvarRangeExceeded;
@@ -160,6 +170,9 @@ public class BiosDefaultsStoreMapper
 
         mapping.Status = BiosDefaultsMappingStatus.Mapped;
         mapping.NvarDataOffset = nvarVariable.DataOffset + mapping.VarStoreOffset;
+        mapping.Id = CreateMappingId(mapping);
+        mapping.Value = FormatQuestionValue(mapping.Opcode,
+            nvarVariable.Value.AsSpan(mapping.VarStoreOffset, mapping.DataLength.Value));
     }
 
     private void LogUnmapped(BiosDefaultsQuestionMapping mapping)
@@ -190,6 +203,34 @@ public class BiosDefaultsStoreMapper
             return 1;
 
         return null;
+    }
+
+    private static string CreateMappingId(BiosDefaultsQuestionMapping mapping)
+    {
+        return $"{mapping.QuestionId:X4}-{mapping.VarStoreName}-{mapping.VarStoreOffset:X4}-{mapping.NvarDataOffset!.Value:X8}";
+    }
+
+    private static string FormatQuestionValue(string opcode, ReadOnlySpan<byte> value)
+    {
+        if (opcode == IfrOpCodes.CheckBox && value.Length == 1)
+            return value[0] == 0 ? "false" : "true";
+
+        if (opcode is IfrOpCodes.Numeric or IfrOpCodes.OneOf)
+        {
+            return value.Length switch
+            {
+                1 => value[0].ToString(),
+                2 => BinaryPrimitives.ReadUInt16LittleEndian(value).ToString(),
+                4 => BinaryPrimitives.ReadUInt32LittleEndian(value).ToString(),
+                8 => BinaryPrimitives.ReadUInt64LittleEndian(value).ToString(),
+                _ => Convert.ToHexString(value),
+            };
+        }
+
+        if ((opcode is IfrOpCodes.String or IfrOpCodes.Password) && value.Length % sizeof(char) == 0)
+            return Encoding.Unicode.GetString(value).TrimEnd('\0');
+
+        return Convert.ToHexString(value);
     }
 
     private sealed record IfrVarStore(string Name, ushort? Size);

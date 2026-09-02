@@ -2,6 +2,8 @@ using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
 

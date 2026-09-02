@@ -4,21 +4,29 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug"
     },
-    "uefi ifr-setupdata-extract": {
+    "uefi ifr-setupdata-extract [Platform]": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/SetupData.json"
+      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/SetupData.json"
+    },
+    "uefi ifr-setupdata-extract [FpgaSocketSetup]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr-setupdata-extract -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/SetupData.json"
     },
     "uefi ifr-setupdata-patch": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi ifr-setupdata-patch -i test-files/ifr/SetupData_body.bin --patch test-files/ifr/SetupData.json -o test-files/ifr/SetupData_body.bin"
     },
-    "uefi ifr-extdefaults-extract": {
+    "uefi nvar map": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-extdefaults-extract -i test-files/ifr/AF516361-BiosDefaults.bin -o test-files/ifr/AF516361-BiosDefaults-nvar-map.json"
+      "commandLineArgs": "--log-level debug uefi nvar map -i test-files/ifr/AF516361-BiosDefaults.bin -o test-files/ifr/AF516361-BiosDefaults-nvar-map.json"
     },
-    "uefi ifr-extdefaults-map-store": {
+    "uefi nvar map-ifr-stores [Platform]": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-extdefaults-map-store -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/AF516361-BiosDefaults-Platform-to-nvar-map.json"
+      "commandLineArgs": "--log-level debug uefi nvar map-ifr-stores -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/AF516361-BiosDefaults-to-nvar-map.json"
+    },
+    "uefi nvar map-ifr-stores [FpgaSocketSetup]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi nvar map-ifr-stores -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/AF516361-BiosDefaults-to-nvar-map.json"
     },
     // uboot
     "uboot env-read": {

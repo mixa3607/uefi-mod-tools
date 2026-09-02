@@ -1,6 +1,7 @@
+using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
 
 public class NvarMapExtractor
 {
@@ -63,8 +64,7 @@ public class NvarMapExtractor
 
             if (next != 0xFFFFFF)
             {
-                throw new NotSupportedException(
-                    $"Chained NVAR records are not supported. Next=0x{next:X6}");
+                throw new NotSupportedException($"Chained NVAR records are not supported. Next=0x{next:X6}");
             }
 
             var variable = new NvarVariableInfo
@@ -75,6 +75,7 @@ public class NvarMapExtractor
                 DataOffset = dataOffset,
                 ParentRecordOffset = parentRecord?.RecordOffset ?? -1,
                 Attributes = attributes,
+                Value = data,
             };
             variables.Add(variable);
 

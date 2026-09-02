@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -22,6 +23,7 @@ public class NvarMapExtractorTests
                 Assert.Equal(-1, parent.ParentRecordOffset);
                 Assert.Equal(0, parent.RecordOffset);
                 Assert.Equal(18, parent.DataOffset);
+                Assert.Equal(child, parent.Value);
             },
             childVariable =>
             {
@@ -29,6 +31,7 @@ public class NvarMapExtractorTests
                 Assert.Equal(NvarAttributes.DataOnly, childVariable.Attributes);
                 Assert.Equal(0, childVariable.ParentRecordOffset);
                 Assert.Equal(18, childVariable.RecordOffset);
+                Assert.Empty(childVariable.Value);
             });
     }
 

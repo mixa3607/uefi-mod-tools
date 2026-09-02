@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Utils;
 
 public static class BinaryReaderExtensions
 {
