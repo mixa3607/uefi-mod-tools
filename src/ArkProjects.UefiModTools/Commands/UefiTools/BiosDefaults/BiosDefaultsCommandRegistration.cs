@@ -2,21 +2,22 @@ using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
 using ArkProjects.UefiModTools.Utils;
 using System.Text.Json.Serialization.Metadata;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Patching;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults;
 
-public static class CommandRegistration
+public static class BiosDefaultsCommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
-            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextIfrBiosDefaults.Default)
+            .AddSingleton<IJsonTypeInfoResolver>(BiosDefaultsJsonSerializerContext.Default)
             .AddSingleton<NvarMapExtractor>()
-            .AddSingleton<BiosDefaultsStoreMapper>()
-            .AddSingleton<BiosDefaultsStorePatchApplier>()
-            .AddSingleton<CommandHandlers>();
+            .AddSingleton<BiosDefaultsIfrMapper>()
+            .AddSingleton<BiosDefaultsPatchApplier>()
+            .AddSingleton<BiosDefaultsCommandHandlers>();
 
         var nvarCommand = parentCommand.AddCommand("nvar", "NVAR defaults tools");
 
@@ -34,7 +35,7 @@ public static class CommandRegistration
             Required = true,
         });
 
-        extractCommand.SetAction<CommandHandlers>(services,
+        extractCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.Extract(
                 opts.GetRequiredValue(inputOpt),
                 opts.GetRequiredValue(outputOpt)
@@ -63,7 +64,7 @@ public static class CommandRegistration
             Description = "Allow unsupported BIOS defaults map and IFR extractor versions",
         });
 
-        mapStoreCommand.SetAction<CommandHandlers>(services,
+        mapStoreCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.MapStore(
                 opts.GetRequiredValue(mapInputOpt),
                 opts.GetRequiredValue(ifrOpt),
@@ -97,7 +98,7 @@ public static class CommandRegistration
             Description = "Allow unsupported BIOS defaults store map and patch versions",
         });
 
-        applyPatchCommand.SetAction<CommandHandlers>(services,
+        applyPatchCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.ApplyPatch(
                 opts.GetRequiredValue(patchInputOpt),
                 opts.GetRequiredValue(storeMapOpt),

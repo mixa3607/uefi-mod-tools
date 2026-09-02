@@ -2,29 +2,30 @@ using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Patching;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults;
 
-public class CommandHandlers
+public class BiosDefaultsCommandHandlers
 {
-    private readonly ILogger<CommandHandlers> _logger;
+    private readonly ILogger<BiosDefaultsCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
     private readonly IJsonSerializationService _jsonSerializer;
     private readonly NvarMapExtractor _extractor;
-    private readonly BiosDefaultsStoreMapper _storeMapper;
-    private readonly BiosDefaultsStorePatchApplier _patchApplier;
+    private readonly BiosDefaultsIfrMapper _ifrMapper;
+    private readonly BiosDefaultsPatchApplier _patchApplier;
 
-    public CommandHandlers(ILogger<CommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, NvarMapExtractor extractor, BiosDefaultsStoreMapper storeMapper,
-        BiosDefaultsStorePatchApplier patchApplier)
+    public BiosDefaultsCommandHandlers(ILogger<BiosDefaultsCommandHandlers> logger, ICommandFileManager fileManager,
+        IJsonSerializationService jsonSerializer, NvarMapExtractor extractor, BiosDefaultsIfrMapper ifrMapper,
+        BiosDefaultsPatchApplier patchApplier)
     {
         _logger = logger;
         _fileManager = fileManager;
         _jsonSerializer = jsonSerializer;
         _extractor = extractor;
-        _storeMapper = storeMapper;
+        _ifrMapper = ifrMapper;
         _patchApplier = patchApplier;
     }
 
@@ -60,11 +61,11 @@ public class CommandHandlers
             "Read {variableCount} NVAR variables from {inputFile} and {operationCount} IFR operations from {ifrFile}",
             biosDefaultsMap.Variables.Count, inputFile, ifr.Operations.Count, ifrFile);
 
-        var vars = _storeMapper.Map(biosDefaultsMap.Variables, ifr.Operations);
-        var result = new BiosDefaultsStoreMapDocument
+        var vars = _ifrMapper.Map(biosDefaultsMap.Variables, ifr.Operations);
+        var result = new BiosDefaultsIfrMapDocument
         {
-            Version = BiosDefaultsStoreMapDocument.SupportedVersion,
-            Type = BiosDefaultsStoreMapDocument.SupportedType,
+            Version = BiosDefaultsIfrMapDocument.SupportedVersion,
+            Type = BiosDefaultsIfrMapDocument.SupportedType,
             BiosDefaultsSha256 = biosDefaultsMap.SourceSha256,
             IfrSha256 = ifr.InputSha256,
             QuestionMappings = vars,
@@ -79,8 +80,8 @@ public class CommandHandlers
     public int ApplyPatch(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions)
     {
         var biosDefaults = _fileManager.ReadBytes(inputFile);
-        var storeMap = _jsonSerializer.Deserialize<BiosDefaultsStoreMapDocument>(_fileManager.ReadString(mapFile));
-        var patch = _jsonSerializer.Deserialize<BiosDefaultsStorePatchDocument>(_fileManager.ReadString(patchFile));
+        var storeMap = _jsonSerializer.Deserialize<BiosDefaultsIfrMapDocument>(_fileManager.ReadString(mapFile));
+        var patch = _jsonSerializer.Deserialize<BiosDefaultsPatchDocument>(_fileManager.ReadString(patchFile));
         ValidateStoreMap(storeMap, ignoreVersions);
         ValidateStorePatch(patch, ignoreVersions);
 
@@ -150,56 +151,56 @@ public class CommandHandlers
             nameof(ifr));
     }
 
-    private void ValidateStoreMap(BiosDefaultsStoreMapDocument storeMap, bool ignoreVersions)
+    private void ValidateStoreMap(BiosDefaultsIfrMapDocument storeMap, bool ignoreVersions)
     {
-        if (storeMap.Type != BiosDefaultsStoreMapDocument.SupportedType)
+        if (storeMap.Type != BiosDefaultsIfrMapDocument.SupportedType)
         {
             throw new ArgumentException(
-                $"Expected BIOS defaults store map type {BiosDefaultsStoreMapDocument.SupportedType}, but got {storeMap.Type}. " +
+                $"Expected BIOS defaults store map type {BiosDefaultsIfrMapDocument.SupportedType}, but got {storeMap.Type}. " +
                 "--ignore-versions cannot ignore a different document type.",
                 nameof(storeMap));
         }
 
-        if (storeMap.Version == BiosDefaultsStoreMapDocument.SupportedVersion)
+        if (storeMap.Version == BiosDefaultsIfrMapDocument.SupportedVersion)
             return;
 
         if (ignoreVersions)
         {
             _logger.LogWarning(
                 "BIOS defaults store map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                storeMap.Version, BiosDefaultsStoreMapDocument.SupportedVersion);
+                storeMap.Version, BiosDefaultsIfrMapDocument.SupportedVersion);
             return;
         }
 
         throw new ArgumentException(
-            $"Expected BIOS defaults store map version {BiosDefaultsStoreMapDocument.SupportedVersion}, but got {storeMap.Version}. " +
+            $"Expected BIOS defaults store map version {BiosDefaultsIfrMapDocument.SupportedVersion}, but got {storeMap.Version}. " +
             "Use --ignore-versions only when the map schema is known to be compatible.",
             nameof(storeMap));
     }
 
-    private void ValidateStorePatch(BiosDefaultsStorePatchDocument patch, bool ignoreVersions)
+    private void ValidateStorePatch(BiosDefaultsPatchDocument patch, bool ignoreVersions)
     {
-        if (patch.Type != BiosDefaultsStorePatchDocument.SupportedType)
+        if (patch.Type != BiosDefaultsPatchDocument.SupportedType)
         {
             throw new ArgumentException(
-                $"Expected BIOS defaults store patch type {BiosDefaultsStorePatchDocument.SupportedType}, but got {patch.Type}. " +
+                $"Expected BIOS defaults store patch type {BiosDefaultsPatchDocument.SupportedType}, but got {patch.Type}. " +
                 "--ignore-versions cannot ignore a different document type.",
                 nameof(patch));
         }
 
-        if (patch.Version == BiosDefaultsStorePatchDocument.SupportedVersion)
+        if (patch.Version == BiosDefaultsPatchDocument.SupportedVersion)
             return;
 
         if (ignoreVersions)
         {
             _logger.LogWarning(
                 "BIOS defaults store patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                patch.Version, BiosDefaultsStorePatchDocument.SupportedVersion);
+                patch.Version, BiosDefaultsPatchDocument.SupportedVersion);
             return;
         }
 
         throw new ArgumentException(
-            $"Expected BIOS defaults store patch version {BiosDefaultsStorePatchDocument.SupportedVersion}, but got {patch.Version}. " +
+            $"Expected BIOS defaults store patch version {BiosDefaultsPatchDocument.SupportedVersion}, but got {patch.Version}. " +
             "Use --ignore-versions only when the patch schema is known to be compatible.",
             nameof(patch));
     }

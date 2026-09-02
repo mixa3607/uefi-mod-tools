@@ -1,13 +1,13 @@
 using System.Buffers.Binary;
 using System.Text;
 using System.Text.Json;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
 
-public class BiosDefaultsStoreMapper
+public class BiosDefaultsIfrMapper
 {
     private static readonly HashSet<string> StorageQuestionOpcodes =
     [
@@ -21,9 +21,9 @@ public class BiosDefaultsStoreMapper
         IfrOpCodes.Time,
     ];
 
-    private readonly ILogger<BiosDefaultsStoreMapper> _logger;
+    private readonly ILogger<BiosDefaultsIfrMapper> _logger;
 
-    public BiosDefaultsStoreMapper(ILogger<BiosDefaultsStoreMapper> logger)
+    public BiosDefaultsIfrMapper(ILogger<BiosDefaultsIfrMapper> logger)
     {
         _logger = logger;
     }

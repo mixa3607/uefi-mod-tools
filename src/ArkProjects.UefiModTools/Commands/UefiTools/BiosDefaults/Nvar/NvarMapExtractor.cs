@@ -1,7 +1,7 @@
 using ArkProjects.UefiModTools.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 
 public class NvarMapExtractor
 {

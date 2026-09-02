@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 
 public class BiosDefaultsMapDocument
 {

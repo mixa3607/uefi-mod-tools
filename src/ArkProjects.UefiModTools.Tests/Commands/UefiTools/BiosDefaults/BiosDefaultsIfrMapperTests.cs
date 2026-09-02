@@ -1,14 +1,13 @@
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.BiosDefaults;
 
-public class BiosDefaultsStoreMapperTests
+public class BiosDefaultsIfrMapperTests
 {
     [Fact]
     public void MapReturnsNoMappingsWithoutStorageQuestions()
@@ -71,7 +70,7 @@ public class BiosDefaultsStoreMapperTests
         Assert.Equal("12", mapping.Value);
     }
 
-    private static BiosDefaultsStoreMapper CreateMapper() => new(NullLogger<BiosDefaultsStoreMapper>.Instance);
+    private static BiosDefaultsIfrMapper CreateMapper() => new(NullLogger<BiosDefaultsIfrMapper>.Instance);
 
     private static BiosDefaultsMapDocument CreateBiosDefaultsMap() => new()
     {

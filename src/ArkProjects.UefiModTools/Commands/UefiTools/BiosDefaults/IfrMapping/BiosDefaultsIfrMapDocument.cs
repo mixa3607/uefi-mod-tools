@@ -1,6 +1,6 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
 
-public class BiosDefaultsStoreMapDocument
+public class BiosDefaultsIfrMapDocument
 {
     public const int SupportedVersion = 2;
     public const string SupportedType = "AF516361-BiosDefaults-Store-Map";

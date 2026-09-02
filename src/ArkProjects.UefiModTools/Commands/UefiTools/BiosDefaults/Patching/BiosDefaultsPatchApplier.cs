@@ -2,20 +2,21 @@ using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaultsStore;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Patching;
 
-public class BiosDefaultsStorePatchApplier
+public class BiosDefaultsPatchApplier
 {
-    private readonly ILogger<BiosDefaultsStorePatchApplier> _logger;
+    private readonly ILogger<BiosDefaultsPatchApplier> _logger;
 
-    public BiosDefaultsStorePatchApplier(ILogger<BiosDefaultsStorePatchApplier> logger)
+    public BiosDefaultsPatchApplier(ILogger<BiosDefaultsPatchApplier> logger)
     {
         _logger = logger;
     }
 
-    public void Apply(byte[] biosDefaults, BiosDefaultsStoreMapDocument storeMap,
-        IReadOnlyList<BiosDefaultsStoreValuePatch> patches)
+    public void Apply(byte[] biosDefaults, BiosDefaultsIfrMapDocument storeMap,
+        IReadOnlyList<BiosDefaultsValuePatch> patches)
     {
         var mappingsById = storeMap.QuestionMappings
             .Where(x => x.Status == BiosDefaultsMappingStatus.Mapped && x.Id is not null)

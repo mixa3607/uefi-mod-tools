@@ -1,9 +1,8 @@
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults;
-using ArkProjects.UefiModTools.Commands.UefiTools.IfrBiosDefaults.BiosDefaults;
+using ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrBiosDefaults;
+namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.BiosDefaults;
 
 public class NvarMapExtractorTests
 {
