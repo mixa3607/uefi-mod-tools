@@ -18,7 +18,7 @@
     },
     "uefi ifr-extdefaults-map-store": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi ifr-extdefaults-map-store -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/AF516361-BiosDefaults-store-map.json"
+      "commandLineArgs": "--log-level debug uefi ifr-extdefaults-map-store -i test-files/ifr/AF516361-BiosDefaults-nvar-map.json --ifr test-files/ifr/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/AF516361-BiosDefaults-Platform-to-nvar-map.json"
     },
     // uboot
     "uboot env-read": {

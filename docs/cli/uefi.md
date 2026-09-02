@@ -2,6 +2,64 @@
 
 The `uefi` module covers Intel FIT and microcode data plus an IFR-driven workflow for `Platform_setup.sct` and AMI `SetupData`.
 
+## Artifact Flow
+
+The CLI does not unpack a firmware image or produce the IFR operation JSON. The only external steps are:
+
+- **UEFITool**: extract the original body of each target object and replace that same object body in a copy of the dump.
+- **IFRExtractor-RS-structured**: create `Platform_setup.sct.0.0.uefi.ifr.json` from the exact extracted `Platform_setup.sct`.
+
+Every artifact in a run must originate from one firmware dump. Keep the original dump immutable and apply replacements to a working copy.
+
+```mermaid
+flowchart TD
+    Dump[Original firmware dump]
+
+    Dump -->|UEFITool extract| Sct[Platform_setup.sct]
+    Dump -->|UEFITool extract| SetupData[SetupData.bin]
+    Dump -->|UEFITool extract| Defaults[BiosDefaults NVAR stream]
+    Dump -->|UEFITool extract, when replacing microcodes| MicrocodePayload[Microcode payload body]
+
+    Sct -->|IFRExtractor-RS-structured| Ifr[Platform_setup.sct.0.0.uefi.ifr.json]
+
+    SetupData -->|ifr-setupdata-extract + IFR| SetupPatch[SetupData.patch.json]
+    Ifr -->|ifr-setupdata-extract| SetupPatch
+    SetupPatch -->|edit manually or in viewer| EditedSetupPatch[edited SetupData.patch.json]
+    SetupData -->|ifr-setupdata-patch + edited patch| ModifiedSetupData[modified SetupData.bin]
+    EditedSetupPatch -->|ifr-setupdata-patch| ModifiedSetupData
+
+    Sct -->|ifr-render + SetupData + IFR| Viewer[IFR render JSON or HTML viewer]
+    SetupData -->|ifr-render| Viewer
+    Ifr -->|ifr-render| Viewer
+    Viewer -->|export| SctPatch[Platform_setup.sct.patch.json]
+    Sct -->|ifr-sct-patch + IFR + SCT patch| ModifiedSct[modified Platform_setup.sct]
+    Ifr -->|ifr-sct-patch| ModifiedSct
+    SctPatch -->|ifr-sct-patch| ModifiedSct
+
+    Defaults -->|ifr-extdefaults-extract| DefaultsMap[BiosDefaults NVAR map JSON]
+    DefaultsMap -->|ifr-extdefaults-map-store + IFR| DefaultsStoreMap[BiosDefaults store map JSON]
+    Ifr -->|ifr-extdefaults-map-store| DefaultsStoreMap
+
+    MicrocodePayload -->|mcodes-combine + table + microcode files| ModifiedMicrocodePayload[modified microcode payload body]
+    Dump -->|fit-inject-mcodes + table + microcode files| ModifiedFitDump[firmware dump with updated FIT]
+
+    ModifiedSetupData -->|UEFITool replace matching body| ReintegratedDump[working firmware dump]
+    ModifiedSct -->|UEFITool replace matching body| ReintegratedDump
+    ModifiedMicrocodePayload -->|UEFITool replace matching body| ReintegratedDump
+    ModifiedFitDump -->|use as working dump before other replacements| ReintegratedDump
+```
+
+`ifr-extdefaults-extract` and `ifr-extdefaults-map-store` are analysis-only today. They do not extract an NVAR stream from a firmware dump, read individual default values, create a patch, or write any data back to firmware.
+
+### Reintegration Order
+
+1. Use `UEFITool` to extract `Platform_setup.sct`, `SetupData`, and, if needed, the BIOS defaults NVAR stream and microcode payload from one original dump.
+2. Run IFRExtractor-RS-structured on the extracted SCT. Do not reuse its IFR JSON with an SCT from a different dump.
+3. Create and apply the SetupData and SCT patches to their extracted bodies.
+4. For microcodes, first run `mcodes-combine` on the extracted payload body, replace that body in a working dump with UEFITool, then run `fit-inject-mcodes` on that working dump. `fit-inject-mcodes` updates FIT entries only; it does not write microcode payload bytes.
+5. Replace the modified SCT and SetupData bodies in the same working dump. Each replacement must target the exact object from which the original body was extracted.
+6. Validate the final dump with the usual platform-specific checks before flashing. A successful command only validates its local transformation, not that the final firmware will boot.
+
 ## FIT
 
 ### Read and Write

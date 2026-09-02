@@ -81,7 +81,14 @@ public class SetupDataParser
     public ExtractedAmiSetupDataQuestions ExtractAll(IReadOnlyList<IfrOperation> allOpCodes,
         ReadOnlyMemory<byte> setupData)
     {
-        var supportedOpCodes = new string[] { "Ref", "String", "Numeric", "CheckBox", "OneOf" };
+        var supportedOpCodes = new[]
+        {
+            IfrOpCodes.Ref,
+            IfrOpCodes.String,
+            IfrOpCodes.Numeric,
+            IfrOpCodes.CheckBox,
+            IfrOpCodes.OneOf,
+        };
         var opCodes = allOpCodes.Where(x => supportedOpCodes.Contains(x.Opcode)).ToList();
 
         var result = new ExtractedAmiSetupDataQuestions()

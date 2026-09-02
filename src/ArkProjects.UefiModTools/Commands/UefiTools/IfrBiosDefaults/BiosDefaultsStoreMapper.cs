@@ -8,14 +8,14 @@ public class BiosDefaultsStoreMapper
 {
     private static readonly HashSet<string> StorageQuestionOpcodes =
     [
-        "Numeric",
-        "OneOf",
-        "CheckBox",
-        "OrderedList",
-        "String",
-        "Password",
-        "Date",
-        "Time",
+        IfrOpCodes.Numeric,
+        IfrOpCodes.OneOf,
+        IfrOpCodes.CheckBox,
+        IfrOpCodes.OrderedList,
+        IfrOpCodes.String,
+        IfrOpCodes.Password,
+        IfrOpCodes.Date,
+        IfrOpCodes.Time,
     ];
 
     private readonly ILogger<BiosDefaultsStoreMapper> _logger;
@@ -25,17 +25,15 @@ public class BiosDefaultsStoreMapper
         _logger = logger;
     }
 
-    public BiosDefaultsStoreMapDocument Map(BiosDefaultsMapDocument biosDefaultsMap, IfrJsonDocument ifr)
+    public List<BiosDefaultsQuestionMapping> Map(IReadOnlyList<NvarVariableInfo> nvarVariableInfos, IReadOnlyList<IfrOperation> ifrOps)
     {
-        ValidateBiosDefaultsMap(biosDefaultsMap);
-
-        var varStores = ReadVarStores(ifr.Operations);
-        var variablesByName = biosDefaultsMap.Variables
+        var varStores = ReadVarStores(ifrOps);
+        var variablesByName = nvarVariableInfos
             .GroupBy(x => x.Name, StringComparer.Ordinal)
             .ToDictionary(x => x.Key, x => x.ToList());
 
         var mappings = new List<BiosDefaultsQuestionMapping>();
-        foreach (var operation in ifr.Operations)
+        foreach (var operation in ifrOps)
         {
             if (!StorageQuestionOpcodes.Contains(operation.Opcode))
                 continue;
@@ -43,7 +41,8 @@ public class BiosDefaultsStoreMapper
             var fields = operation.Fields;
             if (fields.QuestionId is null)
             {
-                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no QuestionId. Skipping", operation.Opcode, operation.Offset);
+                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no QuestionId. Skipping", operation.Opcode,
+                    operation.Offset);
                 continue;
             }
 
@@ -86,40 +85,26 @@ public class BiosDefaultsStoreMapper
         _logger.LogInformation("Created {mappingCount} question mappings; {mappedCount} mapped and {unmappedCount} unmapped",
             mappings.Count, mappedCount, mappings.Count - mappedCount);
 
-        return new BiosDefaultsStoreMapDocument
-        {
-            BiosDefaultsSha256 = biosDefaultsMap.SourceSha256,
-            IfrSha256 = ifr.InputSha256,
-            QuestionMappings = mappings.OrderBy(x => x.QuestionId).ToList(),
-        };
-    }
-
-    private static void ValidateBiosDefaultsMap(BiosDefaultsMapDocument biosDefaultsMap)
-    {
-        if (biosDefaultsMap.Version != BiosDefaultsMapDocument.SupportedVersion ||
-            biosDefaultsMap.Type != BiosDefaultsMapDocument.SupportedType)
-        {
-            throw new ArgumentException(
-                $"Expected {BiosDefaultsMapDocument.SupportedType} version {BiosDefaultsMapDocument.SupportedVersion}",
-                nameof(biosDefaultsMap));
-        }
+        return mappings.OrderBy(x => x.QuestionId).ToList();
     }
 
     private Dictionary<ushort, IfrVarStore> ReadVarStores(IReadOnlyList<IfrOperation> operations)
     {
         var varStores = new Dictionary<ushort, IfrVarStore>();
-        foreach (var operation in operations.Where(x => x.Opcode is "VarStore" or "VarStoreEfi"))
+        foreach (var operation in operations.Where(x => x.Opcode is IfrOpCodes.VarStore or IfrOpCodes.VarStoreEfi))
         {
             var fields = operation.Fields;
             if (fields.VarStoreId is null)
             {
-                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no VarStoreId. Skipping", operation.Opcode, operation.Offset);
+                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no VarStoreId. Skipping",
+                    operation.Opcode, operation.Offset);
                 continue;
             }
 
             if (!TryReadVarStoreName(fields.Name, out var name))
             {
-                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no string VarStore name. Skipping", operation.Opcode, operation.Offset);
+                _logger.LogWarning("IFR {opcode} at 0x{offset:X} has no string VarStore name. Skipping",
+                    operation.Opcode, operation.Offset);
                 continue;
             }
 
@@ -131,7 +116,8 @@ public class BiosDefaultsStoreMapper
         return varStores;
     }
 
-    private static BiosDefaultsQuestionMapping CreateMapping(string opcode, IfrOperationFields fields, string varStoreName)
+    private static BiosDefaultsQuestionMapping CreateMapping(
+        string opcode, IfrOperationFields fields, string varStoreName)
     {
         return new BiosDefaultsQuestionMapping
         {
@@ -146,7 +132,7 @@ public class BiosDefaultsStoreMapper
     private static void ApplyNvarMapping(BiosDefaultsQuestionMapping mapping,
         IReadOnlyList<NvarVariableInfo> candidates, ushort varStoreSize)
     {
-        var sizeMatches = candidates.Where(x => GetNvarDataLength(x) == varStoreSize).ToList();
+        var sizeMatches = candidates.Where(x => x.DataLength == varStoreSize).ToList();
         if (sizeMatches.Count == 0)
         {
             mapping.Status = BiosDefaultsMappingStatus.NvarSizeMismatch;
@@ -166,7 +152,7 @@ public class BiosDefaultsStoreMapper
         }
 
         var nvarVariable = sizeMatches[0];
-        if (mapping.VarStoreOffset + mapping.DataLength.Value > GetNvarDataLength(nvarVariable))
+        if (mapping.VarStoreOffset + mapping.DataLength.Value > nvarVariable.DataLength)
         {
             mapping.Status = BiosDefaultsMappingStatus.NvarRangeExceeded;
             return;
@@ -178,8 +164,7 @@ public class BiosDefaultsStoreMapper
 
     private void LogUnmapped(BiosDefaultsQuestionMapping mapping)
     {
-        _logger.LogWarning(
-            "Could not map IFR question {questionId} ({opcode}) in VarStore {varStore} at offset 0x{offset:X}: {status}",
+        _logger.LogWarning("Could not map IFR question {questionId} ({opcode}) in VarStore {varStore} at offset 0x{offset:X}: {status}",
             mapping.QuestionId, mapping.Opcode, mapping.VarStoreName, mapping.VarStoreOffset, mapping.Status);
     }
 
@@ -195,21 +180,16 @@ public class BiosDefaultsStoreMapper
 
     private static int? GetQuestionDataLength(IfrOperationFields fields)
     {
-        if (fields.Kind == "string" && fields.MaxSize is not null)
+        if (fields is { Kind: "string", MaxSize: not null })
             return fields.MaxSize.Value * sizeof(char);
 
-        if (fields.MinMaxStep is { } minMaxStep && minMaxStep.SizeBits > 0 && minMaxStep.SizeBits % 8 == 0)
+        if (fields.MinMaxStep is { SizeBits: > 0 } minMaxStep && minMaxStep.SizeBits % 8 == 0)
             return minMaxStep.SizeBits / 8;
 
         if (fields.Kind == "checkbox")
             return 1;
 
         return null;
-    }
-
-    private static int GetNvarDataLength(NvarVariableInfo variable)
-    {
-        return variable.RecordOffset + variable.RecordSize - variable.DataOffset;
     }
 
     private sealed record IfrVarStore(string Name, ushort? Size);

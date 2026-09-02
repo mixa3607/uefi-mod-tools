@@ -5,8 +5,9 @@ public class BiosDefaultsStoreMapDocument
     public const int SupportedVersion = 1;
     public const string SupportedType = "AF516361-BiosDefaults-Store-Map";
 
-    public int Version { get; set; } = SupportedVersion;
-    public string Type { get; set; } = SupportedType;
+    public int Version { get; set; } = -1;
+    public string Type { get; set; } = "Unknown";
+
     public required string BiosDefaultsSha256 { get; set; }
     public required string IfrSha256 { get; set; }
     public List<BiosDefaultsQuestionMapping> QuestionMappings { get; set; } = [];

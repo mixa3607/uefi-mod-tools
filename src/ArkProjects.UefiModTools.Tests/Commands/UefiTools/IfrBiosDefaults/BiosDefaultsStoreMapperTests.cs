@@ -9,33 +9,11 @@ namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.IfrBiosDefaults;
 public class BiosDefaultsStoreMapperTests
 {
     [Fact]
-    public void MapCreatesVersionedEmptyStoreMap()
+    public void MapReturnsNoMappingsWithoutStorageQuestions()
     {
-        var biosDefaultsMap = CreateBiosDefaultsMap();
-        var ifr = new IfrJsonDocument
-        {
-            InputSha256 = "ifr-sha256",
-            Operations = [new IfrOperation { Opcode = "VarStore" }],
-        };
+        var mappings = CreateMapper().Map([], [new IfrOperation { Opcode = IfrOpCodes.VarStore }]);
 
-        var result = CreateMapper().Map(biosDefaultsMap, ifr);
-
-        Assert.Equal(BiosDefaultsStoreMapDocument.SupportedVersion, result.Version);
-        Assert.Equal(BiosDefaultsStoreMapDocument.SupportedType, result.Type);
-        Assert.Equal("defaults-sha256", result.BiosDefaultsSha256);
-        Assert.Equal("ifr-sha256", result.IfrSha256);
-        Assert.Empty(result.QuestionMappings);
-    }
-
-    [Fact]
-    public void MapRejectsUnsupportedBiosDefaultsMap()
-    {
-        var biosDefaultsMap = CreateBiosDefaultsMap();
-        biosDefaultsMap.Version = 2;
-
-        var error = Assert.Throws<ArgumentException>(() => CreateMapper().Map(biosDefaultsMap, new IfrJsonDocument()));
-
-        Assert.Equal("Expected AF516361-BiosDefaults-Map version 1 (Parameter 'biosDefaultsMap')", error.Message);
+        Assert.Empty(mappings);
     }
 
     [Fact]
@@ -52,38 +30,35 @@ public class BiosDefaultsStoreMapperTests
                 DataOffset = 8,
             },
         ];
-        var ifr = new IfrJsonDocument
-        {
-            Operations =
-            [
-                new IfrOperation
+        IfrOperation[] ifrOperations =
+        [
+            new IfrOperation
+            {
+                Opcode = IfrOpCodes.VarStore,
+                Fields = new IfrOperationFields
                 {
-                    Opcode = "VarStore",
-                    Fields = new IfrOperationFields
-                    {
-                        VarStoreId = 1,
-                        Name = JsonSerializer.SerializeToElement("Setup"),
-                        Size = 24,
-                    },
+                    VarStoreId = 1,
+                    Name = JsonSerializer.SerializeToElement("Setup"),
+                    Size = 24,
                 },
-                new IfrOperation
+            },
+            new IfrOperation
+            {
+                Opcode = IfrOpCodes.Numeric,
+                Fields = new IfrOperationFields
                 {
-                    Opcode = "Numeric",
-                    Fields = new IfrOperationFields
-                    {
-                        QuestionId = 7,
-                        VarStoreId = 1,
-                        VarOffset = 2,
-                        MinMaxStep = new IfrMinMaxStep { SizeBits = 16 },
-                    },
+                    QuestionId = 7,
+                    VarStoreId = 1,
+                    VarOffset = 2,
+                    MinMaxStep = new IfrMinMaxStep { SizeBits = 16 },
                 },
-            ],
-        };
+            },
+        ];
 
-        var mapping = Assert.Single(CreateMapper().Map(biosDefaultsMap, ifr).QuestionMappings);
+        var mapping = Assert.Single(CreateMapper().Map(biosDefaultsMap.Variables, ifrOperations));
 
         Assert.Equal((ushort)7, mapping.QuestionId);
-        Assert.Equal("Numeric", mapping.Opcode);
+        Assert.Equal(IfrOpCodes.Numeric, mapping.Opcode);
         Assert.Equal("Setup", mapping.VarStoreName);
         Assert.Equal((ushort)2, mapping.VarStoreOffset);
         Assert.Equal(2, mapping.DataLength);

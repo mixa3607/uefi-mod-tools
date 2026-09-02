@@ -8,17 +8,19 @@ public class IfrTreeRenderer
 {
     private static readonly HashSet<string> QuestionOpcodes =
     [
-        "Action", "CheckBox", "Date", "Numeric", "OneOf", "OrderedList", "Password", "Ref", "ResetButton", "String", "Time",
+        IfrOpCodes.Action, IfrOpCodes.CheckBox, IfrOpCodes.Date, IfrOpCodes.Numeric, IfrOpCodes.OneOf,
+        IfrOpCodes.OrderedList, IfrOpCodes.Password, IfrOpCodes.Ref, IfrOpCodes.ResetButton, IfrOpCodes.String,
+        IfrOpCodes.Time,
     ];
 
     private static readonly Dictionary<string, string> ConditionEffects = new()
     {
-        ["SuppressIf"] = "suppress",
-        ["DisableIf"] = "disable",
-        ["GrayOutIf"] = "grayout",
-        ["NoSubmitIf"] = "no_submit",
-        ["InconsistentIf"] = "inconsistent",
-        ["WarningIf"] = "warning",
+        [IfrOpCodes.SuppressIf] = "suppress",
+        [IfrOpCodes.DisableIf] = "disable",
+        [IfrOpCodes.GrayOutIf] = "grayout",
+        [IfrOpCodes.NoSubmitIf] = "no_submit",
+        [IfrOpCodes.InconsistentIf] = "inconsistent",
+        [IfrOpCodes.WarningIf] = "warning",
     };
 
     public IfrRenderDocument Render(IReadOnlyList<IfrOperation> operations,
@@ -31,7 +33,7 @@ public class IfrTreeRenderer
         return new IfrRenderDocument
         {
             Formsets = root.Children
-                .Where(x => x.Operation.Opcode == "FormSet")
+                .Where(x => x.Operation.Opcode == IfrOpCodes.FormSet)
                 .Select(x => BuildFormset(x, setupDataQuestionsByKey))
                 .ToList(),
         };
@@ -48,7 +50,7 @@ public class IfrTreeRenderer
             Title = formset.Operation.Fields.Title,
             Help = formset.Operation.Fields.Help,
             Varstores = formset.Descendants()
-                .Where(x => x.Operation.Opcode is "VarStore" or "VarStoreEfi" or "VarStoreNameValue")
+                .Where(x => x.Operation.Opcode is IfrOpCodes.VarStore or IfrOpCodes.VarStoreEfi or IfrOpCodes.VarStoreNameValue)
                 .Select(x => new IfrRenderVarstore
                 {
                     Id = x.Operation.Fields.VarStoreId,
@@ -60,7 +62,7 @@ public class IfrTreeRenderer
                 })
                 .ToList(),
             Forms = formset.Descendants()
-                .Where(x => x.Operation.Opcode == "Form")
+                .Where(x => x.Operation.Opcode == IfrOpCodes.Form)
                 .Select(x => new IfrRenderForm
                 {
                     NodeType = "form",
@@ -77,7 +79,7 @@ public class IfrTreeRenderer
         IReadOnlyDictionary<(string Type, ushort QuestionId, ushort HelpStringId, ushort PromptStringId), ExtractedAmiSetupDataQuestion> setupDataQuestions)
     {
         return nodes
-            .Where(x => x.Operation.Opcode != "End")
+            .Where(x => x.Operation.Opcode != IfrOpCodes.End)
             .Select(x => RenderNode(x, setupDataQuestions))
             .OfType<IfrRenderNode>()
             .ToList();
@@ -125,7 +127,7 @@ public class IfrTreeRenderer
             Range = operation.Fields.MinMaxStep,
             SetupDataQuestion = FindSetupDataQuestion(operation, setupDataQuestions),
             Options = node.Descendants()
-                .Where(x => x.Operation.Opcode == "OneOfOption")
+                .Where(x => x.Operation.Opcode == IfrOpCodes.OneOfOption)
                 .Select(x => new IfrRenderOption
                 {
                     Text = x.Operation.Fields.Option,
@@ -135,7 +137,7 @@ public class IfrTreeRenderer
                 })
                 .ToList(),
             Defaults = node.Descendants()
-                .Where(x => x.Operation.Opcode == "Default")
+                .Where(x => x.Operation.Opcode == IfrOpCodes.Default)
                 .Select(x => new IfrRenderDefault
                 {
                     Id = x.Operation.Fields.DefaultId,
@@ -178,7 +180,7 @@ public class IfrTreeRenderer
 
         foreach (var operation in operations)
         {
-            if (operation.Opcode == "End")
+            if (operation.Opcode == IfrOpCodes.End)
             {
                 if (stack.Count > 1)
                 {

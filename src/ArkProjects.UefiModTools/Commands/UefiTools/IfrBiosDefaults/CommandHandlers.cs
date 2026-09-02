@@ -43,19 +43,86 @@ public class CommandHandlers
         return 0;
     }
 
-    public int MapStore(string inputFile, string ifrFile, string outputFile)
+    public int MapStore(string inputFile, string ifrFile, string outputFile, bool ignoreVersions)
     {
         var biosDefaultsMap = _jsonSerializer.Deserialize<BiosDefaultsMapDocument>(_fileManager.ReadString(inputFile));
+        ValidateBiosDefaultsMap(biosDefaultsMap, ignoreVersions);
+
         var ifr = _jsonSerializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile));
+        ValidateIfrDocument(ifr, ignoreVersions);
+
         _logger.LogInformation(
             "Read {variableCount} NVAR variables from {inputFile} and {operationCount} IFR operations from {ifrFile}",
             biosDefaultsMap.Variables.Count, inputFile, ifr.Operations.Count, ifrFile);
 
-        var result = _storeMapper.Map(biosDefaultsMap, ifr);
+        var vars = _storeMapper.Map(biosDefaultsMap.Variables, ifr.Operations);
+        var result = new BiosDefaultsStoreMapDocument
+        {
+            Version = BiosDefaultsStoreMapDocument.SupportedVersion,
+            Type = BiosDefaultsStoreMapDocument.SupportedType,
+            BiosDefaultsSha256 = biosDefaultsMap.SourceSha256,
+            IfrSha256 = ifr.InputSha256,
+            QuestionMappings = vars,
+        };
 
         _logger.LogInformation("Writing {mappingCount} BIOS defaults store mappings to {outputFile}",
             result.QuestionMappings.Count, outputFile);
         _fileManager.Write(_jsonSerializer.Serialize(result), outputFile, true);
         return 0;
+    }
+
+    private void ValidateBiosDefaultsMap(BiosDefaultsMapDocument biosDefaultsMap, bool ignoreVersions)
+    {
+        if (biosDefaultsMap.Type != BiosDefaultsMapDocument.SupportedType)
+        {
+            throw new ArgumentException(
+                $"Expected BIOS defaults map type {BiosDefaultsMapDocument.SupportedType}, but got {biosDefaultsMap.Type}. " +
+                "--ignore-versions cannot ignore a different document type.",
+                nameof(biosDefaultsMap));
+        }
+
+        if (biosDefaultsMap.Version == BiosDefaultsMapDocument.SupportedVersion)
+            return;
+
+        if (ignoreVersions)
+        {
+            _logger.LogWarning(
+                "BIOS defaults map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
+                biosDefaultsMap.Version, BiosDefaultsMapDocument.SupportedVersion);
+            return;
+        }
+
+        throw new ArgumentException(
+            $"Expected BIOS defaults map version {BiosDefaultsMapDocument.SupportedVersion}, but got {biosDefaultsMap.Version}. " +
+            "Use --ignore-versions only when the map schema is known to be compatible.",
+            nameof(biosDefaultsMap));
+    }
+
+    private void ValidateIfrDocument(IfrJsonDocument ifr, bool ignoreVersions)
+    {
+        if (ifr.ExtractionMode != "UEFI")
+        {
+            throw new ArgumentException(
+                $"Expected IFR extraction mode UEFI, but got {ifr.ExtractionMode}. " +
+                "--ignore-versions cannot ignore a different extraction mode.",
+                nameof(ifr));
+        }
+
+        const string supportedProgramVersion = "1.6.1";
+        if (ifr.ProgramVersion == supportedProgramVersion)
+            return;
+
+        if (ignoreVersions)
+        {
+            _logger.LogWarning(
+                "IFR extractor version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
+                ifr.ProgramVersion, supportedProgramVersion);
+            return;
+        }
+
+        throw new ArgumentException(
+            $"Expected IFR extractor version {supportedProgramVersion}, but got {ifr.ProgramVersion}. " +
+            "Use --ignore-versions only when the IFR JSON schema is known to be compatible.",
+            nameof(ifr));
     }
 }

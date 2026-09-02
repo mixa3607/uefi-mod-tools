@@ -44,7 +44,7 @@ public sealed class IfrSctPatcher
         Dictionary<int, int> currentOffsets,
         int originalSuppressOffset)
     {
-        var suppressIndex = FindOperation(operations, "SuppressIf", originalSuppressOffset);
+        var suppressIndex = FindOperation(operations, IfrOpCodes.SuppressIf, originalSuppressOffset);
         var suppress = operations[suppressIndex];
 
         if (!suppress.ScopeStart)
@@ -68,8 +68,8 @@ public sealed class IfrSctPatcher
         if (sourceOffset <= destinationOffset)
             throw new InvalidDataException($"SuppressIf at 0x{originalSuppressOffset:X} has an invalid scope layout");
 
-        AssertOpcode(sct, currentOffsets[suppressIndex], SuppressIfOpcode, "SuppressIf");
-        AssertOpcode(sct, sourceOffset, EndOpcode, "End");
+        AssertOpcode(sct, currentOffsets[suppressIndex], SuppressIfOpcode, IfrOpCodes.SuppressIf);
+        AssertOpcode(sct, sourceOffset, EndOpcode, IfrOpCodes.End);
 
         MoveRange(sct, sourceOffset, suppressEnd.Length, destinationOffset);
         UpdateOffsetsAfterMove(currentOffsets, suppressEndIndex, sourceOffset, suppressEnd.Length, destinationOffset);
@@ -102,7 +102,7 @@ public sealed class IfrSctPatcher
             if (operations[index].ScopeStart)
                 openScopes++;
 
-            if (operations[index].Opcode != "End")
+            if (operations[index].Opcode != IfrOpCodes.End)
                 continue;
 
             openScopes--;

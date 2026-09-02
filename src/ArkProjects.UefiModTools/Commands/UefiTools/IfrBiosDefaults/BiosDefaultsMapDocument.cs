@@ -16,11 +16,15 @@ public class BiosDefaultsMapDocument
 public class NvarVariableInfo
 {
     public int ParentRecordOffset { get; set; } = -1;
+
     public required string Name { get; set; }
-    public NvarAttributes Attributes { get; set; }
     public int RecordOffset { get; set; }
-    public int DataOffset { get; set; }
     public int RecordSize { get; set; }
+
+    public NvarAttributes Attributes { get; set; }
+
+    public int DataOffset { get; set; }
+    public int DataLength => RecordOffset + RecordSize - DataOffset;
 }
 
 [Flags]

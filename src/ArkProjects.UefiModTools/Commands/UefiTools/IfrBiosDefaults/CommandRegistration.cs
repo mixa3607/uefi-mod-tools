@@ -53,12 +53,17 @@ public static class CommandRegistration
             Description = "Output BIOS defaults store map JSON file",
             Required = true,
         });
+        var ignoreVersionsOpt = mapStoreCommand.AddOption(new Option<bool>("--ignore-versions")
+        {
+            Description = "Allow unsupported BIOS defaults map and IFR extractor versions",
+        });
 
         mapStoreCommand.SetAction<CommandHandlers>(services,
             (handler, opts) => handler.MapStore(
                 opts.GetRequiredValue(mapInputOpt),
                 opts.GetRequiredValue(ifrOpt),
-                opts.GetRequiredValue(mapOutputOpt)
+                opts.GetRequiredValue(mapOutputOpt),
+                opts.GetValue(ignoreVersionsOpt)
             ));
     }
 }
