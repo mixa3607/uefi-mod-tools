@@ -9,7 +9,8 @@ public sealed class SctPatchApplier
 {
     private static readonly byte[] SuppressIfOpcode = [0x0A, 0x82];
     private static readonly byte[] EndOpcode = [0x29, 0x02];
-    private const int DefaultValueOffset = 6;
+    private const byte DefaultOpcode = 0x5B;
+    private const int DefaultValueOffset = 5;
 
     private readonly ILogger<SctPatchApplier> _logger;
 
@@ -52,8 +53,7 @@ public sealed class SctPatchApplier
         var defaultIndex = FindOperation(operations, IfrOpCodes.Default, patch.Offset);
         var operation = operations[defaultIndex];
         var valueOffset = checked(patch.Offset + DefaultValueOffset);
-        if (valueOffset >= sct.Length)
-            throw new InvalidDataException($"Default at 0x{patch.Offset:X} is outside the SCT input");
+        AssertDefaultHeader(sct, patch.Offset, operation);
 
         var valueType = sct[valueOffset - 1];
         var valueBytes = EncodeValue(patch.Value, valueType);
@@ -62,6 +62,16 @@ public sealed class SctPatchApplier
 
         valueBytes.CopyTo(sct, valueOffset);
         _logger.LogInformation("Patched Default value at original offset 0x{offset:X}", patch.Offset);
+    }
+
+    private static void AssertDefaultHeader(byte[] sct, int offset, IfrOperation operation)
+    {
+        if (operation.Fields.DefaultId is not { } defaultId || offset < 0 || offset + DefaultValueOffset > sct.Length ||
+            sct[offset] != DefaultOpcode || (sct[offset + 1] & 0x7F) != operation.Length ||
+            BinaryPrimitives.ReadUInt16LittleEndian(sct.AsSpan(offset + 2, sizeof(ushort))) != defaultId)
+        {
+            throw new InvalidDataException($"Expected Default opcode at 0x{offset:X}");
+        }
     }
 
     private static byte[] EncodeValue(IfrTypeValue value, byte actualType) => value.Type switch

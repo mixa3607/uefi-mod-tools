@@ -1,5 +1,23 @@
 {
   "version": 1,
   "type": "AMI-IFR-SCT-Patch",
-  "suppressIfPatches": []
+  "suppressIfPatches": [],
+  "defaultValuePatches": [
+    {
+      "apply": true,
+      "offset": 90462,
+      "value": {
+        "type": "u8",
+        "value": 1
+      }
+    },
+    {
+      "apply": true,
+      "offset": 90468,
+      "value": {
+        "type": "u8",
+        "value": 1
+      }
+    }
+  ]
 }
