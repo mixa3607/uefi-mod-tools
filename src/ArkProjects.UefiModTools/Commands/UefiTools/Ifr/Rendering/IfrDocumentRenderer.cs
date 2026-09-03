@@ -116,21 +116,11 @@ public class IfrDocumentRenderer
             Range = operation.Fields.MinMaxStep,
             Options = node.Descendants()
                 .Where(x => x.Operation.Opcode == IfrOpCodes.OneOfOption)
-                .Select(x => new IfrDocumentOption
-                {
-                    Text = x.Operation.Fields.Option,
-                    Value = x.Operation.Fields.Value,
-                    Default = x.Operation.Fields.Default,
-                    ManufacturingDefault = x.Operation.Fields.MfgDefault,
-                })
+                .Select(CreateOption)
                 .ToList(),
             Defaults = node.Descendants()
                 .Where(x => x.Operation.Opcode == IfrOpCodes.Default)
-                .Select(x => new IfrDocumentDefault
-                {
-                    Id = x.Operation.Fields.DefaultId,
-                    Value = x.Operation.Fields.Value,
-                })
+                .Select(CreateDefault)
                 .ToList(),
             Children = RenderNodes(node.Children),
         };
@@ -165,6 +155,20 @@ public class IfrDocumentRenderer
 
         return root;
     }
+    private static IfrDocumentOption CreateOption(ScopeNode node) => new()
+    {
+        Text = node.Operation.Fields.Option,
+        Value = node.Operation.Fields.Value,
+        Default = node.Operation.Fields.Default,
+        ManufacturingDefault = node.Operation.Fields.MfgDefault,
+    };
+
+    private static IfrDocumentDefault CreateDefault(ScopeNode node) => new()
+    {
+        Id = node.Operation.Fields.DefaultId,
+        Value = node.Operation.Fields.Value,
+        Source = CreateSource(node.Operation)
+    };
 
     private static IfrDocumentExpression CreateExpression(ScopeNode node) => new()
     {

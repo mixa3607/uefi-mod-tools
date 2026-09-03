@@ -79,6 +79,7 @@ public class IfrDocumentDefault
 {
     public ushort? Id { get; set; }
     public JsonElement? Value { get; set; }
+    public IfrDocumentSource Source { get; set; } = new();
 }
 
 public class IfrDocumentExpression

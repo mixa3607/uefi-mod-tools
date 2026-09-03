@@ -1,5 +1,6 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
+using System.Buffers.Binary;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 
@@ -8,6 +9,7 @@ public sealed class SctPatchApplier
 {
     private static readonly byte[] SuppressIfOpcode = [0x0A, 0x82];
     private static readonly byte[] EndOpcode = [0x29, 0x02];
+    private const int DefaultValueOffset = 6;
 
     private readonly ILogger<SctPatchApplier> _logger;
 
@@ -18,8 +20,15 @@ public sealed class SctPatchApplier
 
     public void Apply(byte[] sct, IReadOnlyList<IfrOperation> operations, SctPatchDocument patches)
     {
+        var defaultOffsets = patches.DefaultValuePatches.Where(x => x.Apply).Select(x => x.Offset).ToList();
+        if (defaultOffsets.Count != defaultOffsets.Distinct().Count())
+            throw new ArgumentException("Default value patch offsets must be unique", nameof(patches));
+
+        foreach (var patch in patches.DefaultValuePatches.Where(x => x.Apply))
+            ApplyDefaultValue(sct, operations, patch);
+
         var offsets = patches.SuppressIfPatches
-            .Where(x => x.Disable)
+            .Where(x => x.Apply)
             .Select(x => x.Offset)
             .ToList();
 
@@ -37,6 +46,53 @@ public sealed class SctPatchApplier
             ApplyDisableSuppressIf(sct, operations, currentOffsets, suppressOffset);
         }
     }
+
+    private void ApplyDefaultValue(byte[] sct, IReadOnlyList<IfrOperation> operations, DefaultValuePatch patch)
+    {
+        var defaultIndex = FindOperation(operations, IfrOpCodes.Default, patch.Offset);
+        var operation = operations[defaultIndex];
+        var valueOffset = checked(patch.Offset + DefaultValueOffset);
+        if (valueOffset >= sct.Length)
+            throw new InvalidDataException($"Default at 0x{patch.Offset:X} is outside the SCT input");
+
+        var valueType = sct[valueOffset - 1];
+        var valueBytes = EncodeValue(patch.Value, valueType);
+        if (valueOffset + valueBytes.Length > patch.Offset + operation.Length || valueOffset + valueBytes.Length > sct.Length)
+            throw new InvalidDataException($"Default at 0x{patch.Offset:X} does not have space for a {patch.Value.Type} value");
+
+        valueBytes.CopyTo(sct, valueOffset);
+        _logger.LogInformation("Patched Default value at original offset 0x{offset:X}", patch.Offset);
+    }
+
+    private static byte[] EncodeValue(IfrTypeValue value, byte actualType) => value.Type switch
+    {
+        "u8" when actualType == 0x00 => [ReadNumber<byte>(value)],
+        "u16" when actualType == 0x01 => WriteUInt16(ReadNumber<ushort>(value)),
+        "u32" when actualType == 0x02 => WriteUInt32(ReadNumber<uint>(value)),
+        "u64" when actualType == 0x03 => WriteUInt64(ReadNumber<ulong>(value)),
+        "bool" when actualType == 0x04 => [ReadBoolean(value) ? (byte)1 : (byte)0],
+        _ => throw new ArgumentException($"Default value type '{value.Type}' does not match the IFR value type 0x{actualType:X2}"),
+    };
+
+    private static T ReadNumber<T>(IfrTypeValue value) where T : struct, IConvertible
+    {
+        if (value.Value is not { ValueKind: System.Text.Json.JsonValueKind.Number } number)
+            throw new ArgumentException($"Default value type '{value.Type}' requires a number");
+
+        return (T)Convert.ChangeType(number.GetDecimal(), typeof(T), System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static bool ReadBoolean(IfrTypeValue value)
+    {
+        if (value.Value is not { ValueKind: System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False } boolean)
+            throw new ArgumentException("Default value type 'bool' requires a boolean");
+
+        return boolean.GetBoolean();
+    }
+
+    private static byte[] WriteUInt16(ushort value) { var bytes = new byte[2]; BinaryPrimitives.WriteUInt16LittleEndian(bytes, value); return bytes; }
+    private static byte[] WriteUInt32(uint value) { var bytes = new byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(bytes, value); return bytes; }
+    private static byte[] WriteUInt64(ulong value) { var bytes = new byte[8]; BinaryPrimitives.WriteUInt64LittleEndian(bytes, value); return bytes; }
 
     private void ApplyDisableSuppressIf(
         byte[] sct,

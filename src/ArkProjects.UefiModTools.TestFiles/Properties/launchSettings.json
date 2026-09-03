@@ -1,5 +1,15 @@
 {
   "profiles": {
+    "uefi uefi ifr render [Platform]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr render -s test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/Platform_setup.sct.render.json",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "uefi uefi ifr render [FpgaSocketSetup]": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi ifr render -s test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/FpgaSocketSetup/FpgaSocketSetup_setup.sct.render.json",
+      "workingDirectory": "$(ProjectDir)"
+    },
     "uefi setup-data map-ifr [Platform]": {
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uefi setup-data map-ifr -i test-files/ifr/SetupData_body.bin --ifr test-files/ifr/Platform/Platform_setup.sct.0.0.uefi.ifr.json -o test-files/ifr/Platform/SetupData.map.json",
