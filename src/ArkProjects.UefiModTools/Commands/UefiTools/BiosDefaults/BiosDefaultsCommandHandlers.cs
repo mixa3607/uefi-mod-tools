@@ -77,7 +77,8 @@ public class BiosDefaultsCommandHandlers
         return 0;
     }
 
-    public int ApplyPatch(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions)
+    public int ApplyPatch(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions,
+        bool ignoreChecksums)
     {
         var biosDefaults = _fileManager.ReadBytes(inputFile);
         var storeMap = _jsonSerializer.Deserialize<BiosDefaultsIfrMapDocument>(_fileManager.ReadString(mapFile));
@@ -86,8 +87,10 @@ public class BiosDefaultsCommandHandlers
         ValidateStorePatch(patch, ignoreVersions);
 
         var inputSha256 = Convert.ToHexString(SHA256.HashData(biosDefaults)).ToLowerInvariant();
-        if (!string.Equals(inputSha256, storeMap.BiosDefaultsSha256, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(inputSha256, storeMap.BiosDefaultsSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
             throw new ArgumentException("BIOS defaults input does not match the store map source hash", nameof(inputFile));
+        if (!string.Equals(inputSha256, storeMap.BiosDefaultsSha256, StringComparison.OrdinalIgnoreCase))
+            _logger.LogWarning("BIOS defaults input does not match the store map source hash; continuing because --ignore-checksums was specified");
 
         _logger.LogInformation("Applying {patchCount} NVAR question patches from {patchFile}", patch.VarPatches.Count, patchFile);
         _patchApplier.Apply(biosDefaults, storeMap, patch.VarPatches);

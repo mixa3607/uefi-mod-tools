@@ -76,6 +76,10 @@ public static class SetupDataCommandRegistration
         {
             Description = "Allow unsupported SetupData map and patch versions",
         });
+        var ignoreChecksumsOpt = command.AddOption(new Option<bool>("--ignore-checksums")
+        {
+            Description = "Allow a SetupData input that does not match the map source hash",
+        });
 
         command.SetAction<SetupDataCommandHandlers>(services,
             (handler, opts) => handler.PatchSetupData(
@@ -83,7 +87,8 @@ public static class SetupDataCommandRegistration
                 opts.GetRequiredValue(mapOpt),
                 opts.GetRequiredValue(patchOpt),
                 opts.GetRequiredValue(outputOpt),
-                opts.GetValue(ignoreVersionsOpt)
+                opts.GetValue(ignoreVersionsOpt),
+                opts.GetValue(ignoreChecksumsOpt)
             ));
     }
 

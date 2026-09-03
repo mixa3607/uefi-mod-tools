@@ -97,6 +97,10 @@ public static class BiosDefaultsCommandRegistration
         {
             Description = "Allow unsupported BIOS defaults store map and patch versions",
         });
+        var ignoreChecksumsOpt = applyPatchCommand.AddOption(new Option<bool>("--ignore-checksums")
+        {
+            Description = "Allow a BIOS defaults input that does not match the map source hash",
+        });
 
         applyPatchCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.ApplyPatch(
@@ -104,7 +108,8 @@ public static class BiosDefaultsCommandRegistration
                 opts.GetRequiredValue(storeMapOpt),
                 opts.GetRequiredValue(patchOpt),
                 opts.GetRequiredValue(patchOutputOpt),
-                opts.GetValue(ignorePatchVersionsOpt)
+                opts.GetValue(ignorePatchVersionsOpt),
+                opts.GetValue(ignoreChecksumsOpt)
             ));
     }
 }

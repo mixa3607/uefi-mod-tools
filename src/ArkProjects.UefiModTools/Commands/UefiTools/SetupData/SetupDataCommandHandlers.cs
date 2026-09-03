@@ -48,7 +48,8 @@ public class SetupDataCommandHandlers
         return 0;
     }
 
-    public int PatchSetupData(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions)
+    public int PatchSetupData(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions,
+        bool ignoreChecksums)
     {
         var setupData = _fileManager.ReadBytes(inputFile);
         var map = _jsonSerializer.Deserialize<SetupDataMapDocument>(_fileManager.ReadString(mapFile));
@@ -57,8 +58,10 @@ public class SetupDataCommandHandlers
         ValidatePatch(patch, ignoreVersions);
 
         var setupDataSha256 = setupData.GetSha256String();
-        if (!string.Equals(setupDataSha256, map.SetupDataSha256, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(setupDataSha256, map.SetupDataSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
             throw new ArgumentException("SetupData input does not match the map source hash", nameof(inputFile));
+        if (!string.Equals(setupDataSha256, map.SetupDataSha256, StringComparison.OrdinalIgnoreCase))
+            _logger.LogWarning("SetupData input does not match the map source hash; continuing because --ignore-checksums was specified");
 
         _logger.LogInformation("Read {setupDataSize} bytes of SetupData, {questionCount} mapped questions, and {patchCount} patches",
             setupData.Length, map.Questions.Count, patch.Questions.Count);
