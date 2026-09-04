@@ -67,7 +67,7 @@ Create a patch document with the mapped question IDs and their new values:
 ```json
 {
   "version": 1,
-  "type": "AF516361-BiosDefaults-Store-Patch",
+  "type": "BiosDefaults-Store-Patch",
   "varPatches": [
     {
       "id": "0001-Setup-0012-000004FA",

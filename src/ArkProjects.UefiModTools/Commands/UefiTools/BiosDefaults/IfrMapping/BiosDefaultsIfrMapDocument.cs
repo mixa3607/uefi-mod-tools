@@ -3,7 +3,7 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
 public class BiosDefaultsIfrMapDocument
 {
     public const int SupportedVersion = 2;
-    public const string SupportedType = "AF516361-BiosDefaults-Store-Map";
+    public const string SupportedType = "BiosDefaults-Store-Map";
 
     public int Version { get; set; } = -1;
     public string Type { get; set; } = "Unknown";

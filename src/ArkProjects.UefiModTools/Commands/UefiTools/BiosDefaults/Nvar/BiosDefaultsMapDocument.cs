@@ -3,7 +3,7 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 public class BiosDefaultsMapDocument
 {
     public const int SupportedVersion = 2;
-    public const string SupportedType = "AF516361-BiosDefaults-Map";
+    public const string SupportedType = "BiosDefaults-Map";
 
     public int Version { get; set; } = -1;
     public string Type { get; set; } = "Unknown";

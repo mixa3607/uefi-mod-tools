@@ -18,6 +18,7 @@ public class DisableSuppressIfPatch
 {
     public bool Apply { get; set; }
     public int Offset { get; set; }
+    public string? Comment { get; set; }
 }
 
 public class DefaultValuePatch
@@ -26,6 +27,7 @@ public class DefaultValuePatch
 
     public int Offset { get; set; }
     public required IfrTypeValue Value { get; set; }
+    public string? Comment { get; set; }
 }
 
 public class OneOfOptionDefaultPatch

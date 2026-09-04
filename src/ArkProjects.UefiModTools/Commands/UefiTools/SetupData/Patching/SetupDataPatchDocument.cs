@@ -16,4 +16,5 @@ public class SetupDataQuestionPatch
     public byte? AccessLevel { get; set; }
     public byte? Failsafe { get; set; }
     public byte? Optimal { get; set; }
+    public string? Comment { get; set; }
 }
