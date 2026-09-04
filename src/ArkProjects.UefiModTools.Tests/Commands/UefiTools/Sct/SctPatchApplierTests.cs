@@ -48,6 +48,27 @@ public class SctPatchApplierTests
         Assert.Equal((byte)1, sct[5]);
     }
 
+    [Fact]
+    public void ApplyUpdatesOneOfOptionDefaultFlags()
+    {
+        var sct = new byte[] { 0x09, 0x07, 0x44, 0x08, 0x30, 0, 2 };
+        IfrOperation[] operations =
+        [
+            new IfrOperation { Opcode = IfrOpCodes.OneOfOption, Offset = 0, Length = 7 },
+        ];
+        var patch = new SctPatchDocument
+        {
+            OneOfOptionDefaultPatches =
+            [
+                new OneOfOptionDefaultPatch { Apply = true, Offset = 0, Default = false, ManufacturingDefault = false },
+            ],
+        };
+
+        CreateApplier().Apply(sct, operations, patch);
+
+        Assert.Equal((byte)0, sct[4]);
+    }
+
     [Theory]
     [InlineData("u16", 0x01, 0x1234, 7, "3412")]
     [InlineData("u32", 0x02, 0x12345678, 9, "78563412")]

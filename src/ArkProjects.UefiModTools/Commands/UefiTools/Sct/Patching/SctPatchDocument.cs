@@ -11,6 +11,7 @@ public class SctPatchDocument
     public string Type { get; set; } = "Unknown";
     public List<DisableSuppressIfPatch> SuppressIfPatches { get; set; } = [];
     public List<DefaultValuePatch> DefaultValuePatches { get; set; } = [];
+    public List<OneOfOptionDefaultPatch> OneOfOptionDefaultPatches { get; set; } = [];
 }
 
 public class DisableSuppressIfPatch
@@ -25,4 +26,12 @@ public class DefaultValuePatch
 
     public int Offset { get; set; }
     public required IfrTypeValue Value { get; set; }
+}
+
+public class OneOfOptionDefaultPatch
+{
+    public bool Apply { get; set; }
+    public int Offset { get; set; }
+    public bool Default { get; set; }
+    public bool ManufacturingDefault { get; set; }
 }

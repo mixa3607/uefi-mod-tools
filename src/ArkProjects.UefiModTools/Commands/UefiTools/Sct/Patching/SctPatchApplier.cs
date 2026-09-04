@@ -10,7 +10,11 @@ public sealed class SctPatchApplier
     private static readonly byte[] SuppressIfOpcode = [0x0A, 0x82];
     private static readonly byte[] EndOpcode = [0x29, 0x02];
     private const byte DefaultOpcode = 0x5B;
+    private const byte OneOfOptionOpcode = 0x09;
     private const int DefaultValueOffset = 5;
+    private const int OneOfOptionFlagsOffset = 4;
+    private const byte DefaultFlag = 0x10;
+    private const byte ManufacturingDefaultFlag = 0x20;
 
     private readonly ILogger<SctPatchApplier> _logger;
 
@@ -27,6 +31,13 @@ public sealed class SctPatchApplier
 
         foreach (var patch in patches.DefaultValuePatches.Where(x => x.Apply))
             ApplyDefaultValue(sct, operations, patch);
+
+        var oneOfOptionOffsets = patches.OneOfOptionDefaultPatches.Where(x => x.Apply).Select(x => x.Offset).ToList();
+        if (oneOfOptionOffsets.Count != oneOfOptionOffsets.Distinct().Count())
+            throw new ArgumentException("OneOf option default patch offsets must be unique", nameof(patches));
+
+        foreach (var patch in patches.OneOfOptionDefaultPatches.Where(x => x.Apply))
+            ApplyOneOfOptionDefault(sct, operations, patch);
 
         var offsets = patches.SuppressIfPatches
             .Where(x => x.Apply)
@@ -72,6 +83,26 @@ public sealed class SctPatchApplier
         {
             throw new InvalidDataException($"Expected Default opcode at 0x{offset:X}");
         }
+    }
+
+    private void ApplyOneOfOptionDefault(byte[] sct, IReadOnlyList<IfrOperation> operations, OneOfOptionDefaultPatch patch)
+    {
+        var optionIndex = FindOperation(operations, IfrOpCodes.OneOfOption, patch.Offset);
+        var operation = operations[optionIndex];
+        var flagsOffset = checked(patch.Offset + OneOfOptionFlagsOffset);
+        if (patch.Offset < 0 || flagsOffset >= sct.Length || sct[patch.Offset] != OneOfOptionOpcode ||
+            (sct[patch.Offset + 1] & 0x7F) != operation.Length)
+        {
+            throw new InvalidDataException($"Expected OneOfOption opcode at 0x{patch.Offset:X}");
+        }
+
+        var flags = (byte)(sct[flagsOffset] & ~(DefaultFlag | ManufacturingDefaultFlag));
+        if (patch.Default)
+            flags |= DefaultFlag;
+        if (patch.ManufacturingDefault)
+            flags |= ManufacturingDefaultFlag;
+        sct[flagsOffset] = flags;
+        _logger.LogInformation("Patched OneOfOption defaults at original offset 0x{offset:X}", patch.Offset);
     }
 
     private static byte[] EncodeValue(IfrTypeValue value, byte actualType) => value.Type switch
