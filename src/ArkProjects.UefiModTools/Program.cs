@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -45,6 +46,7 @@ public class Program
             .AddSingleton<IJsonSerializationService, JsonSerializationService>()
             .AddSingleton<ISerializationService, SerializationService>()
             .AddSingleton<ICommandFileManager, CommandFileManager>()
+            .AddSingleton<IManifestVersionVerifier, ManifestVersionVerifier>()
             ;
 
         // exec

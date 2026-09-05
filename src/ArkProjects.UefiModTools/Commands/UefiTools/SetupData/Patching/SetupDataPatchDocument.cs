@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Services.ManifestVer;
+
 namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Patching;
 
-public class SetupDataPatchDocument
+public class SetupDataPatchDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "AMI-SetupData-Patch";

@@ -1,8 +1,9 @@
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
 
-public class FitPatchDocument
+public class FitPatchDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "FIT-Patch";

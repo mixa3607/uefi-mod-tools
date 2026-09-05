@@ -1,6 +1,7 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Services.Serialization;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using Microsoft.Extensions.Logging;
 using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
@@ -13,15 +14,18 @@ public class SetupDataCommandHandlers
     private readonly ILogger<SetupDataCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
     private readonly ISerializationService _serializer;
+    private readonly IManifestVersionVerifier _manifestVersionVerifier;
     private readonly SetupDataIfrMapper _setupDataIfrMapper;
     private readonly SetupDataPatchApplier _patchApplier;
 
     public SetupDataCommandHandlers(ILogger<SetupDataCommandHandlers> logger, ICommandFileManager fileManager,
-        ISerializationService serializer, SetupDataIfrMapper setupDataIfrMapper, SetupDataPatchApplier patchApplier)
+        ISerializationService serializer, SetupDataIfrMapper setupDataIfrMapper, SetupDataPatchApplier patchApplier,
+        IManifestVersionVerifier manifestVersionVerifier)
     {
         _logger = logger;
         _fileManager = fileManager;
         _serializer = serializer;
+        _manifestVersionVerifier = manifestVersionVerifier;
         _setupDataIfrMapper = setupDataIfrMapper;
         _patchApplier = patchApplier;
     }
@@ -55,8 +59,10 @@ public class SetupDataCommandHandlers
         var setupData = _fileManager.ReadBytes(inputFile);
         var map = _serializer.Deserialize<SetupDataMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
         var patch = _serializer.Deserialize<SetupDataPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
-        ValidateMap(map, ignoreVersions);
-        ValidatePatch(patch, ignoreVersions);
+        _manifestVersionVerifier.Verify(map, "SetupData map", SetupDataMapDocument.SupportedType, ignoreVersions,
+            SetupDataMapDocument.SupportedVersion);
+        _manifestVersionVerifier.Verify(patch, "SetupData patch", SetupDataPatchDocument.SupportedType, ignoreVersions,
+            SetupDataPatchDocument.SupportedVersion);
 
         var setupDataSha256 = setupData.GetSha256String();
         if (!string.Equals(setupDataSha256, map.SetupDataSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
@@ -74,49 +80,4 @@ public class SetupDataCommandHandlers
         return 0;
     }
 
-    private void ValidateMap(SetupDataMapDocument map, bool ignoreVersions)
-    {
-        if (map.Type != SetupDataMapDocument.SupportedType)
-            throw new ArgumentException(
-                $"Expected SetupData map type {SetupDataMapDocument.SupportedType}, but got {map.Type}. " +
-                "--ignore-versions cannot ignore a different document type.", nameof(map));
-
-        if (map.Version == SetupDataMapDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "SetupData map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                map.Version, SetupDataMapDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected SetupData map version {SetupDataMapDocument.SupportedVersion}, but got {map.Version}. " +
-            "Use --ignore-versions only when the map schema is known to be compatible.", nameof(map));
-    }
-
-    private void ValidatePatch(SetupDataPatchDocument patch, bool ignoreVersions)
-    {
-        if (patch.Type != SetupDataPatchDocument.SupportedType)
-            throw new ArgumentException(
-                $"Expected SetupData patch type {SetupDataPatchDocument.SupportedType}, but got {patch.Type}. " +
-                "--ignore-versions cannot ignore a different document type.", nameof(patch));
-
-        if (patch.Version == SetupDataPatchDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "SetupData patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                patch.Version, SetupDataPatchDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected SetupData patch version {SetupDataPatchDocument.SupportedVersion}, but got {patch.Version}. " +
-            "Use --ignore-versions only when the patch schema is known to be compatible.", nameof(patch));
-    }
 }

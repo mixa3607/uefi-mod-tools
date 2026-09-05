@@ -1,5 +1,6 @@
 using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Services.Serialization;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
@@ -14,17 +15,19 @@ public class BiosDefaultsCommandHandlers
     private readonly ILogger<BiosDefaultsCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
     private readonly ISerializationService _serializer;
+    private readonly IManifestVersionVerifier _manifestVersionVerifier;
     private readonly NvarMapExtractor _extractor;
     private readonly BiosDefaultsIfrMapper _ifrMapper;
     private readonly BiosDefaultsPatchApplier _patchApplier;
 
     public BiosDefaultsCommandHandlers(ILogger<BiosDefaultsCommandHandlers> logger, ICommandFileManager fileManager,
         ISerializationService serializer, NvarMapExtractor extractor, BiosDefaultsIfrMapper ifrMapper,
-        BiosDefaultsPatchApplier patchApplier)
+        BiosDefaultsPatchApplier patchApplier, IManifestVersionVerifier manifestVersionVerifier)
     {
         _logger = logger;
         _fileManager = fileManager;
         _serializer = serializer;
+        _manifestVersionVerifier = manifestVersionVerifier;
         _extractor = extractor;
         _ifrMapper = ifrMapper;
         _patchApplier = patchApplier;
@@ -53,7 +56,8 @@ public class BiosDefaultsCommandHandlers
     public int MapStore(string inputFile, string ifrFile, string outputFile, SerializationFormat outputFormat, bool ignoreVersions)
     {
         var biosDefaultsMap = _serializer.Deserialize<BiosDefaultsMapDocument>(_fileManager.ReadString(inputFile), SerializationFormat.Auto);
-        ValidateBiosDefaultsMap(biosDefaultsMap, ignoreVersions);
+        _manifestVersionVerifier.Verify(biosDefaultsMap, "BIOS defaults map", BiosDefaultsMapDocument.SupportedType,
+            ignoreVersions, BiosDefaultsMapDocument.SupportedVersion);
 
         var ifr = _serializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile), SerializationFormat.Auto);
         ValidateIfrDocument(ifr, ignoreVersions);
@@ -84,8 +88,10 @@ public class BiosDefaultsCommandHandlers
         var biosDefaults = _fileManager.ReadBytes(inputFile);
         var storeMap = _serializer.Deserialize<BiosDefaultsIfrMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
         var patch = _serializer.Deserialize<BiosDefaultsPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
-        ValidateStoreMap(storeMap, ignoreVersions);
-        ValidateStorePatch(patch, ignoreVersions);
+        _manifestVersionVerifier.Verify(storeMap, "BIOS defaults store map", BiosDefaultsIfrMapDocument.SupportedType,
+            ignoreVersions, BiosDefaultsIfrMapDocument.SupportedVersion);
+        _manifestVersionVerifier.Verify(patch, "BIOS defaults store patch", BiosDefaultsPatchDocument.SupportedType,
+            ignoreVersions, BiosDefaultsPatchDocument.SupportedVersion);
 
         var inputSha256 = Convert.ToHexString(SHA256.HashData(biosDefaults)).ToLowerInvariant();
         if (!string.Equals(inputSha256, storeMap.BiosDefaultsSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
@@ -98,33 +104,6 @@ public class BiosDefaultsCommandHandlers
         _logger.LogInformation("Writing patched BIOS defaults to {outputFile}", outputFile);
         _fileManager.Write(biosDefaults, outputFile, true);
         return 0;
-    }
-
-    private void ValidateBiosDefaultsMap(BiosDefaultsMapDocument biosDefaultsMap, bool ignoreVersions)
-    {
-        if (biosDefaultsMap.Type != BiosDefaultsMapDocument.SupportedType)
-        {
-            throw new ArgumentException(
-                $"Expected BIOS defaults map type {BiosDefaultsMapDocument.SupportedType}, but got {biosDefaultsMap.Type}. " +
-                "--ignore-versions cannot ignore a different document type.",
-                nameof(biosDefaultsMap));
-        }
-
-        if (biosDefaultsMap.Version == BiosDefaultsMapDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "BIOS defaults map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                biosDefaultsMap.Version, BiosDefaultsMapDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected BIOS defaults map version {BiosDefaultsMapDocument.SupportedVersion}, but got {biosDefaultsMap.Version}. " +
-            "Use --ignore-versions only when the map schema is known to be compatible.",
-            nameof(biosDefaultsMap));
     }
 
     private void ValidateIfrDocument(IfrJsonDocument ifr, bool ignoreVersions)
@@ -155,57 +134,4 @@ public class BiosDefaultsCommandHandlers
             nameof(ifr));
     }
 
-    private void ValidateStoreMap(BiosDefaultsIfrMapDocument storeMap, bool ignoreVersions)
-    {
-        if (storeMap.Type != BiosDefaultsIfrMapDocument.SupportedType)
-        {
-            throw new ArgumentException(
-                $"Expected BIOS defaults store map type {BiosDefaultsIfrMapDocument.SupportedType}, but got {storeMap.Type}. " +
-                "--ignore-versions cannot ignore a different document type.",
-                nameof(storeMap));
-        }
-
-        if (storeMap.Version == BiosDefaultsIfrMapDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "BIOS defaults store map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                storeMap.Version, BiosDefaultsIfrMapDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected BIOS defaults store map version {BiosDefaultsIfrMapDocument.SupportedVersion}, but got {storeMap.Version}. " +
-            "Use --ignore-versions only when the map schema is known to be compatible.",
-            nameof(storeMap));
-    }
-
-    private void ValidateStorePatch(BiosDefaultsPatchDocument patch, bool ignoreVersions)
-    {
-        if (patch.Type != BiosDefaultsPatchDocument.SupportedType)
-        {
-            throw new ArgumentException(
-                $"Expected BIOS defaults store patch type {BiosDefaultsPatchDocument.SupportedType}, but got {patch.Type}. " +
-                "--ignore-versions cannot ignore a different document type.",
-                nameof(patch));
-        }
-
-        if (patch.Version == BiosDefaultsPatchDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "BIOS defaults store patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                patch.Version, BiosDefaultsPatchDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected BIOS defaults store patch version {BiosDefaultsPatchDocument.SupportedVersion}, but got {patch.Version}. " +
-            "Use --ignore-versions only when the patch schema is known to be compatible.",
-            nameof(patch));
-    }
 }

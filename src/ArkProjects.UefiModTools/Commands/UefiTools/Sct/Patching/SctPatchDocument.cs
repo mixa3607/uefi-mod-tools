@@ -1,8 +1,9 @@
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 
 using ArkProjects.UefiModTools.Ifr.Structures;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 
-public class SctPatchDocument
+public class SctPatchDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "AMI-IFR-SCT-Patch";

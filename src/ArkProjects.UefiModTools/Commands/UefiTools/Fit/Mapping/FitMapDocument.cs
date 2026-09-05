@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using ArkProjects.UefiModTools.Utils;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
 
-public class FitMapDocument
+public class FitMapDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "FIT-Map";

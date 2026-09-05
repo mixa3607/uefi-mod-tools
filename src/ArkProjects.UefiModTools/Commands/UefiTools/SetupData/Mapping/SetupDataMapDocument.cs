@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Services.ManifestVer;
+
 namespace ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
 
-public class SetupDataMapDocument
+public class SetupDataMapDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "AMI-SetupData-IFR-Map";

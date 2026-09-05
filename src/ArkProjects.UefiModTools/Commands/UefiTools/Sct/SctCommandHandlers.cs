@@ -1,6 +1,7 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
 using ArkProjects.UefiModTools.Services.Serialization;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using Microsoft.Extensions.Logging;
 using ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 
@@ -11,14 +12,16 @@ public class SctCommandHandlers
     private readonly ILogger<SctCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
     private readonly ISerializationService _serializer;
+    private readonly IManifestVersionVerifier _manifestVersionVerifier;
     private readonly SctPatchApplier _patchApplier;
 
     public SctCommandHandlers(ILogger<SctCommandHandlers> logger, ICommandFileManager fileManager,
-        ISerializationService serializer, SctPatchApplier patchApplier)
+        ISerializationService serializer, SctPatchApplier patchApplier, IManifestVersionVerifier manifestVersionVerifier)
     {
         _logger = logger;
         _fileManager = fileManager;
         _serializer = serializer;
+        _manifestVersionVerifier = manifestVersionVerifier;
         _patchApplier = patchApplier;
     }
 
@@ -28,7 +31,8 @@ public class SctCommandHandlers
         var ifr = _serializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile), SerializationFormat.Auto);
         var patch = _serializer.Deserialize<SctPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateIfrDocument(ifr, ignoreVersions);
-        ValidatePatch(patch, ignoreVersions);
+        _manifestVersionVerifier.Verify(patch, "SCT patch", SctPatchDocument.SupportedType, ignoreVersions,
+            SctPatchDocument.SupportedVersion);
         _logger.LogInformation(
             "Read {sctSize} bytes of {inputFile}, {operationCount} IFR operations, and patch version {patchVersion}",
             sct.Length, inputFile, ifr.Operations.Count, patch.Version);
@@ -38,29 +42,6 @@ public class SctCommandHandlers
         _logger.LogInformation("Writing Platform_setup.sct to {outputFile}", outputFile);
         _fileManager.Write(sct.ToArray(), outputFile, true);
         return 0;
-    }
-
-    private void ValidatePatch(SctPatchDocument patch, bool ignoreVersions)
-    {
-        if (patch.Type != SctPatchDocument.SupportedType)
-            throw new ArgumentException(
-                $"Expected SCT patch type {SctPatchDocument.SupportedType}, but got {patch.Type}. " +
-                "--ignore-versions cannot ignore a different document type.", nameof(patch));
-
-        if (patch.Version == SctPatchDocument.SupportedVersion)
-            return;
-
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "SCT patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                patch.Version, SctPatchDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected SCT patch version {SctPatchDocument.SupportedVersion}, but got {patch.Version}. " +
-            "Use --ignore-versions only when the patch schema is known to be compatible.", nameof(patch));
     }
 
     private void ValidateIfrDocument(IfrJsonDocument ifr, bool ignoreVersions)

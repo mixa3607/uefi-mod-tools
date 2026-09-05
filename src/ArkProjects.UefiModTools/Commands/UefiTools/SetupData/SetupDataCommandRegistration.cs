@@ -74,14 +74,10 @@ public static class SetupDataCommandRegistration
             Description = "Output SetupData binary file",
             Required = true,
         });
-        var ignoreVersionsOpt = command.AddOption(new Option<bool>("--ignore-versions")
-        {
-            Description = "Allow unsupported SetupData map and patch versions",
-        });
-        var ignoreChecksumsOpt = command.AddOption(new Option<bool>("--ignore-checksums")
-        {
-            Description = "Allow a SetupData input that does not match the map source hash",
-        });
+        var ignoreVersionsOpt = command.AddIgnoreVersionsOption(
+            description: "Allow unsupported SetupData map and patch versions");
+        var ignoreChecksumsOpt = command.AddIgnoreChecksumsOption(
+            description: "Allow a SetupData input that does not match the map source hash");
 
         command.SetAction<SetupDataCommandHandlers>(services,
             (handler, opts) => handler.PatchSetupData(

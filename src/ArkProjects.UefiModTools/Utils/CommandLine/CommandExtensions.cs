@@ -81,5 +81,29 @@ public static class CommandExtensions
                 }
             });
         }
+
+        public Option<bool> AddIgnoreVersionsOption(string? optionName = null, string? description = null)
+        {
+            optionName ??= "--ignore-versions";
+            description ??= "Allow unsupported manifest versions";
+            return command.AddOption(new Option<bool>(optionName)
+            {
+                Description = description,
+                Required = false,
+                DefaultValueFactory = r => false
+            });
+        }
+
+        public Option<bool> AddIgnoreChecksumsOption(string? optionName = null, string? description = null)
+        {
+            optionName ??= "--ignore-checksums";
+            description ??= "Allow input that does not match source hash";
+            return command.AddOption(new Option<bool>(optionName)
+            {
+                Description = description,
+                Required = false,
+                DefaultValueFactory = r => false
+            });
+        }
     }
 }

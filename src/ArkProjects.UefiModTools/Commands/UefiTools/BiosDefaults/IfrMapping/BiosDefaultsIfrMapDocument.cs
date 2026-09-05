@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Services.ManifestVer;
+
 namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.IfrMapping;
 
-public class BiosDefaultsIfrMapDocument
+public class BiosDefaultsIfrMapDocument : IVersionedManifest
 {
     public const int SupportedVersion = 2;
     public const string SupportedType = "BiosDefaults-Store-Map";

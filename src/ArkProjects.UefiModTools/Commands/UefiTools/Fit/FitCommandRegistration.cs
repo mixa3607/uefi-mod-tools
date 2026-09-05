@@ -4,7 +4,6 @@ using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
-using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
@@ -39,6 +38,7 @@ public static class FitCommandRegistration
             Required = true,
         });
         var outputFormatOpt = command.AddFileFormatOption(outputOpt);
+
         command.SetAction<FitCommandHandlers>(services,
             (handler, opts) => handler.Map(
                 opts.GetRequiredValue(inputOpt),
@@ -70,14 +70,8 @@ public static class FitCommandRegistration
             Description = "Output FIT binary file",
             Required = true,
         });
-        var ignoreVersionsOpt = command.AddOption(new Option<bool>("--ignore-versions")
-        {
-            Description = "Allow unsupported FIT map and patch versions",
-        });
-        var ignoreChecksumsOpt = command.AddOption(new Option<bool>("--ignore-checksums")
-        {
-            Description = "Allow a FIT input that does not match the map source hash",
-        });
+        var ignoreVersionsOpt = command.AddIgnoreVersionsOption();
+        var ignoreChecksumsOpt = command.AddIgnoreChecksumsOption();
 
         command.SetAction<FitCommandHandlers>(services,
             (handler, opts) => handler.ApplyPatch(

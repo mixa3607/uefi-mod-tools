@@ -62,10 +62,8 @@ public static class BiosDefaultsCommandRegistration
             Required = true,
         });
         var mapOutputFormatOpt = mapStoreCommand.AddFileFormatOption(mapOutputOpt);
-        var ignoreVersionsOpt = mapStoreCommand.AddOption(new Option<bool>("--ignore-versions")
-        {
-            Description = "Allow unsupported BIOS defaults map and IFR extractor versions",
-        });
+        var ignoreVersionsOpt = mapStoreCommand.AddIgnoreVersionsOption(
+            description: "Allow unsupported BIOS defaults map and IFR extractor versions");
 
         mapStoreCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.MapStore(
@@ -97,14 +95,10 @@ public static class BiosDefaultsCommandRegistration
             Description = "Output BIOS defaults binary file",
             Required = true,
         });
-        var ignorePatchVersionsOpt = applyPatchCommand.AddOption(new Option<bool>("--ignore-versions")
-        {
-            Description = "Allow unsupported BIOS defaults store map and patch versions",
-        });
-        var ignoreChecksumsOpt = applyPatchCommand.AddOption(new Option<bool>("--ignore-checksums")
-        {
-            Description = "Allow a BIOS defaults input that does not match the map source hash",
-        });
+        var ignorePatchVersionsOpt = applyPatchCommand.AddIgnoreVersionsOption(
+            description: "Allow unsupported BIOS defaults store map and patch versions");
+        var ignoreChecksumsOpt = applyPatchCommand.AddIgnoreChecksumsOption(
+            description: "Allow a BIOS defaults input that does not match the map source hash");
 
         applyPatchCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.ApplyPatch(

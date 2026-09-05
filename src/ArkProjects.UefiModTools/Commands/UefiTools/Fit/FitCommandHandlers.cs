@@ -3,6 +3,7 @@ using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
+using ArkProjects.UefiModTools.Services.ManifestVer;
 using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +14,14 @@ public class FitCommandHandlers
     private readonly ILogger<FitCommandHandlers> _logger;
     private readonly ISerializationService _serializer;
     private readonly ICommandFileManager _fileManager;
+    private readonly IManifestVersionVerifier _manifestVersionVerifier;
     private readonly FitParser _fitParser;
     private readonly FitMapper _fitMapper;
     private readonly FitPatchApplier _fitPatchApplier;
 
     public FitCommandHandlers(ILogger<FitCommandHandlers> logger, ISerializationService serializer,
-        ICommandFileManager fileManager, FitParser fitParser, FitMapper fitMapper, FitPatchApplier fitPatchApplier)
+        ICommandFileManager fileManager, FitParser fitParser, FitMapper fitMapper, FitPatchApplier fitPatchApplier,
+        IManifestVersionVerifier manifestVersionVerifier)
     {
         _logger = logger;
         _serializer = serializer;
@@ -26,6 +29,7 @@ public class FitCommandHandlers
         _fitParser = fitParser;
         _fitMapper = fitMapper;
         _fitPatchApplier = fitPatchApplier;
+        _manifestVersionVerifier = manifestVersionVerifier;
     }
 
     public int Map(string inputFile, string outputFile, SerializationFormat outputFormat)
@@ -51,9 +55,11 @@ public class FitCommandHandlers
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
         var map = _serializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
+        _manifestVersionVerifier.Verify(map, "FIT map", FitMapDocument.SupportedType, ignoreVersions,
+            FitMapDocument.SupportedVersion);
         var patch = _serializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
-        ValidateMap(map, ignoreVersions);
-        ValidatePatch(patch, ignoreVersions);
+        _manifestVersionVerifier.Verify(patch, "FIT patch", FitPatchDocument.SupportedType, ignoreVersions,
+            FitPatchDocument.SupportedVersion);
 
         var fitSha256 = fitBytes.GetSha256String();
         if (!string.Equals(fitSha256, map.FitSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
@@ -67,49 +73,5 @@ public class FitCommandHandlers
         _logger.LogInformation("Writing patched FIT to {outputFile}", outputFile);
         _fileManager.Write(_fitParser.Write(fitTable), outputFile, true);
         return 0;
-    }
-
-    private void ValidateMap(FitMapDocument map, bool ignoreVersions)
-    {
-        if (map.Type != FitMapDocument.SupportedType)
-            throw new ArgumentException(
-                $"Expected FIT map type {FitMapDocument.SupportedType}, but got {map.Type}. " +
-                "--ignore-versions cannot ignore a different document type.", nameof(map));
-
-        if (map.Version == FitMapDocument.SupportedVersion)
-            return;
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "FIT map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                map.Version, FitMapDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected FIT map version {FitMapDocument.SupportedVersion}, but got {map.Version}. " +
-            "Use --ignore-versions only when the map schema is known to be compatible.", nameof(map));
-    }
-
-    private void ValidatePatch(FitPatchDocument patch, bool ignoreVersions)
-    {
-        if (patch.Type != FitPatchDocument.SupportedType)
-            throw new ArgumentException(
-                $"Expected FIT patch type {FitPatchDocument.SupportedType}, but got {patch.Type}. " +
-                "--ignore-versions cannot ignore a different document type.", nameof(patch));
-
-        if (patch.Version == FitPatchDocument.SupportedVersion)
-            return;
-        if (ignoreVersions)
-        {
-            _logger.LogWarning(
-                "FIT patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
-                patch.Version, FitPatchDocument.SupportedVersion);
-            return;
-        }
-
-        throw new ArgumentException(
-            $"Expected FIT patch version {FitPatchDocument.SupportedVersion}, but got {patch.Version}. " +
-            "Use --ignore-versions only when the patch schema is known to be compatible.", nameof(patch));
     }
 }

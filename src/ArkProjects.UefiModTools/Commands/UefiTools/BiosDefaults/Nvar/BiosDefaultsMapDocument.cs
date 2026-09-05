@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Services.ManifestVer;
+
 namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Nvar;
 
-public class BiosDefaultsMapDocument
+public class BiosDefaultsMapDocument : IVersionedManifest
 {
     public const int SupportedVersion = 2;
     public const string SupportedType = "BiosDefaults-Map";

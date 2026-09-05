@@ -37,10 +37,8 @@ public static class SctCommandRegistration
             Description = "Output Platform_setup.sct file",
             Required = true,
         });
-        var ignoreVersionsOpt = command.AddOption(new Option<bool>("--ignore-versions")
-        {
-            Description = "Allow unsupported IFR extractor and SCT patch versions",
-        });
+        var ignoreVersionsOpt = command.AddIgnoreVersionsOption(
+            description: "Allow unsupported IFR extractor and SCT patch versions");
 
         command.SetAction<SctCommandHandlers>(services,
             (handler, opts) => handler.Patch(

@@ -1,6 +1,8 @@
+using ArkProjects.UefiModTools.Services.ManifestVer;
+
 namespace ArkProjects.UefiModTools.Commands.UefiTools.BiosDefaults.Patching;
 
-public class BiosDefaultsPatchDocument
+public class BiosDefaultsPatchDocument : IVersionedManifest
 {
     public const int SupportedVersion = 1;
     public const string SupportedType = "BiosDefaults-Store-Patch";
