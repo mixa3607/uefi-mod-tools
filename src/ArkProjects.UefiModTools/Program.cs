@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
@@ -42,6 +43,7 @@ public class Program
         });
         services
             .AddSingleton<IJsonSerializationService, JsonSerializationService>()
+            .AddSingleton<ISerializationService, SerializationService>()
             .AddSingleton<ICommandFileManager, CommandFileManager>()
             ;
 
