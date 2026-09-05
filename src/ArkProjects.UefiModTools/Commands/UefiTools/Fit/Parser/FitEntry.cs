@@ -1,7 +1,7 @@
-using ArkProjects.UefiModTools.Utils;
 using System.Text.Json.Serialization;
+using ArkProjects.UefiModTools.Utils;
 
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 
 public class FitEntry
 {

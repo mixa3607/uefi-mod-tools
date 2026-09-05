@@ -11,7 +11,7 @@ public class CommandRegistration
         parentCommand.Add(command);
 
         Microcodes.CommandRegistration.Register(command, services);
-        Fit.CommandRegistration.Register(command, services);
+        Fit.FitCommandRegistration.Register(command, services);
         SetupData.SetupDataCommandRegistration.Register(command, services);
         Sct.SctCommandRegistration.Register(command, services);
         Ifr.IfrCommandRegistration.Register(command, services);

@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 using Xunit;
 
 namespace ArkProjects.UefiModTools.Tests.Commands.UefiTools.Fit;

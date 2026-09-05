@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
+namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 
 public enum FitEntryType : byte
 {

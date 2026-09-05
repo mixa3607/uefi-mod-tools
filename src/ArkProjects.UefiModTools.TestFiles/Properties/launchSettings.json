@@ -79,6 +79,13 @@
       "commandName": "Project",
       "commandLineArgs": "--log-level debug uboot env-scan -i test-files/backup_rd450x_pve2_03-01-26.bin -o -",
       "workingDirectory": "$(ProjectDir)"
+    },
+
+
+    "uefi uefi fit map": {
+      "commandName": "Project",
+      "commandLineArgs": "--log-level debug uefi fit map -i test-files/fit/imb760-fit.bin -o -",
+      "workingDirectory": "$(ProjectDir)"
     }
   }
 }

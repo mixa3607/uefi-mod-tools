@@ -47,13 +47,17 @@ flowchart TD
     DefaultsPatch -->|nvar apply-patch| ModifiedDefaults
 
     MicrocodePayload -->|mcodes-combine + table + microcode files| ModifiedMicrocodePayload[modified microcode payload body]
-    Dump -->|fit-inject-mcodes + table + microcode files| ModifiedFitDump[firmware dump with updated FIT]
+    Fit -->|fit map| FitMap[FIT map JSON]
+    FitMap -->|edit operations| FitPatch[FIT patch JSON]
+    Fit -->|fit apply-patch + map + patch| ModifiedFit[modified FIT blob]
+    FitMap -->|fit apply-patch| ModifiedFit
+    FitPatch -->|fit apply-patch| ModifiedFit
 
     ModifiedSetupData -->|UEFITool replace matching body| ReintegratedDump[working firmware dump]
     ModifiedSct -->|UEFITool replace matching body| ReintegratedDump
     ModifiedDefaults -->|UEFITool replace matching body| ReintegratedDump
     ModifiedMicrocodePayload -->|UEFITool replace matching body| ReintegratedDump
-    ModifiedFitDump -->|use as working dump before other replacements| ReintegratedDump
+    ModifiedFit -->|UEFITool replace matching body| ReintegratedDump
 ```
 
 `nvar map` and `nvar map-ifr-stores` do not extract an NVAR stream from a firmware dump or write data back to firmware. `nvar apply-patch` writes a modified NVAR stream; replace the exact extracted NVAR object body with UEFITool to use it in a firmware dump.
@@ -94,63 +98,53 @@ Use `--ignore-versions` only when an older or newer map/patch JSON is known to r
 1. Use `UEFITool` to extract `Platform_setup.sct`, `SetupData`, and, if needed, the BIOS defaults NVAR stream and microcode payload from one original dump.
 2. Run IFRExtractor-RS-structured on the extracted SCT. Do not reuse its IFR JSON with an SCT from a different dump.
 3. Create and apply the SetupData and SCT patches to their extracted bodies.
-4. For microcodes, first run `mcodes-combine` on the extracted payload body, replace that body in a working dump with UEFITool, then run `fit-inject-mcodes` on that working dump. `fit-inject-mcodes` updates FIT entries only; it does not write microcode payload bytes.
+4. For microcodes, run `mcodes-combine` on the extracted payload body, create a FIT patch that clears the old entries and writes the new entries, then replace both modified bodies in the working dump with UEFITool.
 5. Replace the modified SCT and SetupData bodies in the same working dump. Each replacement must target the exact object from which the original body was extracted.
 6. Validate the final dump with the usual platform-specific checks before flashing. A successful command only validates its local transformation, not that the final firmware will boot.
 
 ## FIT
 
-### Read and Write
+### Map and Apply Patch
 
 ```bash
-uefi-mod-tools uefi fit-read --input fit.bin --output fit.json
-uefi-mod-tools uefi fit-write --input fit.json --output modified-fit.bin
+uefi-mod-tools uefi fit map --input fit.bin --output fit.map.json
+uefi-mod-tools uefi fit apply-patch \
+  --input fit.bin --map fit.map.json --patch fit.patch.json --output modified-fit.bin
 ```
 
-`fit-read` emits the JSON accepted by `fit-write`. Verification is enabled by default and requires a byte-identical repack. Preserve `headGarbage` and `tailGarbage` unless intentionally changing data outside the FIT structure.
+`fit map` records the source hash and a list of FIT cells. Each cell has a stable ID, its index and offset in the FIT blob, and a nested `entry` with its decoded value. `fit apply-patch` requires the same source blob and changes only cells selected by patch operations.
 
-The first entry must be `FitHeaderEntry`; its `size` equals the number of FIT entries. Addresses, sizes, versions, and checksums accept hexadecimal strings.
+The FIT header is not patchable. Its `size` continues to define the number of FIT entries. Addresses, sizes, versions, and offsets accept hexadecimal strings.
 
 ```json
 {
-  "headGarbage": "",
-  "entries": [
+  "version": 1,
+  "type": "FIT-Patch",
+  "operations": [
     {
-      "address": "0x00000000FFFFFFC0",
-      "size": "0x00000001",
-      "reserved": 0,
-      "version": "0x00000100",
-      "checksumValidate": true,
-      "type": "FitHeaderEntry",
-      "checksum": 0
+      "kind": "Clear",
+      "id": "entry-0004"
+    },
+    {
+      "kind": "Write",
+      "id": "entry-0005",
+      "entry": {
+        "address": "0x00000000FF001000",
+        "size": "0x00000000",
+        "reserved": 0,
+        "version": "0x0001",
+        "checksumValidate": false,
+        "type": "MicrocodeUpdateEntry",
+        "checksum": 0
+      }
     }
-  ],
-  "tailGarbage": ""
+  ]
 }
 ```
 
-### Microcode Injection
+Operations are applied in file order. `Clear` replaces a cell with the canonical `UnusedEntry`; `Write` replaces it with the supplied `entry`.
 
-```bash
-uefi-mod-tools uefi mcodes-combine \
-  --input bios.bin --table microcodes.json --mcodes microcodes --output modified-bios.bin
-
-uefi-mod-tools uefi fit-inject-mcodes \
-  --input fit.bin --table microcodes.json --mcodes microcodes --output modified-fit.bin
-```
-
-Both commands use the same table:
-
-```json
-{
-  "sectionBaseAddress": "0xFFB00090",
-  "usableStart": "0x00000000",
-  "usableEnd": "0x00100000",
-  "microcodeFiles": ["cpu-000906EA.bin", "cpu-000906EB.bin"]
-}
-```
-
-Microcode files are resolved relative to `--mcodes`. `sectionBaseAddress` is added to calculated microcode addresses. The usable range is `[usableStart, usableEnd)`; omit `usableEnd` or use `-1` to allow the rest of the input.
+`--ignore-versions` permits a known-compatible map or patch schema version; it never permits a different document type. `--ignore-checksums` permits applying a map to a different FIT input and emits a warning.
 
 ## IFR, SetupData, and SCT
 

@@ -1,78 +1,114 @@
-using ArkProjects.UefiModTools.Commands.UefiTools.Microcodes;
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 
-public class CommandHandlers
+public class FitCommandHandlers
 {
-    private readonly ILogger<CommandHandlers> _logger;
+    private readonly ILogger<FitCommandHandlers> _logger;
     private readonly IJsonSerializationService _jsonSerializer;
     private readonly ICommandFileManager _fileManager;
     private readonly FitParser _fitParser;
-    private readonly FitMicrocodesInjector _microcodesInjector;
+    private readonly FitMapper _fitMapper;
+    private readonly FitPatchApplier _fitPatchApplier;
 
-    public CommandHandlers(ILogger<CommandHandlers> logger, IJsonSerializationService jsonSerializer,
-        ICommandFileManager fileManager, FitParser fitParser, FitMicrocodesInjector microcodesInjector)
+    public FitCommandHandlers(ILogger<FitCommandHandlers> logger, IJsonSerializationService jsonSerializer,
+        ICommandFileManager fileManager, FitParser fitParser, FitMapper fitMapper, FitPatchApplier fitPatchApplier)
     {
         _logger = logger;
         _jsonSerializer = jsonSerializer;
         _fileManager = fileManager;
         _fitParser = fitParser;
-        _microcodesInjector = microcodesInjector;
+        _fitMapper = fitMapper;
+        _fitPatchApplier = fitPatchApplier;
     }
 
-    public int InjectMicrocodes(string inputFile, string mCodesTableFile, string mCodesDirectory, string outputFile)
+    public int Map(string inputFile, string outputFile)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
         var fitTable = _fitParser.Read(fitBytes);
-        var mTableJson = _fileManager.ReadString(mCodesTableFile);
-        var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
-        var microcodes = new List<byte[]>();
-        foreach (var mFile in mTable.MicrocodeFiles)
+        var map = new FitMapDocument
         {
-            var mCodesFile = Path.Combine(mCodesDirectory, mFile);
-            _logger.LogInformation("Injecting {path}", mCodesFile);
-            var mCodesBytes = _fileManager.ReadBytes(mCodesFile);
-            _logger.LogDebug("Read {count} bytes", mCodesBytes.Length);
-            microcodes.Add(mCodesBytes);
-        }
+            Version = FitMapDocument.SupportedVersion,
+            Type = FitMapDocument.SupportedType,
+            FitSha256 = fitBytes.GetSha256String(),
+            TableOffset = fitTable.HeadGarbage.Length,
+            Entries = _fitMapper.Extract(fitTable),
+        };
 
-        _logger.LogInformation("Saving {path}", outputFile);
-        _fileManager.Write(_fitParser.Write(_microcodesInjector.Inject(fitTable, mTable, microcodes)), outputFile, true);
+        _logger.LogInformation("Writing {entryCount} FIT entries to {outputFile}", map.Entries.Count, outputFile);
+        _fileManager.Write(_jsonSerializer.Serialize(map), outputFile, true);
         return 0;
     }
 
-    public int Read(string inputFile, string outputFile, bool verify)
+    public int ApplyPatch(string inputFile, string mapFile, string patchFile, string outputFile, bool ignoreVersions,
+        bool ignoreChecksums)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
-        var fit = _fitParser.Read(fitBytes);
+        var map = _jsonSerializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile));
+        var patch = _jsonSerializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile));
+        ValidateMap(map, ignoreVersions);
+        ValidatePatch(patch, ignoreVersions);
 
-        if (!verify)
-        {
-            _logger.LogWarning("Skip repack verification!");
-        }
-        else
-        {
-            _logger.LogInformation("Verifying FIT by repacking...");
-            var newFitBytes = _fitParser.Write(fit);
-            if (!newFitBytes.SequenceEqual(fitBytes))
-            {
-                _logger.LogCritical("Repacked dump and source dump not equal!");
-                throw new Exception("Repacked dump and source dump not equal!");
-            }
+        var fitSha256 = fitBytes.GetSha256String();
+        if (!string.Equals(fitSha256, map.FitSha256, StringComparison.OrdinalIgnoreCase) && !ignoreChecksums)
+            throw new ArgumentException("FIT input does not match the map source hash", nameof(inputFile));
+        if (!string.Equals(fitSha256, map.FitSha256, StringComparison.OrdinalIgnoreCase))
+            _logger.LogWarning("FIT input does not match the map source hash; continuing because --ignore-checksums was specified");
 
-            _logger.LogInformation("Repacking success! Old and new dumps will be equal");
-        }
+        var fitTable = _fitParser.Read(fitBytes);
+        _fitPatchApplier.Apply(fitTable, map, patch.Operations);
 
-        _fileManager.Write(_jsonSerializer.Serialize(fit), outputFile, true);
+        _logger.LogInformation("Writing patched FIT to {outputFile}", outputFile);
+        _fileManager.Write(_fitParser.Write(fitTable), outputFile, true);
         return 0;
     }
 
-    public int Write(string inputFile, string outputFile)
+    private void ValidateMap(FitMapDocument map, bool ignoreVersions)
     {
-        var fit = _jsonSerializer.Deserialize<FitTable>(_fileManager.ReadString(inputFile));
-        _fileManager.Write(_fitParser.Write(fit), outputFile, true);
-        return 0;
+        if (map.Type != FitMapDocument.SupportedType)
+            throw new ArgumentException(
+                $"Expected FIT map type {FitMapDocument.SupportedType}, but got {map.Type}. " +
+                "--ignore-versions cannot ignore a different document type.", nameof(map));
+
+        if (map.Version == FitMapDocument.SupportedVersion)
+            return;
+        if (ignoreVersions)
+        {
+            _logger.LogWarning(
+                "FIT map version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
+                map.Version, FitMapDocument.SupportedVersion);
+            return;
+        }
+
+        throw new ArgumentException(
+            $"Expected FIT map version {FitMapDocument.SupportedVersion}, but got {map.Version}. " +
+            "Use --ignore-versions only when the map schema is known to be compatible.", nameof(map));
+    }
+
+    private void ValidatePatch(FitPatchDocument patch, bool ignoreVersions)
+    {
+        if (patch.Type != FitPatchDocument.SupportedType)
+            throw new ArgumentException(
+                $"Expected FIT patch type {FitPatchDocument.SupportedType}, but got {patch.Type}. " +
+                "--ignore-versions cannot ignore a different document type.", nameof(patch));
+
+        if (patch.Version == FitPatchDocument.SupportedVersion)
+            return;
+        if (ignoreVersions)
+        {
+            _logger.LogWarning(
+                "FIT patch version {actualVersion} is not the supported version {supportedVersion}; continuing because --ignore-versions was specified",
+                patch.Version, FitPatchDocument.SupportedVersion);
+            return;
+        }
+
+        throw new ArgumentException(
+            $"Expected FIT patch version {FitPatchDocument.SupportedVersion}, but got {patch.Version}. " +
+            "Use --ignore-versions only when the patch schema is known to be compatible.", nameof(patch));
     }
 }

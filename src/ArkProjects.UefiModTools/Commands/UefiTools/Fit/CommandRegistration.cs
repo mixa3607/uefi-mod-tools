@@ -1,103 +1,89 @@
 using System.CommandLine;
 using System.Text.Json.Serialization.Metadata;
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
+using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 
-public static class CommandRegistration
+public static class FitCommandRegistration
 {
     public static void Register(Command parentCommand, IServiceCollection services)
     {
         services
-            .AddSingleton<IJsonTypeInfoResolver>(CommandJsonSerializerContextFit.Default)
+            .AddSingleton<IJsonTypeInfoResolver>(FitCommandJsonSerializerContext.Default)
             .AddSingleton<FitParser>()
-            .AddSingleton<FitMicrocodesInjector>()
-            .AddSingleton<CommandHandlers>();
+            .AddSingleton<FitMapper>()
+            .AddSingleton<FitPatchApplier>()
+            .AddSingleton<FitCommandHandlers>();
 
-        RegisterRead(parentCommand, services);
-        RegisterWrite(parentCommand, services);
-        RegisterInjectMicrocodes(parentCommand, services);
+        var fitCommand = parentCommand.AddCommand("fit", "Firmware Interface Table tools");
+        RegisterMap(fitCommand, services);
+        RegisterApplyPatch(fitCommand, services);
     }
 
-    private static void RegisterRead(Command parentCommand, IServiceCollection services)
+    private static void RegisterMap(Command parentCommand, IServiceCollection services)
     {
-        var command = parentCommand.AddCommand("fit-read", "Parse FIT bin section to json");
+        var command = parentCommand.AddCommand("map", "Map FIT entries");
         var inputOpt = command.AddOption(new Option<string>("--input", "-i")
         {
-            Description = "FIT file",
+            Description = "FIT binary file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")
         {
-            Description = "Output json file",
-            DefaultValueFactory = _ => "-",
+            Description = "Output FIT map JSON file",
+            Required = true,
         });
-        var verifyOpt = command.AddOption(new Option<bool>("--verify")
+        command.SetAction<FitCommandHandlers>(services,
+            (handler, opts) => handler.Map(
+                opts.GetRequiredValue(inputOpt),
+                opts.GetRequiredValue(outputOpt)
+            ));
+    }
+
+    private static void RegisterApplyPatch(Command parentCommand, IServiceCollection services)
+    {
+        var command = parentCommand.AddCommand("apply-patch", "Apply a FIT patch");
+        var inputOpt = command.AddOption(new Option<string>("--input", "-i")
         {
-            Description = "Verify that final json will be same after convert to table",
-            DefaultValueFactory = _ => true,
+            Description = "FIT binary file",
+            Required = true,
+        });
+        var mapOpt = command.AddOption(new Option<string>("--map", "-m")
+        {
+            Description = "FIT map JSON file",
+            Required = true,
+        });
+        var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
+        {
+            Description = "FIT patch JSON file",
+            Required = true,
+        });
+        var outputOpt = command.AddOption(new Option<string>("--output", "-o")
+        {
+            Description = "Output FIT binary file",
+            Required = true,
+        });
+        var ignoreVersionsOpt = command.AddOption(new Option<bool>("--ignore-versions")
+        {
+            Description = "Allow unsupported FIT map and patch versions",
+        });
+        var ignoreChecksumsOpt = command.AddOption(new Option<bool>("--ignore-checksums")
+        {
+            Description = "Allow a FIT input that does not match the map source hash",
         });
 
-        command.SetAction<CommandHandlers>(services,
-            (handler, opts) => handler.Read(
+        command.SetAction<FitCommandHandlers>(services,
+            (handler, opts) => handler.ApplyPatch(
                 opts.GetRequiredValue(inputOpt),
+                opts.GetRequiredValue(mapOpt),
+                opts.GetRequiredValue(patchOpt),
                 opts.GetRequiredValue(outputOpt),
-                opts.GetRequiredValue(verifyOpt)
-            ));
-    }
-
-    private static void RegisterWrite(Command parentCommand, IServiceCollection services)
-    {
-        var command = parentCommand.AddCommand("fit-write", "Write FIT bin section from json file");
-        var inputOpt = command.AddOption(new Option<string>("--input", "-i")
-        {
-            Description = "Json file",
-            Required = true,
-        });
-        var outputOpt = command.AddOption(new Option<string>("--output", "-o")
-        {
-            Description = "FIT file",
-            Required = true,
-        });
-
-        command.SetAction<CommandHandlers>(services,
-            (handler, opts) => handler.Write(
-                opts.GetRequiredValue(inputOpt),
-                opts.GetRequiredValue(outputOpt)
-            ));
-    }
-
-    private static void RegisterInjectMicrocodes(Command parentCommand, IServiceCollection services)
-    {
-        var command = parentCommand.AddCommand("fit-inject-mcodes", "Inject microcodes to fit file");
-        var inputOpt = command.AddOption(new Option<string>("--input", "-i")
-        {
-            Description = "FIT file",
-            Required = true,
-        });
-        var tableOpt = command.AddOption(new Option<string>("--table", "-t")
-        {
-            Description = "Microcodes table json",
-            DefaultValueFactory = _ => "microcodes.json",
-        });
-        var mcodesOpt = command.AddOption(new Option<string>("--mcodes", "-m")
-        {
-            Description = "Microcodes directory",
-            Required = true,
-        });
-        var outputOpt = command.AddOption(new Option<string>("--output", "-o")
-        {
-            Description = "Output FIT file",
-            Required = true,
-        });
-
-        command.SetAction<CommandHandlers>(services,
-            (handler, opts) => handler.InjectMicrocodes(
-                opts.GetRequiredValue(inputOpt),
-                opts.GetRequiredValue(tableOpt),
-                opts.GetRequiredValue(mcodesOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetValue(ignoreVersionsOpt),
+                opts.GetValue(ignoreChecksumsOpt)
             ));
     }
 }
