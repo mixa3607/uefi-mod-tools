@@ -1,4 +1,5 @@
 using System.CommandLine;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Utils;
@@ -49,6 +50,36 @@ public static class CommandExtensions
         public Option<T> AddOption<T>(string name, params string[] aliases)
         {
             return command.AddOption(new Option<T>(name, aliases));
+        }
+
+        public Option<SerializationFormat> AddFileFormatOption(Option<string> fileOption, string? optionName = null, string? description = null)
+        {
+            optionName ??= fileOption.Name + "-format";
+            description ??= fileOption.Description + " format";
+            return command.AddOption(new Option<SerializationFormat>(optionName)
+            {
+                Description = description,
+                Required = false,
+                DefaultValueFactory = r =>
+                {
+                    var resolveOutFile = r.GetResult(fileOption)?.Errors.Any() == false;
+                    var output = resolveOutFile ? r.GetRequiredValue(fileOption) : "";
+                    var lastDot = output.LastIndexOf('.');
+                    var extension = lastDot >= 0 ? output.Substring(lastDot + 1).ToLower() : "";
+
+                    if (extension is "json" or "jsonc")
+                    {
+                        return SerializationFormat.Json;
+                    }
+
+                    if (extension is "yaml" or "yml")
+                    {
+                        return SerializationFormat.Yaml;
+                    }
+
+                    return SerializationFormat.Auto;
+                }
+            });
         }
     }
 }

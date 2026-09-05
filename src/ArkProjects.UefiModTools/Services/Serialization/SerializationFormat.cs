@@ -1,4 +1,4 @@
-namespace ArkProjects.UefiModTools.Services;
+namespace ArkProjects.UefiModTools.Services.Serialization;
 
 public enum SerializationFormat
 {

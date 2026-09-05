@@ -3,6 +3,7 @@ using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
@@ -10,13 +11,13 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 public class FitCommandHandlers
 {
     private readonly ILogger<FitCommandHandlers> _logger;
-    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ISerializationService _jsonSerializer;
     private readonly ICommandFileManager _fileManager;
     private readonly FitParser _fitParser;
     private readonly FitMapper _fitMapper;
     private readonly FitPatchApplier _fitPatchApplier;
 
-    public FitCommandHandlers(ILogger<FitCommandHandlers> logger, IJsonSerializationService jsonSerializer,
+    public FitCommandHandlers(ILogger<FitCommandHandlers> logger, ISerializationService jsonSerializer,
         ICommandFileManager fileManager, FitParser fitParser, FitMapper fitMapper, FitPatchApplier fitPatchApplier)
     {
         _logger = logger;
@@ -27,7 +28,7 @@ public class FitCommandHandlers
         _fitPatchApplier = fitPatchApplier;
     }
 
-    public int Map(string inputFile, string outputFile)
+    public int Map(string inputFile, string outputFile, SerializationFormat outputFormat)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
         var fitTable = _fitParser.Read(fitBytes);
@@ -41,7 +42,7 @@ public class FitCommandHandlers
         };
 
         _logger.LogInformation("Writing {entryCount} FIT entries to {outputFile}", map.Entries.Count, outputFile);
-        _fileManager.Write(_jsonSerializer.Serialize(map), outputFile, true);
+        _fileManager.Write(_jsonSerializer.Serialize(map, outputFormat), outputFile, true);
         return 0;
     }
 
@@ -49,8 +50,8 @@ public class FitCommandHandlers
         bool ignoreChecksums)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
-        var map = _jsonSerializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile));
-        var patch = _jsonSerializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile));
+        var map = _jsonSerializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
+        var patch = _jsonSerializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateMap(map, ignoreVersions);
         ValidatePatch(patch, ignoreVersions);
 

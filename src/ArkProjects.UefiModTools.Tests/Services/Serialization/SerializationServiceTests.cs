@@ -49,7 +49,7 @@ public class SerializationServiceTests
         var output = service.Serialize(new TestDocument { Name = "example", Value = 42 }, SerializationFormat.Yaml);
         var result = service.Deserialize<TestDocument>(output, SerializationFormat.Yaml);
 
-        Assert.Contains("\"name\": \"example\"", output);
+        Assert.Contains("name: \"example\"", output);
         Assert.Equal("example", result.Name);
         Assert.Equal(42, result.Value);
     }

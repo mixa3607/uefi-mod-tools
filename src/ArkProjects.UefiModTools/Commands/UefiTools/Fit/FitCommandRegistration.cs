@@ -4,6 +4,7 @@ using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Mapping;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Parser;
 using ArkProjects.UefiModTools.Commands.UefiTools.Fit.Patching;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
@@ -34,13 +35,15 @@ public static class FitCommandRegistration
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")
         {
-            Description = "Output FIT map JSON file",
+            Description = "Output FIT map file",
             Required = true,
         });
+        var outputFormatOpt = command.AddFileFormatOption(outputOpt);
         command.SetAction<FitCommandHandlers>(services,
             (handler, opts) => handler.Map(
                 opts.GetRequiredValue(inputOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetRequiredValue(outputFormatOpt)
             ));
     }
 

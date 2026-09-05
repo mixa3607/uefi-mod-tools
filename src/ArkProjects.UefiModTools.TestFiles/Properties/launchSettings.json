@@ -84,7 +84,7 @@
 
     "uefi uefi fit map": {
       "commandName": "Project",
-      "commandLineArgs": "--log-level debug uefi fit map -i test-files/fit/imb760-fit.bin -o -",
+      "commandLineArgs": "--log-level debug uefi fit map -i test-files/fit/imb760-fit.bin -o test-files/fit/imb760-fit-map.yml",
       "workingDirectory": "$(ProjectDir)"
     }
   }

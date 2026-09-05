@@ -152,7 +152,7 @@ public class SerializationService : ISerializationService
         var mapping = new YamlMappingNode();
         foreach (var property in element.EnumerateObject())
         {
-            var key = new YamlScalarNode(property.Name) { Style = ScalarStyle.DoubleQuoted };
+            var key = new YamlScalarNode(property.Name) { Style = ScalarStyle.Any };
             mapping.Children.Add(key, CreateYamlNode(property.Value));
         }
 
