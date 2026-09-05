@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Utils;
+using ArkProjects.UefiModTools.Services.Serialization;
 using ArkProjects.UefiModTools.Commands.UefiTools.Ifr.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using System.CommandLine;
@@ -19,7 +20,7 @@ public static class IfrCommandRegistration
         var command = ifrCommand.AddCommand("render", "Render an IFR dump to an IFR document");
         var ifrOpt = command.AddOption(new Option<string>("--ifr", "-s")
         {
-            Description = "IFR dump json file",
+            Description = "IFR dump file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")
@@ -27,10 +28,12 @@ public static class IfrCommandRegistration
             Description = "Output file",
             DefaultValueFactory = _ => "-",
         });
+        var outputFormatOpt = command.AddFileFormatOption(outputOpt);
         command.SetAction<IfrCommandHandlers>(services,
             (handler, opts) => handler.Render(
                 opts.GetRequiredValue(ifrOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetRequiredValue(outputFormatOpt)
             ));
     }
 }

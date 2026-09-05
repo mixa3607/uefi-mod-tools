@@ -31,14 +31,16 @@ public static class BiosDefaultsCommandRegistration
         });
         var outputOpt = extractCommand.AddOption(new Option<string>("--output", "-o")
         {
-            Description = "Output BIOS defaults map JSON file",
+            Description = "Output BIOS defaults map file",
             Required = true,
         });
+        var outputFormatOpt = extractCommand.AddFileFormatOption(outputOpt);
 
         extractCommand.SetAction<BiosDefaultsCommandHandlers>(services,
             (handler, opts) => handler.Extract(
                 opts.GetRequiredValue(inputOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetRequiredValue(outputFormatOpt)
             ));
 
         var mapStoreCommand = nvarCommand.AddCommand(
@@ -46,19 +48,20 @@ public static class BiosDefaultsCommandRegistration
             "Map NVAR records to IFR VarStores and questions");
         var mapInputOpt = mapStoreCommand.AddOption(new Option<string>("--input", "-i")
         {
-            Description = "BIOS defaults NVAR map JSON file",
+            Description = "BIOS defaults NVAR map file",
             Required = true,
         });
         var ifrOpt = mapStoreCommand.AddOption(new Option<string>("--ifr")
         {
-            Description = "IFR dump JSON file",
+            Description = "IFR dump file",
             Required = true,
         });
         var mapOutputOpt = mapStoreCommand.AddOption(new Option<string>("--output", "-o")
         {
-            Description = "Output BIOS defaults store map JSON file",
+            Description = "Output BIOS defaults store map file",
             Required = true,
         });
+        var mapOutputFormatOpt = mapStoreCommand.AddFileFormatOption(mapOutputOpt);
         var ignoreVersionsOpt = mapStoreCommand.AddOption(new Option<bool>("--ignore-versions")
         {
             Description = "Allow unsupported BIOS defaults map and IFR extractor versions",
@@ -69,6 +72,7 @@ public static class BiosDefaultsCommandRegistration
                 opts.GetRequiredValue(mapInputOpt),
                 opts.GetRequiredValue(ifrOpt),
                 opts.GetRequiredValue(mapOutputOpt),
+                opts.GetRequiredValue(mapOutputFormatOpt),
                 opts.GetValue(ignoreVersionsOpt)
             ));
 
@@ -80,12 +84,12 @@ public static class BiosDefaultsCommandRegistration
         });
         var storeMapOpt = applyPatchCommand.AddOption(new Option<string>("--map", "-m")
         {
-            Description = "BIOS defaults store map JSON file",
+            Description = "BIOS defaults store map file",
             Required = true,
         });
         var patchOpt = applyPatchCommand.AddOption(new Option<string>("--patch", "-p")
         {
-            Description = "BIOS defaults store patch JSON file",
+            Description = "BIOS defaults store patch file",
             Required = true,
         });
         var patchOutputOpt = applyPatchCommand.AddOption(new Option<string>("--output", "-o")

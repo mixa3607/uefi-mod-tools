@@ -1,5 +1,6 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.Logging;
 using ArkProjects.UefiModTools.Commands.UefiTools.Sct.Patching;
 
@@ -9,23 +10,23 @@ public class SctCommandHandlers
 {
     private readonly ILogger<SctCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
-    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ISerializationService _serializer;
     private readonly SctPatchApplier _patchApplier;
 
     public SctCommandHandlers(ILogger<SctCommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, SctPatchApplier patchApplier)
+        ISerializationService serializer, SctPatchApplier patchApplier)
     {
         _logger = logger;
         _fileManager = fileManager;
-        _jsonSerializer = jsonSerializer;
+        _serializer = serializer;
         _patchApplier = patchApplier;
     }
 
     public int Patch(string inputFile, string ifrFile, string patchFile, string outputFile, bool ignoreVersions)
     {
         var sct = _fileManager.ReadBytes(inputFile);
-        var ifr = _jsonSerializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile));
-        var patch = _jsonSerializer.Deserialize<SctPatchDocument>(_fileManager.ReadString(patchFile));
+        var ifr = _serializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile), SerializationFormat.Auto);
+        var patch = _serializer.Deserialize<SctPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateIfrDocument(ifr, ignoreVersions);
         ValidatePatch(patch, ignoreVersions);
         _logger.LogInformation(

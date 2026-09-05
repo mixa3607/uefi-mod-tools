@@ -11,17 +11,17 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.Fit;
 public class FitCommandHandlers
 {
     private readonly ILogger<FitCommandHandlers> _logger;
-    private readonly ISerializationService _jsonSerializer;
+    private readonly ISerializationService _serializer;
     private readonly ICommandFileManager _fileManager;
     private readonly FitParser _fitParser;
     private readonly FitMapper _fitMapper;
     private readonly FitPatchApplier _fitPatchApplier;
 
-    public FitCommandHandlers(ILogger<FitCommandHandlers> logger, ISerializationService jsonSerializer,
+    public FitCommandHandlers(ILogger<FitCommandHandlers> logger, ISerializationService serializer,
         ICommandFileManager fileManager, FitParser fitParser, FitMapper fitMapper, FitPatchApplier fitPatchApplier)
     {
         _logger = logger;
-        _jsonSerializer = jsonSerializer;
+        _serializer = serializer;
         _fileManager = fileManager;
         _fitParser = fitParser;
         _fitMapper = fitMapper;
@@ -42,7 +42,7 @@ public class FitCommandHandlers
         };
 
         _logger.LogInformation("Writing {entryCount} FIT entries to {outputFile}", map.Entries.Count, outputFile);
-        _fileManager.Write(_jsonSerializer.Serialize(map, outputFormat), outputFile, true);
+        _fileManager.Write(_serializer.Serialize(map, outputFormat), outputFile, true);
         return 0;
     }
 
@@ -50,8 +50,8 @@ public class FitCommandHandlers
         bool ignoreChecksums)
     {
         var fitBytes = _fileManager.ReadBytes(inputFile);
-        var map = _jsonSerializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
-        var patch = _jsonSerializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
+        var map = _serializer.Deserialize<FitMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
+        var patch = _serializer.Deserialize<FitPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateMap(map, ignoreVersions);
         ValidatePatch(patch, ignoreVersions);
 

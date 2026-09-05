@@ -32,20 +32,22 @@ public static class SetupDataCommandRegistration
         });
         var ifrOpt = command.AddOption(new Option<string>("--ifr", "-s")
         {
-            Description = "IFR dump json file",
+            Description = "IFR dump file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")
         {
-            Description = "Output SetupData map JSON file",
+            Description = "Output SetupData map file",
             Required = true,
         });
+        var outputFormatOpt = command.AddFileFormatOption(outputOpt);
 
         command.SetAction<SetupDataCommandHandlers>(services,
             (handler, opts) => handler.MapIfr(
                 opts.GetRequiredValue(inputOpt),
                 opts.GetRequiredValue(ifrOpt),
-                opts.GetRequiredValue(outputOpt)
+                opts.GetRequiredValue(outputOpt),
+                opts.GetRequiredValue(outputFormatOpt)
             ));
     }
 
@@ -59,12 +61,12 @@ public static class SetupDataCommandRegistration
         });
         var mapOpt = command.AddOption(new Option<string>("--map", "-m")
         {
-            Description = "SetupData map JSON file",
+            Description = "SetupData map file",
             Required = true,
         });
         var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
         {
-            Description = "SetupData patch JSON file",
+            Description = "SetupData patch file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")

@@ -23,7 +23,7 @@ public static class CommandRegistration
         });
         var tableOpt = command.AddOption(new Option<string>("--table", "-t")
         {
-            Description = "Microcodes table json",
+            Description = "Microcodes table file",
             DefaultValueFactory = _ => "microcodes.json",
         });
         var mcodesOpt = command.AddOption(new Option<string>("--mcodes", "-m")

@@ -57,12 +57,12 @@ public static class FitCommandRegistration
         });
         var mapOpt = command.AddOption(new Option<string>("--map", "-m")
         {
-            Description = "FIT map JSON file",
+            Description = "FIT map file",
             Required = true,
         });
         var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
         {
-            Description = "FIT patch JSON file",
+            Description = "FIT patch file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")

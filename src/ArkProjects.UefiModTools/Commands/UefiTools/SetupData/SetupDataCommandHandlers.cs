@@ -1,5 +1,6 @@
 using ArkProjects.UefiModTools.Ifr.Structures;
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.Logging;
 using ArkProjects.UefiModTools.Utils;
 using ArkProjects.UefiModTools.Commands.UefiTools.SetupData.Mapping;
@@ -11,24 +12,24 @@ public class SetupDataCommandHandlers
 {
     private readonly ILogger<SetupDataCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
-    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ISerializationService _serializer;
     private readonly SetupDataIfrMapper _setupDataIfrMapper;
     private readonly SetupDataPatchApplier _patchApplier;
 
     public SetupDataCommandHandlers(ILogger<SetupDataCommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, SetupDataIfrMapper setupDataIfrMapper, SetupDataPatchApplier patchApplier)
+        ISerializationService serializer, SetupDataIfrMapper setupDataIfrMapper, SetupDataPatchApplier patchApplier)
     {
         _logger = logger;
         _fileManager = fileManager;
-        _jsonSerializer = jsonSerializer;
+        _serializer = serializer;
         _setupDataIfrMapper = setupDataIfrMapper;
         _patchApplier = patchApplier;
     }
 
-    public int MapIfr(string inputFile, string ifrFile, string outputFile)
+    public int MapIfr(string inputFile, string ifrFile, string outputFile, SerializationFormat outputFormat)
     {
         var setupData = _fileManager.ReadBytes(inputFile);
-        var ifr = _jsonSerializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile));
+        var ifr = _serializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile), SerializationFormat.Auto);
         _logger.LogInformation("Read {setupDataSize} bytes of SetupData and {operationCount} IFR operations",
             setupData.Length, ifr.Operations.Count);
 
@@ -44,7 +45,7 @@ public class SetupDataCommandHandlers
 
         _logger.LogInformation("Writing {questionCount} extracted SetupData questions to {outputFile}",
             result.Questions.Count, outputFile);
-        _fileManager.Write(_jsonSerializer.Serialize(result), outputFile, true);
+        _fileManager.Write(_serializer.Serialize(result, outputFormat), outputFile, true);
         return 0;
     }
 
@@ -52,8 +53,8 @@ public class SetupDataCommandHandlers
         bool ignoreChecksums)
     {
         var setupData = _fileManager.ReadBytes(inputFile);
-        var map = _jsonSerializer.Deserialize<SetupDataMapDocument>(_fileManager.ReadString(mapFile));
-        var patch = _jsonSerializer.Deserialize<SetupDataPatchDocument>(_fileManager.ReadString(patchFile));
+        var map = _serializer.Deserialize<SetupDataMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
+        var patch = _serializer.Deserialize<SetupDataPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateMap(map, ignoreVersions);
         ValidatePatch(patch, ignoreVersions);
 

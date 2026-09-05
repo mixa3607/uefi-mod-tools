@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace ArkProjects.UefiModTools.Commands.UefiTools.Microcodes;
@@ -6,15 +7,15 @@ namespace ArkProjects.UefiModTools.Commands.UefiTools.Microcodes;
 public class CommandHandlers
 {
     private readonly ILogger<CommandHandlers> _logger;
-    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ISerializationService _serializer;
     private readonly ICommandFileManager _fileManager;
     private readonly MicrocodesCombiner _combiner;
 
     public CommandHandlers(ILogger<CommandHandlers> logger,
-        IJsonSerializationService jsonSerializer, ICommandFileManager fileManager, MicrocodesCombiner combiner)
+        ISerializationService serializer, ICommandFileManager fileManager, MicrocodesCombiner combiner)
     {
         _logger = logger;
-        _jsonSerializer = jsonSerializer;
+        _serializer = serializer;
         _fileManager = fileManager;
         _combiner = combiner;
     }
@@ -23,7 +24,7 @@ public class CommandHandlers
     {
         var inputBytes = _fileManager.ReadBytes(inputFile);
         var mTableJson = _fileManager.ReadString(mCodesTableFile);
-        var mTable = _jsonSerializer.Deserialize<MicrocodesTable>(mTableJson);
+        var mTable = _serializer.Deserialize<MicrocodesTable>(mTableJson, SerializationFormat.Auto);
 
         var microcodes = new List<byte[]>();
         foreach (var mFile in mTable.MicrocodeFiles)

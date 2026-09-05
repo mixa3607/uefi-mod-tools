@@ -24,12 +24,12 @@ public static class SctCommandRegistration
         });
         var ifrOpt = command.AddOption(new Option<string>("--ifr", "-s")
         {
-            Description = "IFR dump json file",
+            Description = "IFR dump file",
             Required = true,
         });
         var patchOpt = command.AddOption(new Option<string>("--patch", "-p")
         {
-            Description = "IFR patch json file",
+            Description = "IFR patch file",
             Required = true,
         });
         var outputOpt = command.AddOption(new Option<string>("--output", "-o")

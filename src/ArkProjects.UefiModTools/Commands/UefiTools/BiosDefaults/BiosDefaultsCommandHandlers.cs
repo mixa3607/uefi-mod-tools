@@ -1,4 +1,5 @@
 using ArkProjects.UefiModTools.Services;
+using ArkProjects.UefiModTools.Services.Serialization;
 using ArkProjects.UefiModTools.Ifr.Structures;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
@@ -12,24 +13,24 @@ public class BiosDefaultsCommandHandlers
 {
     private readonly ILogger<BiosDefaultsCommandHandlers> _logger;
     private readonly ICommandFileManager _fileManager;
-    private readonly IJsonSerializationService _jsonSerializer;
+    private readonly ISerializationService _serializer;
     private readonly NvarMapExtractor _extractor;
     private readonly BiosDefaultsIfrMapper _ifrMapper;
     private readonly BiosDefaultsPatchApplier _patchApplier;
 
     public BiosDefaultsCommandHandlers(ILogger<BiosDefaultsCommandHandlers> logger, ICommandFileManager fileManager,
-        IJsonSerializationService jsonSerializer, NvarMapExtractor extractor, BiosDefaultsIfrMapper ifrMapper,
+        ISerializationService serializer, NvarMapExtractor extractor, BiosDefaultsIfrMapper ifrMapper,
         BiosDefaultsPatchApplier patchApplier)
     {
         _logger = logger;
         _fileManager = fileManager;
-        _jsonSerializer = jsonSerializer;
+        _serializer = serializer;
         _extractor = extractor;
         _ifrMapper = ifrMapper;
         _patchApplier = patchApplier;
     }
 
-    public int Extract(string inputFile, string outputFile)
+    public int Extract(string inputFile, string outputFile, SerializationFormat outputFormat)
     {
         var defaultsFileBytes = _fileManager.ReadBytes(inputFile);
         _logger.LogInformation("Read {size} bytes of BIOS defaults from {inputFile}", defaultsFileBytes.Length, inputFile);
@@ -45,16 +46,16 @@ public class BiosDefaultsCommandHandlers
         };
 
         _logger.LogInformation("Writing {count} BIOS defaults variables to {outputFile}", result.Variables.Count, outputFile);
-        _fileManager.Write(_jsonSerializer.Serialize(result), outputFile, true);
+        _fileManager.Write(_serializer.Serialize(result, outputFormat), outputFile, true);
         return 0;
     }
 
-    public int MapStore(string inputFile, string ifrFile, string outputFile, bool ignoreVersions)
+    public int MapStore(string inputFile, string ifrFile, string outputFile, SerializationFormat outputFormat, bool ignoreVersions)
     {
-        var biosDefaultsMap = _jsonSerializer.Deserialize<BiosDefaultsMapDocument>(_fileManager.ReadString(inputFile));
+        var biosDefaultsMap = _serializer.Deserialize<BiosDefaultsMapDocument>(_fileManager.ReadString(inputFile), SerializationFormat.Auto);
         ValidateBiosDefaultsMap(biosDefaultsMap, ignoreVersions);
 
-        var ifr = _jsonSerializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile));
+        var ifr = _serializer.Deserialize<IfrJsonDocument>(_fileManager.ReadString(ifrFile), SerializationFormat.Auto);
         ValidateIfrDocument(ifr, ignoreVersions);
 
         _logger.LogInformation(
@@ -73,7 +74,7 @@ public class BiosDefaultsCommandHandlers
 
         _logger.LogInformation("Writing {mappingCount} BIOS defaults store mappings to {outputFile}",
             result.QuestionMappings.Count, outputFile);
-        _fileManager.Write(_jsonSerializer.Serialize(result), outputFile, true);
+        _fileManager.Write(_serializer.Serialize(result, outputFormat), outputFile, true);
         return 0;
     }
 
@@ -81,8 +82,8 @@ public class BiosDefaultsCommandHandlers
         bool ignoreChecksums)
     {
         var biosDefaults = _fileManager.ReadBytes(inputFile);
-        var storeMap = _jsonSerializer.Deserialize<BiosDefaultsIfrMapDocument>(_fileManager.ReadString(mapFile));
-        var patch = _jsonSerializer.Deserialize<BiosDefaultsPatchDocument>(_fileManager.ReadString(patchFile));
+        var storeMap = _serializer.Deserialize<BiosDefaultsIfrMapDocument>(_fileManager.ReadString(mapFile), SerializationFormat.Auto);
+        var patch = _serializer.Deserialize<BiosDefaultsPatchDocument>(_fileManager.ReadString(patchFile), SerializationFormat.Auto);
         ValidateStoreMap(storeMap, ignoreVersions);
         ValidateStorePatch(patch, ignoreVersions);
 
